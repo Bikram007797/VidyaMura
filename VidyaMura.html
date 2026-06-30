@@ -478,8 +478,12 @@ body {
 .cmodal {
   background: var(--bg-card); 
   border-top: 1px solid var(--border);
-  border-radius: 32px 32px 0 0; /* Softer, friendlier top curve */
+  border-radius: 32px 32px 0 0;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-height: 85vh; /* Screen-er baire jeno na jay */
+  display: flex;
+  flex-direction: column;
 }
 @keyframes modalSlideIn { from{transform:translateY(100%)} to{transform:translateY(0)} }
 .cmodal-handle {
@@ -1110,6 +1114,7 @@ border: 2px solid #3d6b4a; background: #0f1a12; color: var(--accent-green);
   border-radius: var(--radius-sm);
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  margin-bottom: 14px; /* Added to separate cards */
 }
 .dq-course-card:hover { border-color: var(--accent-gold-dim);
   box-shadow: 0 0 12px rgba(229, 192, 123, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2); }
@@ -1162,11 +1167,12 @@ border: 2px solid #3d6b4a; background: #0f1a12; color: var(--accent-green);
    EXAMS TAB
 ═══════════════════════════════════════ */
 .dq-exam-card {
- background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
+  background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  margin-bottom: 14px; /* Added to separate cards */
 }
 .dq-exam-card:hover { border-color: var(--accent-gold-dim);
   box-shadow: 0 0 12px rgba(229, 192, 123, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2); }
@@ -1892,14 +1898,15 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <!-- FAB -->
   <div class="fab-overlay" id="fab-overlay" onclick="closeFab()"></div>
   <div class="fab-menu" id="fab-menu">
-    <button class="fab-menu-item" id="fmi-home"      onclick="fabGo('home')">     <div class="fab-mi-icon">🛖</div><div class="fab-mi-label">Village</div></button>
-    <button class="fab-menu-item" id="fmi-tasks"     onclick="fabGo('tasks')">    <div class="fab-mi-icon">🛤️</div><div class="fab-mi-label">Paths</div></button>
-    <button class="fab-menu-item" id="fmi-courses"   onclick="fabGo('courses')">  <div class="fab-mi-icon">📜</div><div class="fab-mi-label">Scrolls</div></button>
-    <button class="fab-menu-item" id="fmi-exams"     onclick="fabGo('exams')">    <div class="fab-mi-icon">⛩️</div><div class="fab-mi-label">Trials</div></button>
-    <button class="fab-menu-item" id="fmi-analytics" onclick="fabGo('analytics')"><div class="fab-mi-icon">🎋</div><div class="fab-mi-label">Dojo</div></button>
-    <button class="fab-menu-item" id="fmi-rewards"   onclick="fabGo('rewards')">  <div class="fab-mi-icon">🏮</div><div class="fab-mi-label">Market</div></button>
-    <button class="fab-menu-item" id="fmi-timer"     onclick="fabGo('timer')">    <div class="fab-mi-icon">🧘</div><div class="fab-mi-label">Zen Timer</div></button>
-    <button class="fab-menu-item" id="fmi-profile"   onclick="fabGo('profile')">  <div class="fab-mi-icon">🪷</div><div class="fab-mi-label">Monk</div></button>
+   <button class="fab-menu-item" id="fmi-home"      onclick="fabGo('home')">     <div class="fab-mi-icon">🏡</div><div class="fab-mi-label">Mura</div></button>
+    <button class="fab-menu-item" id="fmi-tasks"     onclick="fabGo('tasks')">    <div class="fab-mi-icon">✅</div><div class="fab-mi-label">Dojo</div></button>
+    <button class="fab-menu-item" id="fmi-courses"   onclick="fabGo('courses')">  <div class="fab-mi-icon">📚</div><div class="fab-mi-label">Patha</div></button>
+    <button class="fab-menu-item" id="fmi-exams"     onclick="fabGo('exams')">    <div class="fab-mi-icon">📝</div><div class="fab-mi-label">Pariksha</div></button>
+    <button class="fab-menu-item" id="fmi-analytics" onclick="fabGo('analytics')"><div class="fab-mi-icon">🏆</div><div class="fab-mi-label">Honor</div></button>
+    <button class="fab-menu-item" id="fmi-rewards"   onclick="fabGo('rewards')">  <div class="fab-mi-icon">🎁</div><div class="fab-mi-label">Shrine</div></button>
+    <button class="fab-menu-item" id="fmi-timer"     onclick="fabGo('timer')">    <div class="fab-mi-icon">⏳</div><div class="fab-mi-label">Zendo</div></button>
+    <button class="fab-menu-item" id="fmi-profile"   onclick="fabGo('profile')">  <div class="fab-mi-icon">👤</div><div class="fab-mi-label">Journey</div></button>
+
   </div>
   <div class="fab-center" id="fab-center" onclick="toggleFab()">⛩️</div>
   <nav class="bottom-nav" style="justify-content:center">
@@ -2215,7 +2222,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <label>WHAT'S YOUR FOCUS THIS WEEK?</label>
       <textarea id="gm-text" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:11px 14px;font-size:0.9rem;outline:none;resize:vertical;min-height:100px;line-height:1.5;font-family:Inter,sans-serif" placeholder="e.g. Complete chapters 5–8 and revise all mock tests"></textarea>
     </div>
-    <button class="btn-primary" onclick="saveGoal()">Save Goal</button>
+   <button class="btn-primary" style="width: 100%; padding: 12px; margin-top: 10px; font-size: 0.95rem; font-weight: 700;" onclick="saveGoal()">Save Goal</button>
   </div>
 </div>
 
@@ -3545,56 +3552,259 @@ async function updateAnalytics() {
 // GUILD STORE & REWARDS SYSTEM
 // ═══════════════════════════════════════════
 const GUILD_REWARDS = [
-  // ── TOOLS (তোমার নতুন "Weapons" equivalent) ──
-  {id:1,  name:"Bamboo Writing Brush",  power:0.1, price:5,  category:"Tools",       gif:"assets/tools/bamboo-brush.gif",       desc:"The first brush stroke begins a thousand scrolls."},
-  {id:2,  name:"Scholar's Ink Stone",   power:1.1, price:25, category:"Tools",       gif:"assets/tools/ink-stone.gif",          desc:"Grinds knowledge into permanent memory."},
-  {id:3,  name:"Sutra Bell",            power:0.9, price:15, category:"Tools",       gif:"assets/tools/sutra-bell.gif",         desc:"Its ring clears distraction from the mind."},
-  {id:4,  name:"Ancient Abacus",        power:0.8, price:10, category:"Tools",       gif:"assets/tools/ancient-abacus.gif",     desc:"Count your victories with clarity."},
-  {id:5,  name:"Lotus Lantern",         power:1.0, price:20, category:"Tools",       gif:"assets/tools/lotus-lantern.gif",      desc:"Lights the path through the darkest study session."},
-  {id:6,  name:"Scholar's Compass",     power:0.8, price:10, category:"Tools",       gif:"assets/tools/scholars-compass.gif",   desc:"Always points toward your true goal."},
+ // ─────────────────────────────
+  // INSTRUMENTS
+  // ─────────────────────────────
+  {
+    id:1,
+    name:"Bamboo Brush",
+    power:0.1,
+    price:5,
+    category:"Instruments",
+    gif:"shrines/INSTRUMENTS/Bamboo Brush.png",
+    desc:"Every masterpiece begins with a single brushstroke."
+  },
+  {
+    id:2,
+    name:"Ink Stone",
+    power:0.8,
+    price:10,
+    category:"Instruments",
+    gif:"shrines/INSTRUMENTS/Ink Stone.png",
+    desc:"Where thoughts become lasting wisdom."
+  },
+  {
+    id:3,
+    name:"Temple Bell",
+    power:0.9,
+    price:15,
+    category:"Instruments",
+    gif:"shrines/INSTRUMENTS/Temple Bell.png",
+    desc:"Its gentle chime clears the wandering mind."
+  },
+  {
+    id:4,
+    name:"Lotus Lantern",
+    power:1.0,
+    price:20,
+    category:"Instruments",
+    gif:"assets/instruments/lotus-lantern.gif",
+    desc:"Illuminates every step along your Patha."
+  },
+  {
+    id:5,
+    name:"Path Compass",
+    power:1.2,
+    price:30,
+    category:"Instruments",
+    gif:"shrines/INSTRUMENTS/Path Compass.png",
+    desc:"Always points toward purposeful learning."
+  },
+  {
+    id:6,
+    name:"Temple Abacus",
+    power:1.5,
+    price:50,
+    category:"Instruments",
+    gif:"shrines/INSTRUMENTS/Temple Abacus.png",
+    desc:"Measures progress beyond numbers."
+  },
 
-  // ── ROBES (তোমার নতুন "Armor" equivalent) ──
-  {id:7,  name:"Mura Elder's Robe",     power:1.0, price:20, category:"Robes",       gif:"assets/robes/elder-robe.gif",         desc:"Worn by those who protect the village's wisdom."},
-  {id:8,  name:"Bamboo Monk's Wrap",    power:0.8, price:10, category:"Robes",       gif:"assets/robes/monks-wrap.gif",         desc:"Shields the mind from worldly noise."},
-  {id:9,  name:"Sakura Haori",          power:0.9, price:15, category:"Robes",       gif:"assets/robes/sakura-haori.gif",       desc:"Blooms with quiet determination."},
-  {id:10, name:"Indigo Sensei Cloak",   power:1.3, price:35, category:"Robes",       gif:"assets/robes/sensei-cloak.gif",       desc:"Grants the authority of a true teacher."},
-  {id:11, name:"Forest Guardian Vest",  power:1.1, price:25, category:"Robes",       gif:"assets/robes/forest-vest.gif",        desc:"Woven from the spirit of the ancient forest."},
+  // ─────────────────────────────
+  // VESTMENTS
+  // ─────────────────────────────
+  {
+    id:7,
+    name:"Novice Robe",
+    power:0.1,
+    price:5,
+    category:"Vestments",
+    gif:"shrines/VESTMENTS/Novice Robe.png",
+    desc:"The humble robe of every new seeker."
+  },
+  {
+    id:8,
+    name:"Bamboo Wrap",
+    power:0.8,
+    price:10,
+    category:"Vestments",
+    gif:"shrines/VESTMENTS/Bamboo Wrap.png",
+    desc:"Light as bamboo, steady as discipline."
+  },
+  {
+    id:9,
+    name:"Sakura Haori",
+    power:0.9,
+    price:15,
+    category:"Vestments",
+    gif:"shrines/VESTMENTS/Sakura Haori.png",
+    desc:"A reminder that growth arrives with every season."
+  },
+  {
+    id:10,
+    name:"Guardian Vest",
+    power:1.1,
+    price:25,
+    category:"Vestments",
+    gif:"shrines/VESTMENTS/Guardian Vest.png",
+    desc:"Worn by those who safeguard the spirit of VidyaMura."
+  },
+  {
+    id:11,
+    name:"Sensei Cloak",
+    power:1.3,
+    price:35,
+    category:"Vestments",
+    gif:"shrines/VESTMENTS/Sensei Cloak.png",
+    desc:"Earned through patience, not pride."
+  },
+  {
+    id:12,
+    name:"Elder Robe",
+    power:1.6,
+    price:60,
+    category:"Vestments",
+    gif:"shrines/VESTMENTS/Elder Robe.png",
+    desc:"A symbol of wisdom shared with the village."
+  },
 
-  // ── WISDOM (তোমার নতুন "Skills" equivalent) ──
-  {id:12, name:"Leaf of Foresight",     power:0.1, price:5,  category:"Wisdom",      gif:"assets/wisdom/leaf-foresight.gif",    desc:"A sacred leaf that reveals what lies ahead."},
-  {id:13, name:"Map of the Mura",       power:0.9, price:15, category:"Wisdom",      gif:"assets/wisdom/mura-map.gif",          desc:"Navigate the fastest paths to mastery."},
-  {id:14, name:"Vow Stone",             power:1.0, price:20, category:"Wisdom",      gif:"assets/wisdom/vow-stone.gif",         desc:"Carry your commitment wherever you go."},
-  {id:15, name:"Zen Archer's Focus",    power:1.1, price:25, category:"Wisdom",      gif:"assets/wisdom/zen-archer.gif",        desc:"One arrow. One answer. Perfect precision."},
-  {id:16, name:"Firefly Jar",           power:0.8, price:10, category:"Wisdom",      gif:"assets/wisdom/firefly-jar.gif",       desc:"Tiny lights that illuminate the mind at night."},
-  {id:17, name:"Mind Garden Scroll",    power:1.2, price:30, category:"Wisdom",      gif:"assets/wisdom/mind-garden.gif",       desc:"Tends the garden of memory within."},
+  // ─────────────────────────────
+  // RELICS
+  // ─────────────────────────────
+  {
+    id:13,
+    name:"Bodhi Leaf",
+    power:0.1,
+    price:5,
+    category:"Relics",
+    gif:"shrines/RELICS/Bodhi Leaf.png",
+    desc:"A small leaf carrying timeless wisdom."
+  },
+  {
+    id:14,
+    name:"Oath Stone",
+    power:0.9,
+    price:15,
+    category:"Relics",
+    gif:"shrines/RELICS/Oath Stone.png",
+    desc:"A promise carved into the heart."
+  },
+  {
+    id:15,
+    name:"Firefly Lantern",
+    power:1.0,
+    price:20,
+    category:"Relics",
+    gif:"shrines/RELICS/Firefly Lantern.png",
+    desc:"Tiny lights that guide silent nights of study."
+  },
+  {
+    id:16,
+    name:"Meditation Beads",
+    power:1.1,
+    price:25,
+    category:"Relics",
+    gif:"shrines/RELICS/Meditation Beads.png",
+    desc:"Each bead reflects a moment of mindfulness."
+  },
+  {
+    id:17,
+    name:"Memory Scroll",
+    power:1.3,
+    price:35,
+    category:"Relics",
+    gif:"shrines/RELICS/Memory Scroll.png",
+    desc:"Lessons written here never fade."
+  },
+  {
+    id:18,
+    name:"Harmony Charm",
+    power:1.6,
+    price:60,
+    category:"Relics",
+    gif:"shrines/RELICS/Harmony Charm.png",
+    desc:"Mind, body and Prana move as one."
+  },
 
-  // ── POTIONS (তোমার নতুন "Consumables" equivalent) ──
-  {id:18, name:"Morning Dew Elixir",    power:0.1, price:5,  category:"Potions",     gif:"assets/potions/morning-dew.gif",      desc:"A single drop refreshes an exhausted mind."},
-  {id:19, name:"Bamboo Tea Brew",       power:0.9, price:15, category:"Potions",     gif:"assets/potions/bamboo-tea.gif",       desc:"Brewed by village healers to restore focus."},
-  {id:20, name:"Totoro's Spirit Seed",  power:1.0, price:20, category:"Potions",     gif:"assets/potions/spirit-seed.gif",      desc:"Plant it and watch your knowledge grow overnight."},
-  {id:21, name:"Owl Sage's Nectar",     power:1.4, price:40, category:"Potions",     gif:"assets/potions/owl-nectar.gif",       desc:"Consumed by scholars before sacred exams."},
-  {id:22, name:"Village Hearth Ash",    power:0.8, price:10, category:"Potions",     gif:"assets/potions/hearth-ash.gif",       desc:"Blessed ash from the eternal study fire."},
-  {id:23, name:"Soot Sprite Ink",       power:0.9, price:15, category:"Potions",     gif:"assets/potions/soot-ink.gif",         desc:"Write notes that never fade from memory."}
+  // ─────────────────────────────
+  // BLESSINGS
+  // ─────────────────────────────
+  {
+    id:19,
+    name:"Morning Dew",
+    power:0.1,
+    price:5,
+    category:"Blessings",
+    gif:"shrines/BLESSINGS/Morning Dew.png",
+    desc:"A fresh beginning with every sunrise."
+  },
+  {
+    id:20,
+    name:"Matcha Tea",
+    power:0.8,
+    price:10,
+    category:"Blessings",
+    gif:"shrines/BLESSINGS/Matcha Tea.png",
+    desc:"Calms the mind and sharpens focus."
+  },
+  {
+    id:21,
+    name:"Herbal Infusion",
+    power:1.0,
+    price:20,
+    category:"Blessings",
+    gif:"shrines/BLESSINGS/Herbal Infusion.png",
+    desc:"Restores balance after long hours of practice."
+  },
+  {
+    id:22,
+    name:"Sage's Nectar",
+    power:1.2,
+    price:30,
+    category:"Blessings",
+    gif:"shrines/BLESSINGS/Sage's Nectar.png",
+    desc:"Favored by masters before great challenges."
+  },
+  {
+    id:23,
+    name:"Lotus Honey",
+    power:1.4,
+    price:40,
+    category:"Blessings",
+    gif:"shrines/BLESSINGS/Lotus Honey.png",
+    desc:"Sweetness that nourishes both body and spirit."
+  },
+  {
+    id:24,
+    name:"Sacred Rice Cake",
+    power:1.8,
+    price:75,
+    category:"Blessings",
+    gif:"shrines/BLESSINGS/Sacred Rice Cake.png",
+    desc:"A ceremonial offering celebrating true mastery."
+  }
+
 ];
 
 
-const GUILD_LEVELS = [
+
+ const GUILD_LEVELS = [
   {level:1, min:0,    max:100,  name:"Nava Shishya"},   
-  {level:2, min:101,  max:250,  name:"Vidya Balak"},          
+  {level:2, min:101,  max:250,  name:"Patha Yatri"},          
   {level:3, min:251,  max:450,  name:"Sadhaka"},            
-  {level:4, min:451,  max:700,  name:"Grama Sevaka"},        
-  {level:5, min:701,  max:1000, name:"Jnana Seeker"},        
+  {level:4, min:451,  max:700,  name:"Vidya Sevaka"},        
+  {level:5, min:701,  max:1000, name:"Mura Mitra"},        
   {level:6, min:1001, max:1350, name:"Mura Rakshaka"},       
   {level:7, min:1351, max:1750, name:"Vidya Acharya"},       
-  {level:8, min:1751, max:2200, name:"Zen Practitioner"},    
+  {level:8, min:1751, max:2200, name:"Zen Sadhaka"},    
   {level:9, min:2201, max:2700, name:"Grama Guru"},          
   {level:10,min:2701, max:3250, name:"Mura Maharishi"},      
   {level:11,min:3251, max:3850, name:"Prajna Master"},       
   {level:12,min:3851, max:4500, name:"Vidya Mahatma"},       
-  {level:13,min:4501, max:9999, name:"Enlightened Sage"}
+  {level:13,min:4501, max:9999, name:"Bodhisattva"}
 ];
 
-const GUILD_RANKS = ['RECRUIT','PRIVATE','CORPORAL','SERGEANT','STAFF SGT','LIEUTENANT','CAPTAIN','MAJOR','COLONEL','GENERAL'];
+const GUILD_RANKS = ['🌑 Dormant','🌒 Awakened','🟢 Centered','🍃 Flowing','🔥 Focused','⚡ Empowered','🌸 Harmonized','☀️ Radiant','🌟 Ascended','✨ Divine'];
 let guildFilter = 'All';
 
 function getGuildLevel(xp){ return GUILD_LEVELS.find(l => xp >= l.min && xp <= l.max) || GUILD_LEVELS[12]; }
@@ -4526,15 +4736,31 @@ async function loadJournal() {
       ? entries.map(e => {
           const learnedStr = e.learned && e.learned !== 'undefined' ? String(e.learned) : '';
           const isToday = e.date === today;
-          return `<div class="journal-history-item" style="${isToday ? 'border-left:3px solid var(--accent-gold);padding-left:10px;' : ''}">
-      <div class="journal-history-date">${e.date||'—'} ${isToday ? '<span style="font-size:0.6rem;color:var(--accent-gold);background:rgba(212,168,75,0.15);padding:1px 6px;border-radius:8px;margin-left:4px">Today</span>' : ''} ${e.mood && moodEmoji[e.mood] ? moodEmoji[e.mood] : ''}</div>
-      ${learnedStr ? `<div class="journal-history-text">${learnedStr.slice(0,120)}${learnedStr.length>120?'...':''}</div>` : '<div class="journal-history-text" style="color:var(--text-muted);font-style:italic">No learning recorded</div>'}
-    </div>`;
+       return `<div class="journal-history-item" style="${isToday ? 'border-left:3px solid var(--accent-gold);padding-left:10px;' : ''}">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div class="journal-history-date">${e.date||'—'} ${isToday ? '<span style="font-size:0.6rem;color:var(--accent-gold);background:rgba(212,168,75,0.15);padding:1px 6px;border-radius:8px;margin-left:4px">Today</span>' : ''} ${e.mood && moodEmoji[e.mood] ? moodEmoji[e.mood] : ''}</div>
+    <button onclick="deleteJournalEntry('${e.id}')" style="background:none;border:none;cursor:pointer;font-size:0.85rem;padding:0;">❌</button>
+  </div>
+  ${learnedStr ? `<div class="journal-history-text">${learnedStr.slice(0,120)}${learnedStr.length>120?'...':''}</div>` : '<div class="journal-history-text" style="color:var(--text-muted);font-style:italic">No learning recorded</div>'}
+</div>`;
         }).join('')
       : '<div style="font-size:0.75rem;color:var(--text-muted)">No past entries yet.</div>';
   } catch(e) { console.error('Journal history error:', e); }
 }
 
+// Function to delete a journal entry with confirmation
+async function deleteJournalEntry(id) {
+  if (confirm("Are you sure you want to delete this entry?")) {
+    try {
+      await db.collection('userJournal').doc(id).delete();
+      toast('Journal entry deleted');
+      loadJournal(); // Refresh the list
+    } catch(e) {
+      console.error('Delete error:', e);
+      toast('❌ Failed to delete entry');
+    }
+  }
+}
 async function saveJournal() {
   if(!currentUser) return;
   const today = getLocalDateString();
