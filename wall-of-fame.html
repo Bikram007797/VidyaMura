@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuestForge - Hall of Legends</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;600;700&display=swap');
+    
+    html, body, #root {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background: #0a0e1a;
+        background-attachment: fixed;
+        font-family: 'Cinzel', serif;
+    }
+    
+    * {
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
+        box-sizing: border-box;
+    }
+    
+    button {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    @keyframes pulse-glow { 
+      0%, 100% { 
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.8),
+                     0 0 40px rgba(255, 140, 0, 0.5); 
+      } 
+      50% { 
+        text-shadow: 0 0 30px rgba(255, 215, 0, 1),
+                     0 0 60px rgba(255, 140, 0, 0.8),
+                     0 0 80px rgba(255, 69, 0, 0.6); 
+      } 
+    }
+
+    @keyframes torch-flicker {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(0.95); }
+    }
+
+    .torch-glow {
+      animation: torch-flicker 2s ease-in-out infinite;
+    }
+
+    .fantasy-card {
+      background: linear-gradient(135deg, #1a1f35 0%, #2d1810 100%);
+      border: 3px solid;
+      border-image: linear-gradient(135deg, #d4af37, #8b6914, #d4af37) 1;
+      box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+
+    .fantasy-card::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
+      background: linear-gradient(135deg, #d4af37, #8b6914, #d4af37);
+      border-radius: inherit;
+      z-index: -1;
+      opacity: 0.5;
+      filter: blur(8px);
+    }
+
+    .parchment-bg {
+      background: linear-gradient(135deg, #2a1810 0%, #1a1410 100%);
+      border: 2px solid #8b6914;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5),
+                  0 4px 16px rgba(212, 175, 55, 0.2);
+    }
+
+    .medieval-button {
+      background: linear-gradient(135deg, #8b6914 0%, #d4af37 50%, #8b6914 100%);
+      border: 2px solid #ffd700;
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      color: #1a1410;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .medieval-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .medieval-button:hover::before {
+      left: 100%;
+    }
+
+    .medieval-button:active {
+      box-shadow: 0 2px 6px rgba(212, 175, 55, 0.4),
+                  inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .post-card {
+        background: linear-gradient(135deg, #1a1f35 0%, #2d1810 100%);
+        border: 3px solid;
+        border-image: linear-gradient(135deg, #d4af37, #8b6914, #d4af37) 1;
+        box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        overflow: hidden;
+        margin-bottom: 24px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .post-card::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
+      background: linear-gradient(135deg, #d4af37, #8b6914, #d4af37);
+      border-radius: inherit;
+      z-index: -1;
+      opacity: 0.5;
+      filter: blur(8px);
+    }
+
+    .post-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 2px,
+          rgba(212, 175, 55, 0.03) 2px,
+          rgba(212, 175, 55, 0.03) 4px
+        );
+      pointer-events: none;
+    }
+    
+    .post-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 48px rgba(212, 175, 55, 0.5);
+    }
+    
+    .post-card:active {
+        transform: translateY(-2px);
+    }
+    
+    .post-header {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(139, 105, 20, 0.15));
+        border-bottom: 2px solid #8b6914;
+    }
+    
+    .post-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        margin-right: 12px;
+        border: 3px solid #d4af37;
+        box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+    
+    .post-avatar:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 24px rgba(212, 175, 55, 0.6);
+    }
+    
+    .post-user-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .post-username {
+        font-weight: 700;
+        font-size: 16px;
+        color: #ffd700;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        letter-spacing: 0.3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-family: 'MedievalSharp', cursive;
+    }
+    
+    .post-timestamp {
+        font-size: 12px;
+        color: #c9a961;
+        margin-top: 4px;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-family: 'Cinzel', serif;
+    }
+    
+    .post-image {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        background: linear-gradient(135deg, #2a1810 0%, #1a1410 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-top: 2px solid #8b6914;
+        border-bottom: 2px solid #8b6914;
+    }
+    
+    .post-image::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 30% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 60%);
+        animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
+    
+    .post-image img {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 6px solid #d4af37;
+        box-shadow: 0 8px 32px rgba(212, 175, 55, 0.5);
+        position: relative;
+        z-index: 1;
+        transition: all 0.4s ease;
+    }
+
+    .post-image img:hover {
+        transform: scale(1.05) rotate(360deg);
+    }
+    
+    .post-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1px;
+        background: rgba(139, 105, 20, 0.3);
+        border-bottom: 2px solid #8b6914;
+    }
+
+    @media (min-width: 480px) {
+        .post-stats {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 16px 8px;
+        background: linear-gradient(135deg, rgba(42, 24, 16, 0.8), rgba(26, 20, 16, 0.8));
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .stat-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .stat-item:hover::before {
+        left: 100%;
+    }
+
+    .stat-item:hover {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(139, 105, 20, 0.2));
+        transform: scale(1.05);
+    }
+    
+    .stat-value {
+        font-weight: 800;
+        font-size: 20px;
+        color: #ffd700;
+        margin-bottom: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        font-family: 'Cinzel', serif;
+    }
+
+    @media (min-width: 480px) {
+        .stat-value {
+            font-size: 24px;
+        }
+    }
+    
+    .stat-label {
+        font-size: 9px;
+        color: #c9a961;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-family: 'Cinzel', serif;
+    }
+
+    @media (min-width: 480px) {
+        .stat-label {
+            font-size: 10px;
+        }
+    }
+    
+    .stat-subtext {
+        font-size: 11px;
+        color: #d4af37;
+        font-weight: 600;
+        margin-top: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 0 4px;
+        font-family: 'Cinzel', serif;
+    }
+    
+    .post-actions {
+        display: flex;
+        justify-content: space-around;
+        padding: 16px 8px;
+        background: linear-gradient(135deg, rgba(42, 24, 16, 0.8), rgba(26, 20, 16, 0.8));
+        gap: 8px;
+    }
+    
+    .action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #8b6914 0%, #d4af37 50%, #8b6914 100%);
+        border: 2px solid #ffd700;
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #1a1410;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        flex: 1;
+        min-width: 0;
+        font-family: 'Cinzel', serif;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    @media (min-width: 480px) {
+        .action-btn {
+            padding: 12px 20px;
+            font-size: 14px;
+        }
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .action-btn:hover::before {
+        left: 100%;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(212, 175, 55, 0.6),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+    
+    .action-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(212, 175, 55, 0.4),
+                    inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .action-btn.liked {
+        background: linear-gradient(135deg, #8b2914 0%, #d43737 50%, #8b2914 100%);
+        border-color: #ff4444;
+        color: #ffcccc;
+    }
+    
+    .action-icon {
+        font-size: 18px;
+        transition: transform 0.3s ease;
+        position: relative;
+        z-index: 1;
+        flex-shrink: 0;
+    }
+
+    @media (min-width: 480px) {
+        .action-icon {
+            font-size: 20px;
+        }
+    }
+    
+    .action-btn:hover .action-icon {
+        transform: scale(1.2);
+    }
+
+    .action-btn-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 380px) {
+        .action-btn-text {
+            display: none;
+        }
+    }
+
+    .animate-like {
+        animation: likeAnimation 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes likeAnimation {
+        0% { transform: scale(1) rotate(0deg); }
+        50% { transform: scale(1.4) rotate(15deg); }
+        100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .count-animate {
+        animation: countPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes countPop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.5); }
+        100% { transform: scale(1); }
+    }
+
+    .particle {
+        position: fixed;
+        pointer-events: none;
+        font-size: 28px;
+        animation: particleFloat 1.2s ease-out forwards;
+        z-index: 1000;
+        filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.8));
+    }
+
+    @keyframes particleFloat {
+        0% {
+            opacity: 1;
+            transform: translateY(0) scale(1) rotate(0deg);
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(-120px) scale(0.3) rotate(720deg);
+        }
+    }
+
+    .total-likes-container {
+        position: fixed;
+        top: 80px;
+        right: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 100;
+    }
+
+    @media (min-width: 480px) {
+        .total-likes-container {
+            right: 20px;
+        }
+    }
+
+    .total-likes-badge {
+        background: linear-gradient(135deg, #8b6914 0%, #d4af37 100%);
+        backdrop-filter: blur(10px);
+        color: #1a1410;
+        padding: 8px 12px;
+        border-radius: 14px;
+        font-size: 12px;
+        font-weight: 700;
+        box-shadow: 0 4px 16px rgba(212, 175, 55, 0.5);
+        border: 2px solid #ffd700;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        font-family: 'Cinzel', serif;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    @media (min-width: 480px) {
+        .total-likes-badge {
+            font-size: 13px;
+            padding: 10px 16px;
+            border-radius: 16px;
+        }
+    }
+
+    .total-likes-badge:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 24px rgba(212, 175, 55, 0.7);
+    }
+    
+    .refresh-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #8b6914 0%, #d4af37 100%);
+        color: #1a1410;
+        border: 3px solid #ffd700;
+        box-shadow: 0 8px 32px rgba(212, 175, 55, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        z-index: 100;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: bold;
+    }
+
+    @media (min-width: 480px) {
+        .refresh-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            font-size: 24px;
+            bottom: 24px;
+            right: 24px;
+        }
+    }
+
+    .refresh-btn:hover {
+        transform: scale(1.1) rotate(90deg);
+        box-shadow: 0 12px 48px rgba(212, 175, 55, 0.7);
+    }
+    
+    .refresh-btn:active {
+        transform: scale(0.95) rotate(360deg);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #c9a961;
+    }
+
+    @media (min-width: 480px) {
+        .empty-state {
+            padding: 80px 20px;
+        }
+    }
+    
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.6;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @media (min-width: 480px) {
+        .empty-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+        }
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .empty-state h3 {
+        color: #ffd700;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        font-family: 'MedievalSharp', cursive;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    @media (min-width: 480px) {
+        .empty-state h3 {
+            font-size: 22px;
+        }
+    }
+
+    .empty-state p {
+        font-family: 'Cinzel', serif;
+        color: #c9a961;
+    }
+    
+    .loading-spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(212, 175, 55, .2);
+        border-radius: 50%;
+        border-top-color: #d4af37;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .header {
+        background: linear-gradient(135deg, #1a1f35 0%, #2d1810 100%);
+        backdrop-filter: blur(20px);
+        border-bottom: 3px solid #8b6914;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        box-shadow: 0 4px 24px rgba(212, 175, 55, 0.3);
+    }
+
+    .header-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #ffd700;
+        letter-spacing: 0.8px;
+        font-family: 'MedievalSharp', cursive;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8),
+                     0 0 10px rgba(255, 215, 0, 0.5);
+        animation: pulse-glow 2s ease-in-out infinite;
+    }
+
+    @media (min-width: 480px) {
+        .header-title {
+            font-size: 32px;
+            letter-spacing: 1px;
+        }
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 0 20px;
+    }
+
+    @media (min-width: 480px) {
+        .loading-container {
+            gap: 24px;
+        }
+    }
+
+    .loading-container h2 {
+        color: #ffd700;
+        font-size: 20px;
+        font-weight: 700;
+        text-align: center;
+        font-family: 'MedievalSharp', cursive;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    @media (min-width: 480px) {
+        .loading-container h2 {
+            font-size: 24px;
+        }
+    }
+
+    .loading-container p {
+        color: #c9a961;
+        font-size: 14px;
+        text-align: center;
+        font-family: 'Cinzel', serif;
+    }
+
+    @media (min-width: 480px) {
+        .loading-container p {
+            font-size: 16px;
+        }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+const firebaseConfig = {
+      apiKey: "AIzaSyBO-M54POwDhyEkfgyH84fblkOKrfgclck",
+      authDomain: "questforge-bd8e8.firebaseapp.com",
+      projectId: "questforge-bd8e8",
+      storageBucket: "questforge-bd8e8.firebasestorage.app",
+      messagingSenderId: "573584114891",
+      appId: "1:573584114891:web:a8aa4645c2b859a335474e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const WallOfFame = () => {
+      const [posts, setPosts] = React.useState([]);
+      const [userData, setUserData] = React.useState({});
+      const [loading, setLoading] = React.useState(true);
+      const [refreshing, setRefreshing] = React.useState(false);
+
+      const audioContext = React.useRef(null);
+
+      React.useEffect(() => {
+        audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
+      }, []);
+
+      const playLikeSound = () => {
+        if (!audioContext.current) return;
+        
+        try {
+          const oscillator = audioContext.current.createOscillator();
+          const gainNode = audioContext.current.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.current.destination);
+          
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(523.25, audioContext.current.currentTime);
+          oscillator.frequency.setValueAtTime(659.25, audioContext.current.currentTime + 0.1);
+          oscillator.frequency.setValueAtTime(783.99, audioContext.current.currentTime + 0.2);
+          
+          gainNode.gain.setValueAtTime(0.3, audioContext.current.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.current.currentTime + 0.3);
+          
+          oscillator.start(audioContext.current.currentTime);
+          oscillator.stop(audioContext.current.currentTime + 0.3);
+        } catch (error) {
+          console.log('Audio error:', error);
+        }
+      };
+
+      const createParticles = (x, y, emoji, count = 5) => {
+        for (let i = 0; i < count; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.textContent = emoji;
+          particle.style.left = x + (Math.random() - 0.5) * 100 + 'px';
+          particle.style.top = y + (Math.random() - 0.5) * 50 + 'px';
+          document.body.appendChild(particle);
+          
+          setTimeout(() => particle.remove(), 1200);
+        }
+      };
+
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return 'Just now';
+  
+  try {
+    let date;
+    
+    // Handle ISO string format (new format)
+    if (typeof timestamp === 'string' && timestamp.includes('T')) {
+      date = new Date(timestamp);
+    }
+    // Handle locale string format (old format - for backward compatibility)
+    else if (typeof timestamp === 'string') {
+      // Remove "Published: " prefix if exists
+      const cleanTimestamp = timestamp.replace('Published: ', '').replace('Enshrined: ', '');
+      
+      // Try parsing the locale string
+      date = new Date(cleanTimestamp);
+      
+      // If parsing failed, try alternate parsing
+      if (isNaN(date.getTime())) {
+        // Try parsing with different separators
+        const parts = cleanTimestamp.split(/[\/\-\,\s\:]+/);
+        if (parts.length >= 6) {
+          // Assume format: MM/DD/YYYY, HH:MM:SS or similar
+          date = new Date(parts[2], parts[0] - 1, parts[1], parts[3], parts[4], parts[5]);
+        }
+      }
+    }
+    // Handle Firebase Timestamp objects
+    else if (timestamp.toDate) {
+      date = timestamp.toDate();
+    }
+    // Handle Firebase Timestamp with seconds
+    else if (timestamp.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    }
+    // Handle direct Date object or milliseconds
+    else {
+      date = new Date(timestamp);
+    }
+    
+    // Validate the parsed date
+    if (isNaN(date.getTime())) {
+      console.log('Could not parse timestamp:', timestamp);
+      return 'Recently';
+    }
+    
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    // Show relative time for recent posts
+    if (diffInSeconds < 60) {
+      return 'Just now';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes}m ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours}h ago`;
+    } else if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days}d ago`;
+    } else {
+      // For older posts, show full date
+      const dateStr = date.toLocaleDateString('en-US', { 
+        year: 'numeric',
+        month: 'short', 
+        day: 'numeric'
+      });
+      
+      const timeStr = date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      return `${dateStr} at ${timeStr}`;
+    }
+  } catch (e) {
+    console.log('Date formatting error:', e, 'Timestamp:', timestamp);
+    return 'Recently';
+  }
+};
+
+      React.useEffect(() => {
+        const loadDataFromFirebase = async () => {
+          try {
+            const docRef = db.collection('questforge').doc('userData');
+            const doc = await docRef.get();
+            
+            if (doc.exists) {
+              console.log('✅ Data loaded from Firebase - Hall of Legends');
+              const data = doc.data();
+              setUserData(data);
+              
+              const allPosts = [];
+              
+              // Process Bikram's profile
+              if (data.Bikram && data.Bikram.publishedProfile) {
+                const profile = data.Bikram.publishedProfile;
+                console.log('Bikram timestamp:', profile.timestamp);
+                
+                allPosts.push({
+                  ...profile,
+                  id: 'bikram',
+                  userId: 'Bikram',
+                  likes: profile.likes || 0,
+                  totalLikes: data.Bikram.totalLikes || 0,
+                  likeAnimation: false,
+                  countAnimation: false
+                });
+              }
+              
+              // Process Piyali's profile
+              if (data.Piyali && data.Piyali.publishedProfile) {
+                const profile = data.Piyali.publishedProfile;
+                console.log('Piyali timestamp:', profile.timestamp);
+                
+                allPosts.push({
+                  ...profile,
+                  id: 'piyali', 
+                  userId: 'Piyali',
+                  likes: profile.likes || 0,
+                  totalLikes: data.Piyali.totalLikes || 0,
+                  likeAnimation: false,
+                  countAnimation: false
+                });
+              }
+              
+             // Sort by timestamp - handle various timestamp formats
+allPosts.sort((a, b) => {
+  const parseDate = (timestamp) => {
+    if (!timestamp) return new Date(0);
+    try {
+      if (typeof timestamp === 'string' && timestamp.includes('/') && timestamp.includes(',')) {
+        return new Date(timestamp);
+      } else if (typeof timestamp === 'string' && timestamp.includes('Published: ')) {
+        return new Date(timestamp.replace('Published: ', ''));
+      } else {
+        return new Date(timestamp);
+      }
+    } catch (e) {
+      return new Date(0);
+    }
+  };
+  
+  const timeA = parseDate(a.timestamp).getTime();
+  const timeB = parseDate(b.timestamp).getTime();
+  return timeB - timeA; // Newest first
+});
+              
+              setPosts(allPosts);
+            } else {
+              console.log('🔍 No data in Firebase');
+            }
+          } catch (error) {
+            console.error('❌ Firebase load error:', error);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        loadDataFromFirebase();
+        
+        // Real-time listener
+        const unsubscribe = db.collection('questforge').doc('userData')
+          .onSnapshot((doc) => {
+            if (doc.exists) {
+              console.log('🔄 Real-time update received');
+              const data = doc.data();
+              setUserData(data);
+              
+              const allPosts = [];
+              
+              if (data.Bikram && data.Bikram.publishedProfile) {
+                const profile = data.Bikram.publishedProfile;
+                allPosts.push({
+                  ...profile,
+                  id: 'bikram',
+                  userId: 'Bikram',
+                  likes: profile.likes || 0,
+                  totalLikes: data.Bikram.totalLikes || 0,
+                  likeAnimation: false,
+                  countAnimation: false
+                });
+              }
+              
+              if (data.Piyali && data.Piyali.publishedProfile) {
+                const profile = data.Piyali.publishedProfile;
+                allPosts.push({
+                  ...profile,
+                  id: 'piyali',
+                  userId: 'Piyali',
+                  likes: profile.likes || 0,
+                  totalLikes: data.Piyali.totalLikes || 0,
+                  likeAnimation: false,
+                  countAnimation: false
+                });
+              }
+              
+             // Sort by timestamp - handle various timestamp formats
+allPosts.sort((a, b) => {
+  const parseDate = (timestamp) => {
+    if (!timestamp) return new Date(0);
+    try {
+      if (typeof timestamp === 'string' && timestamp.includes('/') && timestamp.includes(',')) {
+        return new Date(timestamp);
+      } else if (typeof timestamp === 'string' && timestamp.includes('Published: ')) {
+        return new Date(timestamp.replace('Published: ', ''));
+      } else {
+        return new Date(timestamp);
+      }
+    } catch (e) {
+      return new Date(0);
+    }
+  };
+  
+  const timeA = parseDate(a.timestamp).getTime();
+  const timeB = parseDate(b.timestamp).getTime();
+  return timeB - timeA; // Newest first
+});
+              
+              setPosts(allPosts);
+            }
+          }, (error) => {
+            console.error('❌ Real-time listener error:', error);
+          });
+
+        return () => unsubscribe();
+      }, []);
+
+      const handleLike = async (postId, userId, event) => {
+        try {
+          playLikeSound();
+          
+          const rect = event.currentTarget.getBoundingClientRect();
+          const x = rect.left + rect.width / 2;
+          const y = rect.top;
+          
+          createParticles(x, y, '❤️', 10);
+          
+          setPosts(prevPosts => 
+            prevPosts.map(post => {
+              if (post.id === postId) {
+                return {
+                  ...post,
+                  likes: (post.likes || 0) + 1,
+                  likeAnimation: true,
+                  countAnimation: true
+                };
+              }
+              return post;
+            })
+          );
+          
+          setTimeout(() => {
+            setPosts(prevPosts => 
+              prevPosts.map(post => {
+                if (post.id === postId) {
+                  return { 
+                    ...post, 
+                    likeAnimation: false,
+                    countAnimation: false 
+                  };
+                }
+                return post;
+              })
+            );
+          }, 600);
+          
+          const currentData = { ...userData };
+          
+          if (!currentData[userId]) return;
+          
+          if (currentData[userId].publishedProfile) {
+            currentData[userId].publishedProfile.likes = 
+              (currentData[userId].publishedProfile.likes || 0) + 1;
+          }
+          
+          currentData[userId].totalLikes = 
+            (currentData[userId].totalLikes || 0) + 1;
+          
+          await db.collection('questforge').doc('userData').set(currentData);
+          console.log('✅ Like saved to Firebase');
+          
+        } catch (error) {
+          console.error('❌ Error saving like:', error);
+        }
+      };
+
+      const handleRefresh = async () => {
+        setRefreshing(true);
+        
+        try {
+          const docRef = db.collection('questforge').doc('userData');
+          const doc = await docRef.get();
+          
+          if (doc.exists) {
+            const data = doc.data();
+            setUserData(data);
+            
+            const allPosts = [];
+            
+            if (data.Bikram && data.Bikram.publishedProfile) {
+              const profile = data.Bikram.publishedProfile;
+              allPosts.push({
+                ...profile,
+                id: 'bikram',
+                userId: 'Bikram',
+                likes: profile.likes || 0,
+                totalLikes: data.Bikram.totalLikes || 0,
+                likeAnimation: false,
+                countAnimation: false
+              });
+            }
+            
+            if (data.Piyali && data.Piyali.publishedProfile) {
+              const profile = data.Piyali.publishedProfile;
+              allPosts.push({
+                ...profile,
+                id: 'piyali',
+                userId: 'Piyali',
+                likes: profile.likes || 0,
+                totalLikes: data.Piyali.totalLikes || 0,
+                likeAnimation: false,
+                countAnimation: false
+              });
+            }
+            
+            
+           // Sort by timestamp - handle various timestamp formats
+allPosts.sort((a, b) => {
+  const parseDate = (timestamp) => {
+    if (!timestamp) return new Date(0);
+    try {
+      if (typeof timestamp === 'string' && timestamp.includes('/') && timestamp.includes(',')) {
+        return new Date(timestamp);
+      } else if (typeof timestamp === 'string' && timestamp.includes('Published: ')) {
+        return new Date(timestamp.replace('Published: ', ''));
+      } else {
+        return new Date(timestamp);
+      }
+    } catch (e) {
+      return new Date(0);
+    }
+  };
+  
+  const timeA = parseDate(a.timestamp).getTime();
+  const timeB = parseDate(b.timestamp).getTime();
+  return timeB - timeA; // Newest first
+});
+            
+            setPosts(allPosts);
+          }
+        } catch (error) {
+          console.error('❌ Refresh error:', error);
+        } finally {
+          setTimeout(() => setRefreshing(false), 1000);
+        }
+      };
+
+      const getTotalLikesForUser = (userId) => {
+        if (!userData[userId]) return 0;
+        return userData[userId].totalLikes || 0;
+      };
+
+      if (loading) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 flex items-center justify-center relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5 15h15l-12 9 5 15-13-10-13 10 5-15-12-9h15z' fill='%23d4af37' fill-opacity='1'/%3E%3C/svg%3E")`,
+              backgroundSize: '60px 60px'
+            }}></div>
+            <div className="loading-container relative z-10">
+              <div className="text-6xl mb-4 torch-glow">🏆</div>
+              <div className="loading-spinner"></div>
+              <h2>Loading Hall of Legends...</h2>
+              <p>Retrieving Ancient Records</p>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 pb-24 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-5" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5 15h15l-12 9 5 15-13-10-13 10 5-15-12-9h15z' fill='%23d4af37' fill-opacity='1'/%3E%3C/svg%3E")`,
+            backgroundSize: '60px 60px'
+          }}></div>
+
+          <div className="header">
+            <div className="max-w-lg mx-auto px-4 py-4 flex justify-center items-center">
+              <div className="text-center">
+                <div className="text-3xl mb-1 torch-glow">👑</div>
+                <h1 className="header-title">HALL OF LEGENDS</h1>
+                <div className="h-0.5 w-32 mx-auto bg-gradient-to-r from-transparent via-yellow-600 to-transparent mt-2"></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="total-likes-container">
+            {userData.Bikram && userData.Bikram.publishedProfile && (
+              <div className="total-likes-badge">
+                Bikram: {getTotalLikesForUser('Bikram')} ♥
+              </div>
+            )}
+            {userData.Piyali && userData.Piyali.publishedProfile && (
+              <div className="total-likes-badge">
+                Piyali: {getTotalLikesForUser('Piyali')} ♥
+              </div>
+            )}
+          </div>
+
+          <div className="max-w-lg mx-auto px-4 py-6 relative z-10">
+            {posts.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon torch-glow">🏆</div>
+                <h3>No Legendary Heroes Yet</h3>
+                <p>
+                  When champions publish their profiles in QuestForge, they shall be enshrined here for eternity.
+                </p>
+              </div>
+            ) : (
+              posts.map(post => (
+                <div key={post.id} className="post-card">
+                  <div className="post-header">
+                    <img 
+                      src={post.avatarUrl} 
+                      alt={post.avatarName}
+                      className="post-avatar"
+                    />
+                    <div className="post-user-info">
+                      <div className="post-username">{post.avatarName}</div>
+                      <div className="post-timestamp">
+                        {formatTimestamp(post.timestamp)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="post-image">
+                    <img 
+                      src={post.avatarUrl} 
+                      alt={post.avatarName}
+                    />
+                  </div>
+                  
+                  <div className="post-stats">
+                    <div className="stat-item">
+                      <div className="stat-value">Lv. {post.level}</div>
+                      <div className="stat-label">Level</div>
+                      <div className="stat-subtext">{post.levelName}</div>
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-value">{post.totalXP}</div>
+                      <div className="stat-label">Total XP</div>
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-value">{post.rank}</div>
+                      <div className="stat-label">Rank</div>
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-value">{post.power.toFixed(1)}%</div>
+                      <div className="stat-label">Power</div>
+                    </div>
+                  </div>
+                  
+                  <div className="post-actions">
+                    <button 
+                      className={`action-btn ${post.likes > 0 ? 'liked' : ''}`}
+                      onClick={(e) => handleLike(post.id, post.userId, e)}
+                    >
+                      <span className={`action-icon ${post.likeAnimation ? 'animate-like' : ''}`}>
+                        {post.likes > 0 ? '❤️' : '🤍'}
+                      </span>
+                      <span className={post.countAnimation ? 'count-animate' : ''}>
+                        {post.likes || 0}
+                      </span>
+                    </button>
+                    
+                    <button className="action-btn">
+                      <span className="action-icon">💬</span>
+                      <span className="action-btn-text">comment</span>
+                    </button>
+                    
+                    <button className="action-btn">
+                      <span className="action-icon">⚔️</span>
+                      <span className="action-btn-text">Share</span>
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <button 
+            className="refresh-btn"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? <div className="loading-spinner"></div> : '↻'}
+          </button>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<WallOfFame />);
+  </script>
+</body>
+</html>

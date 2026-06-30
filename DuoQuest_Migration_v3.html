@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DuoQuest Migration Tool</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0f; color: #f0eadc; font-family: Inter, sans-serif; padding: 20px; max-width: 620px; margin: 0 auto; }
+h1 { font-family: Cinzel, serif; color: #d4a84b; margin-bottom: 4px; font-size: 1.4rem; letter-spacing: 2px; }
+.sub { color: #a09880; font-size: 0.8rem; margin-bottom: 20px; }
+.card { background: #12121a; border: 1px solid rgba(212,168,75,0.2); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+h2 { font-size: 0.82rem; color: #d4a84b; margin-bottom: 10px; letter-spacing: 1px; }
+input[type=text] { width: 100%; background: #0a0a0f; border: 1px solid rgba(212,168,75,0.2); border-radius: 8px; color: #f0eadc; padding: 9px 12px; font-size: 0.82rem; margin-bottom: 8px; outline: none; font-family: monospace; }
+input[type=text]:focus { border-color: #7c5cbf; }
+label { font-size: 0.68rem; color: #a09880; display: block; margin-bottom: 3px; letter-spacing: 0.5px; }
+.btn { padding: 10px 22px; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 6px; }
+.btn-primary { background: #7c5cbf; color: #fff; }
+.btn-primary:hover { background: #a77ee8; }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+.log { background: #060608; border: 1px solid #1a1a26; border-radius: 8px; padding: 12px; height: 280px; overflow-y: auto; font-size: 0.73rem; font-family: monospace; margin-top: 10px; line-height: 1.8; }
+.ok { color: #4caf82; } .warn { color: #e08840; } .err { color: #e05555; } .info { color: #3ab5c8; } .dim { color: #5a5445; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
+.stat { background: #1a1a26; border-radius: 8px; padding: 8px; text-align: center; }
+.stat-val { font-size: 1rem; font-weight: 700; color: #d4a84b; font-family: Cinzel, serif; }
+.stat-lbl { font-size: 0.58rem; color: #5a5445; margin-top: 1px; }
+.progress-wrap { background: #1a1a26; border-radius: 4px; height: 6px; margin-top: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #7c5cbf, #d4a84b); border-radius: 4px; transition: width 0.4s; width: 0%; }
+.uid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.file-drop { border: 2px dashed rgba(212,168,75,0.25); border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; margin-bottom: 8px; }
+.file-drop input { display: none; }
+.file-lbl { font-size: 0.8rem; color: #a09880; }
+.file-nm { font-size: 0.72rem; color: #4caf82; margin-top: 4px; }
+.preview-table { width:100%; font-size:0.68rem; border-collapse:collapse; margin-top:8px; }
+.preview-table th { background:#1a1a26; color:#a09880; padding:5px 8px; text-align:left; }
+.preview-table td { padding:4px 8px; border-bottom:1px solid #1a1a26; color:#f0eadc; }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<h1>⚔ DuoQuest</h1>
+<p class="sub">Notion to Firebase Migration Tool</p>
+
+<div class="card">
+  <h2>STEP 1 — FIREBASE CONFIG</h2>
+  <label>API KEY</label>
+  <input type="text" id="apiKey" placeholder="AIzaSy...">
+  <label>PROJECT ID</label>
+  <input type="text" id="projectId" placeholder="duoquest-xxxxx">
+  <label>APP ID</label>
+  <input type="text" id="appId" placeholder="1:123456:web:abcdef">
+  <button class="btn btn-primary" id="connect-btn" onclick="initFB()">Connect Firebase</button>
+  <div id="fb-status" style="font-size:0.72rem;margin-top:8px;color:#a09880"></div>
+</div>
+
+<div class="card">
+  <h2>STEP 2 — USER UIDs</h2>
+  <p style="font-size:0.7rem;color:#5a5445;margin-bottom:10px">Firebase Console → Authentication → Users → copy UID</p>
+  <div class="uid-grid">
+    <div><label>BIKRAM UID</label><input type="text" id="uid-bikram" placeholder="Firebase UID"></div>
+    <div><label>PIYALI UID</label><input type="text" id="uid-piyali" placeholder="Firebase UID"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>STEP 3 — UPLOAD EXCEL</h2>
+  <div class="file-drop" onclick="document.getElementById('xlsx-input').click()">
+    <input type="file" id="xlsx-input" accept=".xlsx,.xls" onchange="handleFile(this)">
+    <div class="file-lbl">Click to select Excel file (.xlsx)</div>
+    <div class="file-nm" id="file-nm"></div>
+  </div>
+  <button class="btn btn-primary" id="parse-btn" onclick="parseFile()" disabled>Parse and Preview</button>
+  <div id="parse-out"></div>
+</div>
+
+<div class="card">
+  <h2>STEP 4 — MIGRATE</h2>
+  <button class="btn btn-primary" id="migrate-btn" onclick="startMigration()" disabled>Start Migration</button>
+  <div class="progress-wrap"><div class="progress-fill" id="prog"></div></div>
+  <div class="log" id="log"><span class="dim">Waiting...</span></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-firestore-compat.min.js"></script>
+<script>
+var db = null;
+var parsedData = [];
+var fileData = null;
+
+function log(msg, type) {
+  if (!type) type = 'info';
+  var el = document.getElementById('log');
+  el.innerHTML += '<div class="' + type + '">' + msg + '</div>';
+  el.scrollTop = el.scrollHeight;
+}
+
+function setP(pct) {
+  document.getElementById('prog').style.width = Math.min(100, pct) + '%';
+}
+
+async function initFB() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  var projectId = document.getElementById('projectId').value.trim();
+  var appId = document.getElementById('appId').value.trim();
+  if (!apiKey || !projectId) { alert('API Key and Project ID required'); return; }
+
+  var statusEl = document.getElementById('fb-status');
+  statusEl.innerHTML = '<span style="color:#e08840">Connecting...</span>';
+  document.getElementById('connect-btn').disabled = true;
+
+  try {
+    // Delete existing apps
+    var apps = firebase.apps;
+    for (var i = 0; i < apps.length; i++) {
+      try { await apps[i].delete(); } catch(e) {}
+    }
+    firebase.initializeApp({
+      apiKey: apiKey,
+      projectId: projectId,
+      appId: appId,
+      authDomain: projectId + '.firebaseapp.com',
+      storageBucket: projectId + '.appspot.com'
+    });
+    db = firebase.firestore();
+    // Test connection
+    await db.collection('users').limit(1).get();
+    statusEl.innerHTML = '<span style="color:#4caf82">Connected: ' + projectId + '</span>';
+  } catch(err) {
+    statusEl.innerHTML = '<span style="color:#e05555">Error: ' + err.message + '</span>';
+    db = null;
+  }
+  document.getElementById('connect-btn').disabled = false;
+}
+
+function handleFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  document.getElementById('file-nm').textContent = file.name;
+  document.getElementById('parse-btn').disabled = false;
+  var reader = new FileReader();
+  reader.onload = function(e) { fileData = e.target.result; };
+  reader.readAsArrayBuffer(file);
+}
+
+function excelDateToISO(val) {
+  if (!val) return '';
+  if (typeof val === 'string') {
+    // Try YYYY-MM-DD
+    var m1 = val.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m1) return m1[1] + '-' + m1[2].padStart(2,'0') + '-' + m1[3].padStart(2,'0');
+    // Try DD/MM/YYYY
+    var m2 = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m2) return m2[3] + '-' + m2[2].padStart(2,'0') + '-' + m2[1].padStart(2,'0');
+    return '';
+  }
+  if (typeof val === 'number' && val > 1000) {
+    // Excel serial: days since 1900-01-01
+    var d = new Date(Math.round((val - 25569) * 86400 * 1000));
+    return d.toISOString().slice(0, 10);
+  }
+  return '';
+}
+
+function priorityMap(p) {
+  if (typeof p !== "string") {
+    console.warn("Non-string passed to priorityMap:", p);
+    return "";
+  }
+  return p.toLowerCase();
+}
+
+
+function parseFile() {
+  if (!fileData) { alert('Select file first'); return; }
+  try {
+    var wb = XLSX.read(fileData, { type: 'array', cellDates: false, raw: true });
+    var ws = wb.Sheets[wb.SheetNames[0]];
+    var rawRows = XLSX.utils.sheet_to_json(ws, { raw: true, defval: null });
+
+    parsedData = [];
+    for (var i = 0; i < rawRows.length; i++) {
+      var r = rawRows[i];
+      
+      // এখানে কলামগুলো ঠিক করা হলো: 'Tasks' কলামটিকে আসল Task Name ধরা হলো
+      var taskName = ((r['Tasks'] || '') + '').trim();
+      var subject  = ((r['What To Do ?'] || '') + '').trim();
+      
+      if (!taskName || taskName === 'Total Points') continue;
+
+      var dueDate = excelDateToISO(r['Due Date']);
+      var hours    = parseFloat(r['Time (hour)']) || 1;
+      var priority = priorityMap(r['Priority']);
+      
+      // Checkbox-এর জন্য চেকিং ঠিক করা হলো (true, "true", 1 অথবা "Yes" যাই থাকুক না কেন)
+      var bRaw = r['Bikram Status'];
+      var bDone = bRaw === true || (bRaw + '').toLowerCase().trim() === 'true' || bRaw === 1 || (bRaw + '').toLowerCase().trim() === 'yes' || (bRaw + '').toLowerCase().trim() === 'done';
+      
+      var pRaw = r['Piyali Status'];
+      var pDone = pRaw === true || (pRaw + '').toLowerCase().trim() === 'true' || pRaw === 1 || (pRaw + '').toLowerCase().trim() === 'yes' || (pRaw + '').toLowerCase().trim() === 'done';
+
+      parsedData.push({
+        taskName: taskName,
+        subject: subject,
+        dueDate: dueDate,
+        hours: hours,
+        priority: priority,
+        bDone: bDone,
+        pDone: pDone
+      });
+    }
+
+    var bDoneCount = parsedData.filter(function(r){ return r.bDone; }).length;
+    var pDoneCount = parsedData.filter(function(r){ return r.pDone; }).length;
+    var withDate   = parsedData.filter(function(r){ return r.dueDate; }).length;
+    var bPts = parsedData.filter(function(r){ return r.bDone; }).reduce(function(s,r){ return s + Math.round(r.hours*2); }, 0);
+    var pPts = parsedData.filter(function(r){ return r.pDone; }).reduce(function(s,r){ return s + Math.round(r.hours*2); }, 0);
+    var bTime = parsedData.filter(function(r){ return r.bDone; }).reduce(function(s,r){ return s + r.hours; }, 0);
+    var pTime = parsedData.filter(function(r){ return r.pDone; }).reduce(function(s,r){ return s + r.hours; }, 0);
+
+    var previewRows = '';
+    for (var j = 0; j < Math.min(5, parsedData.length); j++) {
+      var row = parsedData[j];
+      previewRows += '<tr><td>' + row.taskName.slice(0,25) + '</td><td>' + row.subject + '</td><td>' + (row.dueDate || 'MISSING') + '</td><td>' + (row.bDone ? '✔️' : '-') + '</td><td>' + (row.pDone ? '✔️' : '-') + '</td></tr>';
+    }
+
+    document.getElementById('parse-out').innerHTML =
+      '<div class="stat-grid">' +
+      '<div class="stat"><div class="stat-val">' + parsedData.length + '</div><div class="stat-lbl">TASKS</div></div>' +
+      '<div class="stat"><div class="stat-val">' + withDate + '</div><div class="stat-lbl">WITH DATE</div></div>' +
+      '<div class="stat"><div class="stat-val">' + bDoneCount + '</div><div class="stat-lbl">B DONE</div></div>' +
+      '<div class="stat"><div class="stat-val">' + pDoneCount + '</div><div class="stat-lbl">P DONE</div></div>' +
+      '<div class="stat"><div class="stat-val">' + bPts + '</div><div class="stat-lbl">B PTS</div></div>' +
+      '<div class="stat"><div class="stat-val">' + pPts + '</div><div class="stat-lbl">P PTS</div></div>' +
+      '<div class="stat"><div class="stat-val">' + Math.round(bTime) + 'h</div><div class="stat-lbl">B TIME</div></div>' +
+      '<div class="stat"><div class="stat-val">' + Math.round(pTime) + 'h</div><div class="stat-lbl">P TIME</div></div>' +
+      '</div>' +
+      '<table class="preview-table"><tr><th>Task Name</th><th>Subject</th><th>Due Date</th><th>Bikram</th><th>Piyali</th></tr>' +
+      previewRows + '</table>' +
+      '<div style="font-size:0.65rem;color:#5a5445;margin-top:6px">Preview: first 5 rows. Expected: 885 tasks, 548/560 done, 1439/1468 pts, 719/734h</div>';
+
+    document.getElementById('migrate-btn').disabled = false;
+    log('Parsed: ' + parsedData.length + ' tasks | ' + withDate + ' with dates | B:' + bDoneCount + ' done | P:' + pDoneCount + ' done', 'ok');
+    if (withDate < parsedData.length * 0.8) {
+      log('WARNING: Many tasks missing dates — check Excel date column', 'warn');
+    }
+  } catch(err) {
+    log('Parse error: ' + err.message, 'err');
+    console.error(err);
+  }
+}
+
+async function startMigration() {
+  var bikramUID = document.getElementById('uid-bikram').value.trim();
+  var piyaliUID = document.getElementById('uid-piyali').value.trim();
+  if (!db) { alert('Connect Firebase first'); return; }
+  if (!bikramUID || !piyaliUID) { alert('Enter both UIDs'); return; }
+  if (!parsedData.length) { alert('Parse file first'); return; }
+
+  document.getElementById('migrate-btn').disabled = true;
+  document.getElementById('log').innerHTML = '';
+  log('Starting migration of ' + parsedData.length + ' tasks...', 'info');
+
+  var bikram = { xp: 0, time: 0, done: 0 };
+  var piyali = { xp: 0, time: 0, done: 0 };
+  var actLogs = [];
+
+  try {
+    var batch = db.batch();
+    var bCount = 0;
+    var total = 0;
+    var BATCH = 400;
+
+    for (var i = 0; i < parsedData.length; i++) {
+      var r = parsedData[i];
+      var pts = Math.round(r.hours * 2);
+      var completions = [];
+
+      if (r.bDone && r.dueDate) {
+        completions.push(r.dueDate + '_' + bikramUID);
+        bikram.xp   += pts;
+        bikram.time += r.hours;
+        bikram.done += 1;
+        actLogs.push({ uid: bikramUID, date: r.dueDate, xp: pts, hours: r.hours, taskName: r.taskName });
+      }
+      if (r.pDone && r.dueDate) {
+        completions.push(r.dueDate + '_' + piyaliUID);
+        piyali.xp   += pts;
+        piyali.time += r.hours;
+        piyali.done += 1;
+        actLogs.push({ uid: piyaliUID, date: r.dueDate, xp: pts, hours: r.hours, taskName: r.taskName });
+      }
+
+      var ref = db.collection('tasks').doc();
+      batch.set(ref, {
+        name:      r.taskName,
+        desc:      r.subject,
+        hours:     r.hours,
+        priority:  r.priority,
+        dueDate:   r.dueDate || '',
+        examIds:   [],
+        assigned:  'both',
+        createdBy: bikramUID,
+        completions: completions,
+        source:    'notion_import',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      bCount++;
+      total++;
+
+      if (bCount >= BATCH) {
+        await batch.commit();
+        setP(Math.round((total / parsedData.length) * 55));
+        log('Tasks: ' + total + ' / ' + parsedData.length, 'dim');
+        batch = db.batch();
+        bCount = 0;
+        await new Promise(function(resolve) { setTimeout(resolve, 300); });
+      }
+    }
+    if (bCount > 0) { await batch.commit(); }
+    log('All tasks imported: ' + total, 'ok');
+    setP(60);
+
+    // Activity Logs
+    log('Writing ' + actLogs.length + ' activity logs...', 'info');
+    var logBatch = db.batch();
+    var lc = 0;
+    for (var j = 0; j < actLogs.length; j++) {
+      var e = actLogs[j];
+      logBatch.set(db.collection('activityLog').doc(), {
+        uid: e.uid, date: e.date, xp: e.xp, hours: e.hours, taskName: e.taskName,
+        month: e.date.slice(0, 7), year: e.date.slice(0, 4)
+      });
+      lc++;
+      if (lc % 400 === 0) {
+        await logBatch.commit();
+        log('Logs: ' + lc, 'dim');
+        logBatch = db.batch();
+        await new Promise(function(resolve) { setTimeout(resolve, 200); });
+      }
+    }
+    if (lc % 400 !== 0) { await logBatch.commit(); }
+    log('Activity logs done: ' + lc, 'ok');
+    setP(85);
+
+    // Update profiles
+    log('Updating user profiles...', 'info');
+    var base = {
+      streak: 0, bestStreak: 0, totalDiamonds: 0, totalStudyHours: 0,
+      guildInventory: [], guildEquipped: [], guildSpent: 0,
+      lastActiveDate: '', redeemed: [], source: 'notion_import'
+    };
+
+    await db.collection('users').doc(bikramUID).set(Object.assign({}, base, {
+      xp: Math.round(bikram.xp),
+      totalDone: bikram.done,
+      totalHours: parseFloat(bikram.time.toFixed(1))
+    }), { merge: true });
+    log('Bikram: ' + bikram.done + ' done | ' + Math.round(bikram.xp) + ' pts | ' + bikram.time.toFixed(1) + 'h', 'ok');
+
+    await db.collection('users').doc(piyaliUID).set(Object.assign({}, base, {
+      xp: Math.round(piyali.xp),
+      totalDone: piyali.done,
+      totalHours: parseFloat(piyali.time.toFixed(1))
+    }), { merge: true });
+    log('Piyali: ' + piyali.done + ' done | ' + Math.round(piyali.xp) + ' pts | ' + piyali.time.toFixed(1) + 'h', 'ok');
+
+    setP(100);
+    log('', 'info');
+    log('MIGRATION COMPLETE!', 'ok');
+    log('Tasks: ' + total + ' | Logs: ' + lc, 'ok');
+    log('Expected → B:548/1439pts/719.5h | P:560/1468pts/734h', 'info');
+    log('Now restore secure Firestore rules!', 'warn');
+
+  } catch(err) {
+    log('Error: ' + err.message, 'err');
+    console.error(err);
+    document.getElementById('migrate-btn').disabled = false;
+  }
+}
+</script>
+</body>
+</html>
+
+
+
+
+

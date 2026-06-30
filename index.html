@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuestForge - Gamify Task Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <meta name="mobile-web-app-capable" content="yes">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;600;700&display=swap');
+    
+  html, body, #root {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-attachment: fixed;
+      font-family: 'Cinzel', serif;
+    }
+    
+    * {
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    button, input, textarea {
+      -webkit-user-select: text;
+      user-select: text;
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    body {
+      overflow-x: hidden;
+      background: #0a0e1a;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+      padding: 12px 16px;
+    }
+
+    input, textarea {
+      font-size: 16px;
+      padding: 12px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    @keyframes pulse-glow { 
+      0%, 100% { 
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.8),
+                     0 0 40px rgba(255, 140, 0, 0.5); 
+      } 
+      50% { 
+        text-shadow: 0 0 30px rgba(255, 215, 0, 1),
+                     0 0 60px rgba(255, 140, 0, 0.8),
+                     0 0 80px rgba(255, 69, 0, 0.6); 
+      } 
+    }
+    
+    .pulse-title { 
+      animation: pulse-glow 2s ease-in-out infinite;
+      font-family: 'MedievalSharp', cursive;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+
+    @keyframes torch-flicker {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(0.95); }
+    }
+
+    .torch-glow {
+      animation: torch-flicker 2s ease-in-out infinite;
+    }
+
+    .fantasy-card {
+      background: linear-gradient(135deg, #1a1f35 0%, #2d1810 100%);
+      border: 3px solid;
+      border-image: linear-gradient(135deg, #d4af37, #8b6914, #d4af37) 1;
+      box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+
+    .fantasy-card::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
+      background: linear-gradient(135deg, #d4af37, #8b6914, #d4af37);
+      border-radius: inherit;
+      z-index: -1;
+      opacity: 0.5;
+      filter: blur(8px);
+    }
+
+    .parchment-bg {
+      background: linear-gradient(135deg, #2a1810 0%, #1a1410 100%);
+      border: 2px solid #8b6914;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5),
+                  0 4px 16px rgba(212, 175, 55, 0.2);
+    }
+
+    .medieval-button {
+      background: linear-gradient(135deg, #8b6914 0%, #d4af37 50%, #8b6914 100%);
+      border: 2px solid #ffd700;
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      color: #1a1410;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .medieval-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .medieval-button:hover::before {
+      left: 100%;
+    }
+
+    .medieval-button:active {
+      box-shadow: 0 2px 6px rgba(212, 175, 55, 0.4),
+                  inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .profile-card {
+      width: 100%;
+      max-width: 320px;
+      border-radius: 15px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #1a1410 0%, #2d1810 50%, #1a1410 100%);
+      border: 4px solid;
+      border-image: linear-gradient(135deg, #d4af37, #ffd700, #d4af37) 1;
+      box-shadow: 0 16px 48px rgba(212, 175, 55, 0.4),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: transform 0.8s ease-in-out;
+      transform-style: preserve-3d;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .profile-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 2px,
+          rgba(212, 175, 55, 0.03) 2px,
+          rgba(212, 175, 55, 0.03) 4px
+        );
+      pointer-events: none;
+    }
+    
+    .profile-card.rotate {
+      transform: rotateY(360deg);
+    }
+    
+    .card-image { 
+      padding: 12px 12px 8px 12px; 
+      background: linear-gradient(180deg, #0a0a0a 0%, #1a1410 100%);
+      border-bottom: 2px solid #8b6914;
+    }
+    .card-image img { 
+      width: 100%; 
+      height: auto; 
+      display: block; 
+      border-radius: 8px;
+      border: 2px solid #d4af37;
+      box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+    }
+    .card-body { 
+      padding: 14px; 
+      color: #ffd700;
+    }
+    .character-name { 
+      text-align: center; 
+      margin: 0 0 8px 0; 
+      font-size: 1.7em; 
+      padding: 8px 0; 
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(139, 105, 20, 0.2));
+      color: #ffd700; 
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8),
+                   0 0 10px rgba(255, 215, 0, 0.5); 
+      border-radius: 5px; 
+      font-weight: bold;
+      font-family: 'MedievalSharp', cursive;
+      border: 1px solid #8b6914;
+    }
+    .character-username { 
+      text-align: center; 
+      margin: 0 0 12px 0; 
+      font-size: 0.9em; 
+      color: #c9a961; 
+      font-weight: normal;
+      font-family: 'Cinzel', serif;
+    }
+    .properties { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 6px; 
+    }
+    .property-row { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 10px 12px; 
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(139, 105, 20, 0.15));
+      border-radius: 5px; 
+      font-size: 0.95em; 
+      font-weight: 500;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    .property-label { 
+      font-weight: normal; 
+      text-align: left;
+      color: #c9a961;
+    }
+    .property-value { 
+      font-weight: bold; 
+      text-align: right;
+      color: #ffd700;
+    }
+    .star { 
+      font-size: 1.3em;
+      filter: drop-shadow(0 0 3px #ffd700);
+    }
+    .timestamp { 
+      text-align: center; 
+      margin-top: 16px; 
+      font-size: 0.7em; 
+      color: #8b6914; 
+      font-weight: normal;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+      // ===== FIREBASE INITIALIZATION =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBO-M54POwDhyEkfgyH84fblkOKrfgclck",
+      authDomain: "questforge-bd8e8.firebaseapp.com",
+      projectId: "questforge-bd8e8",
+      storageBucket: "questforge-bd8e8.firebasestorage.app",
+      messagingSenderId: "573584114891",
+      appId: "1:573584114891:web:a8aa4645c2b859a335474e"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    // ===== SOUND EFFECTS & HAPTIC FEEDBACK =====
+    const sounds = {
+  click: new Audio('https://raw.githubusercontent.com/Bikram007797/Quest-Forge/main/audio/click.mp3'),
+  success: new Audio('https://raw.githubusercontent.com/Bikram007797/Quest-Forge/main/audio/success.mp3'),
+  error: new Audio('https://raw.githubusercontent.com/Bikram007797/Quest-Forge/main/audio/error.mp3'),
+  coin: new Audio('https://raw.githubusercontent.com/Bikram007797/Quest-Forge/main/audio/coin.mp3'),
+  equip: new Audio('https://raw.githubusercontent.com/Bikram007797/Quest-Forge/main/audio/equip.mp3'),
+  publish: new Audio('https://raw.githubusercontent.com/Bikram007797/Quest-Forge/main/audio/publish.mp3')
+};
+
+    // Set volume for all sounds
+    Object.values(sounds).forEach(sound => {
+      sound.volume = 0.3;
+    });
+
+    // Haptic feedback function
+    const haptic = (style = 'light') => {
+      if ('vibrate' in navigator) {
+        switch(style) {
+          case 'light':
+            navigator.vibrate(10);
+            break;
+          case 'medium':
+            navigator.vibrate(20);
+            break;
+          case 'heavy':
+            navigator.vibrate(50);
+            break;
+          case 'success':
+            navigator.vibrate([10, 50, 10]);
+            break;
+          case 'error':
+            navigator.vibrate([50, 100, 50]);
+            break;
+        }
+      }
+    };
+
+    // Play sound function
+    const playSound = (soundName) => {
+      try {
+        const sound = sounds[soundName];
+        if (sound) {
+          sound.currentTime = 0;
+          sound.play().catch(e => console.log('Sound play failed:', e));
+        }
+      } catch (e) {
+        console.log('Sound error:', e);
+      }
+    };
+    
+    // ===== END FIREBASE INITIALIZATION =====
+
+    const QuestForge = () => {
+      const [appState, setAppState] = React.useState('login');
+      const [selectedUser, setSelectedUser] = React.useState(null);
+      const [filterCategory, setFilterCategory] = React.useState('All Items');
+      const [viewingProfile, setViewingProfile] = React.useState(null);
+      const [touchStart, setTouchStart] = React.useState(null);
+      const [touchEnd, setTouchEnd] = React.useState(null);
+      const [showDescModal, setShowDescModal] = React.useState(null);
+      const [newXPInput, setNewXPInput] = React.useState('');
+      const [firebaseError, setFirebaseError] = React.useState(null);
+      const [saving, setSaving] = React.useState(false);
+
+      // Initialize userData with default values
+      const getInitialUserData = () => {
+        return {
+          Bikram: {
+            totalXP: 500,
+            spentXP: 0,
+            inventory: [],
+            equippedItems: [],
+            avatarId: 0,
+            avatarName: 'Shadow Knight',
+            publishedProfile: null,
+            purchaseHistory: []
+          },
+          Piyali: {
+            totalXP: 750,
+            spentXP: 0,
+            inventory: [],
+            equippedItems: [],
+            avatarId: 2,
+            avatarName: 'Crystal Sage',
+            publishedProfile: null,
+            purchaseHistory: []
+          }
+        };
+      };
+
+      const [userData, setUserData] = React.useState(getInitialUserData());
+      const [currentUser, setCurrentUser] = React.useState(null);
+      const [loading, setLoading] = React.useState(true);
+
+      // Touch handlers for mobile swipe
+      const handleTouchStart = (e) => {
+        setTouchStart(e.targetTouches[0].clientX);
+      };
+
+      const handleTouchEnd = (e) => {
+        setTouchEnd(e.changedTouches[0].clientX);
+        handleSwipe(touchStart, e.changedTouches[0].clientX);
+      };
+
+      const handleSwipe = (start, end) => {
+        if (!start || !end) return;
+        const distance = start - end;
+        const isRightSwipe = distance < -50;
+
+        if (isRightSwipe && appState !== 'login') {
+          if (appState === 'dashboard') handleLogout();
+          else if (['profile', 'store', 'fame'].includes(appState)) {
+            setAppState('dashboard');
+          }
+        }
+      };
+
+      // ===== FIREBASE OPERATIONS =====
+      const loadDataFromFirebase = async () => {
+        try {
+          setFirebaseError(null);
+          const docRef = db.collection('questforge').doc('userData');
+          const doc = await docRef.get();
+          
+          if (doc.exists) {
+            console.log('✅ Data loaded from Firebase');
+            setUserData(doc.data());
+          } else {
+            console.log('🔍 No data in Firebase, using defaults');
+            await docRef.set(getInitialUserData());
+          }
+        } catch (error) {
+          console.error('❌ Firebase load error:', error);
+          setFirebaseError('Failed to load data. Using local data.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const saveToFirebase = async (data) => {
+        try {
+          setSaving(true);
+          setFirebaseError(null);
+          await db.collection('questforge').doc('userData').set(data);
+          console.log('✅ Data saved to Firebase');
+        } catch (error) {
+          console.error('❌ Firebase save error:', error);
+          setFirebaseError('Failed to save data. Changes may not persist.');
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      React.useEffect(() => {
+        loadDataFromFirebase();
+      }, []);
+
+      React.useEffect(() => {
+        if (userData && !loading) {
+          saveToFirebase(userData);
+        }
+      }, [userData, loading]);
+
+      // ===== AVATAR & ASSETS =====
+      const avatarUrls = [
+        'https://api.dicebear.com/9.x/notionists/svg?seed=Sarah',
+        'https://api.dicebear.com/9.x/notionists/svg?seed=Mason',
+        'https://api.dicebear.com/9.x/notionists/svg?seed=Aidan',
+        'https://api.dicebear.com/9.x/notionists/svg?seed=Destiny',
+        'https://api.dicebear.com/9.x/notionists/svg?seed=Vivian',
+        'https://api.dicebear.com/9.x/notionists/svg?seed=George',
+        'https://api.dicebear.com/9.x/notionists/svg?seed=Kingston',
+        'https://api.dicebear.com/9.x/notionists/svg?seed=Emery',
+        'https://api.dicebear.com/9.x/lorelei/svg?seed=Vivian',
+        'https://api.dicebear.com/9.x/lorelei/svg?seed=Christian',
+        'https://api.dicebear.com/9.x/lorelei/svg?seed=Leah',
+        'https://api.dicebear.com/9.x/lorelei/svg?seed=Destiny',
+        'https://api.dicebear.com/9.x/lorelei/svg?seed=Sophia',
+        'https://api.dicebear.com/9.x/lorelei/svg?seed=Kimberly',
+        'https://api.dicebear.com/9.x/lorelei/svg?seed=Sadie',
+        'https://api.dicebear.com/9.x/lorelei/svg?seed=Andrea',
+        'https://api.dicebear.com/9.x/adventurer/svg?seed=Avery',
+        'https://api.dicebear.com/9.x/adventurer/svg?seed=Emery',
+        'https://api.dicebear.com/9.x/adventurer/svg?seed=Brooklynn',
+        'https://api.dicebear.com/9.x/adventurer/svg?seed=Oliver',
+        'https://api.dicebear.com/9.x/adventurer/svg?seed=Mason',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/upstream_22.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/upstream_21.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/upstream_20.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/upstream_13.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/upstream_12.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/upstream_11.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/toon_7.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/toon_6.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/toon_5.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/toon_4.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/notion_14.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/notion_12.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/notion_11.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/notion_6.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/notion_5.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/bluey_10.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/bluey_9.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/bluey_8.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/bluey_3.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/bluey_4.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/bluey_2.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/vibrent_21.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/vibrent_24.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/vibrent_6.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/vibrent_1.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_1.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_2.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_3.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_4.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_5.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_6.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_7.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_8.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_12.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_13.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_14.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_16.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_17.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_18.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_19.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_20.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_23.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_24.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_25.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_29.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_31.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_32.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_34.png',
+        'https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_35.png'
+      ];
+
+      const levelRanges = [
+        { level: 1, min: 0, max: 100, name: 'Novice Explorer' },
+        { level: 2, min: 101, max: 250, name: 'Apprentice Scholar' },
+        { level: 3, min: 251, max: 450, name: 'Learner Adept' },
+        { level: 4, min: 451, max: 700, name: 'Knowledge Seeker' },
+        { level: 5, min: 701, max: 1000, name: 'Mind Master' },
+        { level: 6, min: 1001, max: 1350, name: 'Wisdom Keeper' },
+        { level: 7, min: 1351, max: 1750, name: 'Sage Tier' },
+        { level: 8, min: 1751, max: 2200, name: 'Scholar Elite' },
+        { level: 9, min: 2201, max: 2700, name: 'Knowledge King' },
+        { level: 10, min: 2701, max: 3250, name: 'Intellect Ascended' },
+        { level: 11, min: 3251, max: 3850, name: 'Legendary Thinker' },
+        { level: 12, min: 3851, max: 4500, name: 'Mythic Scholar' },
+        { level: 13, min: 4501, max: 5000, name: 'Ultimate Sage' }
+      ];
+
+      const itemGifs = {
+        1: 'assets/weapons/blade-of-clarity.gif',
+        2: 'assets/weapons/executioners-axe.gif',
+        3: 'assets/weapons/siege-catapult.gif',
+        4: 'assets/weapons/thunder-sword.gif',
+        5: 'assets/weapons/mace-of-massacre.gif',
+        6: 'assets/weapons/bow-of-insight.gif',
+        7: 'assets/armor/royal-guardian-shield.gif',
+        8: 'assets/armor/viking-round-shield.gif',
+        9: 'assets/armor/knights-helm.gif',
+        10: 'assets/armor/titans-breastplate.gif',
+        11: 'assets/armor/dragons-wrath.gif',
+        12: 'assets/skills/oracles-foresight.gif',
+        13: 'assets/skills/treasure-map.gif',
+        14: 'assets/skills/ring-of-commitment.gif',
+        15: 'assets/skills/snipers-precision.gif',
+        16: 'assets/skills/energy-core-surge.gif',
+        17: 'assets/skills/mind-palace.gif',
+        18: 'assets/potions/elixir-of-clarity.gif',
+        19: 'assets/potions/alchemists-formula.gif',
+        20: 'assets/potions/phoenix-tears.gif',
+        21: 'assets/potions/owls-wisdom.gif',
+        22: 'assets/potions/certificate-of-mastery.gif',
+        23: 'assets/potions/torch-of-inspiration.gif'
+      };
+
+      const rewards = [
+        // WEAPONS
+        { id: 1, name: 'Blade of Clarity', hp: 0.1, price: 5, category: 'Weapons', desc: 'A shimmering sword that cuts through confusion and brain fog. Increases focus precision by 40% during study sessions.' },
+        { id: 2, name: 'Executioner\'s Axe', hp: 1.1, price: 25, category: 'Weapons', desc: 'A devastating double-bladed weapon that obliterates procrastination. Perfect for chopping down massive task lists with brutal efficiency.' },
+        { id: 3, name: 'Siege Catapult', hp: 0.9, price: 15, category: 'Weapons', desc: 'An ancient war machine that launches your productivity skyward. Tackles multiple assignments simultaneously with explosive power.' },
+        { id: 4, name: 'Thunder Sword', hp: 0.8, price: 10, category: 'Weapons', desc: 'Legendary paired swords wielded by ancient scholar-warriors. Strike from two angles simultaneously - master both theory and practice.' },
+        { id: 5, name: 'Mace of Massacre', hp: 1.0, price: 20, category: 'Weapons', desc: 'A brutal instrument forged from pure determination. When problems seem unbreakable, this mighty hammer smashes through mental barriers.' },
+        { id: 6, name: 'Bow of Insight', hp: 0.8, price: 10, category: 'Weapons', desc: 'An elegant weapon for the strategic learner. Draw back the string of concentration and release arrows of focused effort.' },
+        
+        // ARMOR
+        { id: 7, name: 'Royal Guardian Shield', hp: 1.0, price: 20, category: 'Armor', desc: 'A noble fleur-de-lis emblazoned shield that deflects distractions and negative thoughts.' },
+        { id: 8, name: 'Viking Round Shield', hp: 0.8, price: 10, category: 'Armor', desc: 'Forged from determination and discipline. Blocks social media notifications and unwanted interruptions.' },
+        { id: 9, name: 'Knight\'s Helm of Focus', hp: 0.9, price: 15, category: 'Armor', desc: 'A crystal-crested helmet that shields your mind from chaos. Protects against mental fatigue.' },
+        { id: 10, name: 'Titan\'s Breastplate', hp: 1.3, price: 35, category: 'Armor', desc: 'Legendary armor that fortifies your willpower. Grants immunity to burnout and doubles study endurance.' },
+        { id: 11, name: 'Dragon\'s Wrath', hp: 1.1, price: 25, category: 'Armor', desc: 'Summon the fierce power of an ancient dragon. Obliterates procrastination and conquers entire study modules.' },
+        
+        // SKILLS
+        { id: 12, name: 'Oracle\'s Foresight', hp: 0.1, price: 5, category: 'Skills', desc: 'Peer into the crystal ball to predict exam questions and plan your study path.' },
+        { id: 13, name: 'Treasure Map of Knowledge', hp: 0.9, price: 15, category: 'Skills', desc: 'Unlock secret strategies and discover the fastest routes to mastery.' },
+        { id: 14, name: 'Ring of Commitment', hp: 1.0, price: 20, category: 'Skills', desc: 'A golden oath ring that binds you to your goals. Grants unbreakable determination for 2 hours.' },
+        { id: 15, name: 'Sniper\'s Precision', hp: 1.1, price: 25, category: 'Skills', desc: 'Lock onto your target with laser focus. Eliminates mistakes and achieves 100% accuracy.' },
+        { id: 16, name: 'Energy Core Surge', hp: 0.8, price: 10, category: 'Skills', desc: 'Unleash a burst of electric concentration. Powers through toughest assignments.' },
+        { id: 17, name: 'Mind Palace Meditation', hp: 1.2, price: 30, category: 'Skills', desc: 'Activate your brain\'s full potential. Enhances memory retention by 200%.' },
+        
+        // CONSUMABLES
+        { id: 18, name: 'Elixir of Clarity', hp: 0.1, price: 5, category: 'Consumables', desc: 'A pure water droplet from the Fountain of Wisdom. Instantly clears mental fog.' },
+        { id: 19, name: 'Alchemist\'s Formula', hp: 0.9, price: 15, category: 'Consumables', desc: 'A mysterious molecular compound that rewires your brain for optimal learning.' },
+        { id: 20, name: 'Phoenix Tears Potion', hp: 1.0, price: 20, category: 'Consumables', desc: 'A legendary elixir that revives motivation from the ashes.' },
+        { id: 21, name: 'Owl\'s Wisdom Brew', hp: 1.4, price: 40, category: 'Consumables', desc: 'Brewed by the scholarly owl guardian. Grants photographic memory.' },
+        { id: 22, name: 'Certificate of Mastery', hp: 0.8, price: 10, category: 'Consumables', desc: 'Unlocks bonus XP and special abilities when you complete major milestones.' },
+        { id: 23, name: 'Torch of Inspiration', hp: 0.9, price: 15, category: 'Consumables', desc: 'Ignite your inner fire and illuminate the darkest study sessions.' }
+      ];
+      // ===== CORE FUNCTIONS =====
+     const handleLogin = () => {
+        if (!selectedUser) {
+          playSound('error');
+          haptic('error');
+          alert('Please select a user');
+          return;
+        }
+
+        
+        if (newXPInput.trim()) {
+          const xpValue = parseFloat(newXPInput);
+          if (isNaN(xpValue) || xpValue < 0) {
+            playSound('error');
+            haptic('error');
+            alert('Please enter a valid positive number for XP');
+            return;
+          }
+          
+          const newUserData = {
+            ...userData,
+            [selectedUser]: {
+              ...userData[selectedUser],
+              totalXP: xpValue,
+              // spentXP is NEVER reset here - it persists across logins
+            }
+          };
+          setUserData(newUserData);
+        }
+        
+        playSound('success');
+        haptic('success');
+        setCurrentUser(selectedUser);
+        setAppState('dashboard');
+      };
+        
+      const handleLogout = () => {
+        setAppState('login');
+        setCurrentUser(null);
+        setSelectedUser(null);
+        setViewingProfile(null);
+        setNewXPInput('');
+      };
+
+      const getUserLevel = (xp) => {
+        return levelRanges.find(l => xp >= l.min && xp <= l.max) || levelRanges[12];
+      };
+
+      const getXpProgress = (xp) => {
+        const level = getUserLevel(xp);
+        const levelXpRange = level.max - level.min;
+        const currentLevelXp = xp - level.min;
+        return (currentLevelXp / levelXpRange) * 100;
+      };
+
+      const getTotalPower = (user) => {
+        const inventory = userData[user].inventory;
+        const equipped = userData[user].equippedItems;
+
+        const power = equipped.reduce((sum, itemId) => {
+          const item = rewards.find(r => r.id === itemId);
+          const inventoryItem = inventory.find(inv => inv.itemId === itemId);
+          const quantity = inventoryItem ? inventoryItem.quantity : 1;
+          return sum + (item ? item.hp * quantity : 0);
+        }, 0);
+
+        return Math.min(power, 100);
+      };
+
+      const getRank = (power) => {
+        const ranks = [
+          { name: 'RECRUIT', stars: 1 },
+          { name: 'PRIVATE', stars: 2 },
+          { name: 'CORPORAL', stars: 3 },
+          { name: 'SERGEANT', stars: 4 },
+          { name: 'STAFF SERGEANT', stars: 5 },
+          { name: 'LIEUTENANT', stars: 6 },
+          { name: 'CAPTAIN', stars: 7 },
+          { name: 'MAJOR', stars: 8 },
+          { name: 'COLONEL', stars: 9 },
+          { name: 'GENERAL', stars: 10 }
+        ];
+        const rankIndex = Math.floor(power / 10);
+        return ranks[Math.min(rankIndex, 9)];
+      };
+
+      const handleBuyItem = (item) => {
+        const user = currentUser;
+        const remaining = userData[user].totalXP - userData[user].spentXP;
+        
+        if (remaining < item.price) {
+          playSound('error');
+          haptic('error');
+          alert(`Not enough XP! Need ${item.price} but have ${remaining}`);
+          return;
+        }
+
+        const newUserData = JSON.parse(JSON.stringify(userData));
+        const inventory = newUserData[user].inventory;
+        const existingItem = inventory.find(i => i.itemId === item.id);
+        
+        if (existingItem) {
+          existingItem.quantity += 1;
+        } else {
+          inventory.push({ itemId: item.id, quantity: 1 });
+        }
+
+        newUserData[user].spentXP += item.price;
+        
+        const history = newUserData[user].purchaseHistory;
+        const historyItem = history.find(h => h.itemId === item.id);
+        if (historyItem) {
+          historyItem.count += 1;
+        } else {
+          history.push({ itemId: item.id, count: 1 });
+        }
+
+        playSound('coin');
+        haptic('medium');
+        setUserData(newUserData);
+      };
+     const handleEquipItem = (itemId) => {
+        const user = currentUser;
+        const newUserData = JSON.parse(JSON.stringify(userData));
+        const equipped = newUserData[user].equippedItems;
+        
+        if (equipped.includes(itemId)) {
+          newUserData[user].equippedItems = equipped.filter(id => id !== itemId);
+          playSound('click');
+          haptic('light');
+        } else {
+          newUserData[user].equippedItems = [...equipped, itemId];
+          playSound('equip');
+          haptic('medium');
+        }
+        
+        setUserData(newUserData);
+      };
+
+      const handleSellItem = (itemId) => {
+        const user = currentUser;
+        const item = rewards.find(r => r.id === itemId);
+        const newUserData = JSON.parse(JSON.stringify(userData));
+        
+        const inventoryItem = newUserData[user].inventory.find(i => i.itemId === itemId);
+        if (inventoryItem) {
+          inventoryItem.quantity -= 1;
+          if (inventoryItem.quantity === 0) {
+            newUserData[user].inventory = newUserData[user].inventory.filter(i => i.itemId !== itemId);
+          }
+        }
+
+        // Unequip the sold item (only if quantity reaches 0)
+        if (!newUserData[user].inventory.find(i => i.itemId === itemId)) {
+          newUserData[user].equippedItems = newUserData[user].equippedItems.filter(id => id !== itemId);
+        }
+        // Decrement spentXP by item price, floor at 0
+        newUserData[user].spentXP = Math.max(0, newUserData[user].spentXP - item.price);
+        
+        playSound('coin');
+        haptic('light');
+        setUserData(newUserData);
+      };
+
+      const handlePublishProfile = () => {
+        const user = currentUser;
+        const userLevel = getUserLevel(userData[user].totalXP);
+        const power = getTotalPower(user);
+        const rank = getRank(power);
+        const totalPurchased = userData[user].inventory.reduce((sum, inv) => sum + inv.quantity, 0);
+
+        const newUserData = JSON.parse(JSON.stringify(userData));
+        newUserData[user].publishedProfile = {
+          avatarUrl: avatarUrls[userData[user].avatarId],
+          avatarName: userData[user].avatarName,
+          user: user,
+          level: userLevel.level,
+          levelName: userLevel.name,
+          rank: rank.name,
+          stars: rank.stars,
+          power: power,
+          totalXP: userData[user].totalXP,
+          equippedCount: userData[user].equippedItems.length,
+          totalPurchased: totalPurchased,
+         timestamp: new Date().toISOString()
+        };
+        setUserData(newUserData);
+        
+        playSound('publish');
+        haptic('success');
+        alert('✅ Profile Published to Hall of Legends! 🎉');
+      };
+
+      const getFilteredItems = () => {
+        const user = currentUser;
+        let items = [];
+
+        switch (filterCategory) {
+          case 'All Items':
+            items = rewards.map(item => {
+              const inventoryItem = userData[user].inventory.find(inv => inv.itemId === item.id);
+              return {
+                ...item,
+                quantity: inventoryItem ? inventoryItem.quantity : 0,
+                isInInventory: !!inventoryItem,
+                isEquipped: userData[user].equippedItems.includes(item.id)
+              };
+            });
+            break;
+
+          case 'Purchased':
+            items = userData[user].inventory
+              .filter(inv => !userData[user].equippedItems.includes(inv.itemId))
+              .map(inv => {
+                const item = rewards.find(r => r.id === inv.itemId);
+                return {
+                  ...item,
+                  quantity: inv.quantity,
+                  isInInventory: true,
+                  isEquipped: false
+                };
+              });
+            break;
+
+          case 'Equipped':
+            items = userData[user].equippedItems.map(itemId => {
+              const item = rewards.find(r => r.id === itemId);
+              const inventoryItem = userData[user].inventory.find(inv => inv.itemId === itemId);
+              return {
+                ...item,
+                quantity: inventoryItem ? inventoryItem.quantity : 0,
+                isInInventory: true,
+                isEquipped: true
+              };
+            });
+            break;
+
+          case 'Weapons':
+          case 'Armor':
+          case 'Skills':
+          case 'Consumables':
+            items = rewards
+              .filter(item => item.category === filterCategory)
+              .map(item => {
+                const inventoryItem = userData[user].inventory.find(inv => inv.itemId === item.id);
+                return {
+                  ...item,
+                  quantity: inventoryItem ? inventoryItem.quantity : 0,
+                  isInInventory: !!inventoryItem,
+                  isEquipped: userData[user].equippedItems.includes(item.id)
+                };
+              });
+            break;
+        }
+
+        return items;
+      };
+
+      // ===== RENDER COMPONENTS =====
+
+      // PROFILE CARD VIEWING SCREEN
+      if (viewingProfile) {
+        const profile = viewingProfile;
+        return (
+          <div 
+            className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div className="absolute inset-0 opacity-5" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5 15h15l-12 9 5 15-13-10-13 10 5-15-12-9h15z' fill='%23d4af37' fill-opacity='1'/%3E%3C/svg%3E")`,
+              backgroundSize: '60px 60px'
+            }}></div>
+
+            <div className="flex flex-col items-center gap-6 w-full relative z-10">
+              <div className="text-center mb-2">
+                <div className="text-5xl mb-3 torch-glow">⚔️</div>
+                <h2 className="text-2xl font-bold text-yellow-400 mb-2" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>
+                  Legend Card
+                </h2>
+                <div className="h-1 w-24 mx-auto bg-gradient-to-r from-transparent via-yellow-600 to-transparent"></div>
+              </div>
+
+              <div 
+                className="profile-card" 
+                onClick={(e) => {
+                  e.currentTarget.classList.toggle('rotate');
+                }}
+              >
+                <div className="card-image">
+                  <img src={profile.avatarUrl} alt="Profile Avatar" />
+                </div>
+                <div className="card-body">
+                  <h1 className="character-name">{profile.avatarName}</h1>
+                  <p className="character-username">@{profile.user}</p>
+                  <div className="properties">
+                    <div className="property-row">
+                      <span className="property-label">Level :</span>
+                      <span className="property-value">{profile.level}</span>
+                    </div>
+                    <div className="property-row">
+                      <span className="property-label">Total XP :</span>
+                      <span className="property-value">{profile.totalXP}</span>
+                    </div>
+                    <div className="property-row">
+                      <span className="property-label">Rank :</span>
+                      <span className="property-value">{profile.rank}</span>
+                    </div>
+                    <div className="property-row">
+                      <span className="property-label">Skills :</span>
+                      <span className="property-value">{profile.totalPurchased}</span>
+                    </div>
+                    <div className="property-row">
+                      <span className="property-label">Star :</span>
+                      <span className="property-value star">{'⭐'.repeat(profile.stars)}</span>
+                    </div>
+                    <div className="property-row">
+                      <span className="property-label">Power :</span>
+                      <span className="property-value">{profile.power.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                  <div className="timestamp">
+                    Enshrined: {profile.timestamp}
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setViewingProfile(null)} 
+                className="medieval-button px-10 py-4 rounded-full font-bold transition w-full max-w-xs text-lg"
+                style={{fontFamily: 'Cinzel, serif'}}
+              >
+                ← Return to Hall
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // LOADING SCREEN
+      if (loading) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 flex items-center justify-center relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5 15h15l-12 9 5 15-13-10-13 10 5-15-12-9h15z' fill='%23d4af37' fill-opacity='1'/%3E%3C/svg%3E")`,
+              backgroundSize: '60px 60px'
+            }}></div>
+
+            <div className="text-center relative z-10">
+              <div className="text-7xl mb-6 torch-glow animate-bounce">⚔️</div>
+              <h2 className="text-3xl font-bold text-yellow-400 mb-4" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '2px 2px 6px rgba(0,0,0,0.9)'}}>
+                Loading QuestForge...
+              </h2>
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <span className="text-yellow-600">◆</span>
+                <p className="text-amber-300 text-lg" style={{fontFamily: 'Cinzel, serif'}}>Connecting to Ancient Scrolls</p>
+                <span className="text-yellow-600">◆</span>
+              </div>
+              <div className="w-64 mx-auto parchment-bg rounded-full h-3 overflow-hidden border-2 border-amber-800">
+                <div className="h-full bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600 animate-pulse" style={{width: '100%'}}></div>
+              </div>
+              <p className="text-amber-500 text-sm mt-4 italic">☁️ Gathering the treasures from the clouds...</p>
+            </div>
+          </div>
+        );
+      }
+
+      // LOGIN SCREEN
+      if (appState === 'login') {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5 15h15l-12 9 5 15-13-10-13 10 5-15-12-9h15z' fill='%23d4af37' fill-opacity='1'/%3E%3C/svg%3E")`,
+              backgroundSize: '60px 60px'
+            }}></div>
+
+            <div className="text-center mb-8 w-full relative z-10">
+              <div className="text-6xl mb-4 torch-glow">⚔️</div>
+              <h1 className="text-4xl sm:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-600 pulse-title mb-3">
+                ⚔️ QuestForge ⚔️
+              </h1>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-yellow-600">◆</span>
+                <p className="text-base text-yellow-300 font-semibold" style={{fontFamily: 'Cinzel, serif'}}>Craft Your Learning Adventure</p>
+                <span className="text-yellow-600">◆</span>
+              </div>
+              <p className="text-sm text-amber-400 mb-1 italic">Powered by "My Task Manager"</p>
+              <p className="text-xs text-amber-500 font-semibold">⚡ Forged by Bikr@m ⚡</p>
+            </div>
+
+            <div className="w-full max-w-xs relative z-10">
+              <div className="fantasy-card rounded-2xl p-8 shadow-2xl">
+                <div className="text-center mb-6">
+                  <div className="text-4xl mb-2">🛡️</div>
+                  <h2 className="text-2xl font-bold text-yellow-400 mb-2" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>
+                    Choose The Champion
+                  </h2>
+                  <div className="h-1 w-24 mx-auto bg-gradient-to-r from-transparent via-yellow-600 to-transparent"></div>
+                </div>
+
+                <div className="flex flex-col gap-4 mb-6">
+                  {['Bikram', 'Piyali'].map((user) => (
+                    <button
+                      key={user}
+                      onClick={() => {
+  playSound('click');
+  haptic('light');
+  setSelectedUser(user);
+}}
+                      className={`w-full p-4 rounded-xl font-bold transition-all duration-300 active:scale-95 relative overflow-hidden ${
+                        selectedUser === user
+                          ? 'medieval-button'
+                          : 'bg-gradient-to-r from-slate-800 to-slate-700 text-amber-300 border-2 border-amber-800'
+                      }`}
+                      style={{fontFamily: 'Cinzel, serif', letterSpacing: '1px'}}
+                    >
+                      <span className="relative z-10">{user}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mb-6 parchment-bg p-5 rounded-xl">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className="text-yellow-600">◆</span>
+                    <p className="text-amber-300 text-sm font-semibold" style={{fontFamily: 'Cinzel, serif'}}>Last Saved XP</p>
+                    <span className="text-yellow-600">◆</span>
+                  </div>
+                  {selectedUser ? (
+                    <p className="text-3xl font-bold text-yellow-400 text-center" style={{textShadow: '0 0 10px rgba(255, 215, 0, 0.5)'}}>
+                      {userData[selectedUser].totalXP} XP
+                    </p>
+                  ) : (
+                    <p className="text-amber-600 text-sm text-center italic">Select the warrior</p>
+                  )}
+                </div>
+
+                <div className="mb-6 parchment-bg p-5 rounded-xl">
+                  <label className="block text-amber-300 text-sm font-semibold mb-3 text-center" style={{fontFamily: 'Cinzel, serif'}}>
+                    ⚡ Update XP Value ⚡
+                  </label>
+                  <input
+                    type="number"
+                    value={newXPInput}
+                    onChange={(e) => setNewXPInput(e.target.value)}
+                    placeholder="Enter new XP..."
+                    className="w-full bg-slate-900 text-yellow-300 border-2 border-amber-800 rounded-lg p-3 text-center font-bold"
+                    style={{fontFamily: 'Cinzel, serif'}}
+                  />
+                </div>
+
+                {firebaseError && (
+                  <div className="mb-4 p-3 bg-red-900 border-2 border-red-600 text-red-200 rounded-lg text-sm text-center">
+                    {firebaseError}
+                  </div>
+                )}
+
+                <button
+                  onClick={handleLogin}
+                  disabled={!selectedUser}
+                  className="w-full medieval-button py-5 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                  style={{fontFamily: 'MedievalSharp, cursive'}}
+                >
+                  ⚔️ Enter The Quest ⚔️
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // DASHBOARD SCREEN
+      if (appState === 'dashboard') {
+        return (
+          <div 
+            className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 flex flex-col relative overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div className="absolute inset-0 opacity-5" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5 15h15l-12 9 5 15-13-10-13 10 5-15-12-9h15z' fill='%23d4af37' fill-opacity='1'/%3E%3C/svg%3E")`,
+              backgroundSize: '60px 60px'
+            }}></div>
+
+            <div className="fantasy-card border-0 border-b-4 p-5 relative z-10">
+              <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500 mb-2" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>
+                ⚔️ QuestForge ⚔️
+              </h1>
+              <h2 className="text-xl font-bold text-amber-300" style={{fontFamily: 'Cinzel, serif'}}>Welcome, {currentUser}! ⚔️</h2>
+              {saving && <p className="text-green-400 text-sm">💾 Saving to scrolls...</p>}
+              {firebaseError && <p className="text-red-400 text-sm">⚠️ {firebaseError}</p>}
+            </div>
+
+            <div className="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-md mx-auto relative z-10">
+              <div className="text-center mb-8">
+                <div className="text-5xl mb-3 torch-glow">🏰</div>
+                <h1 className="text-3xl font-bold text-yellow-400 mb-2" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '2px 2px 6px rgba(0,0,0,0.9)'}}>
+                  Choose The Path
+                </h1>
+                <div className="h-1 w-32 mx-auto bg-gradient-to-r from-transparent via-yellow-600 to-transparent"></div>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-5 w-full">
+                {[
+                  { title: 'Hero Profile', desc: 'Manage avatar & view conquests', icon: '🛡️', action: 'profile', gradient: 'from-blue-900 to-blue-700' },
+                  { title: 'Guild Store', desc: 'Trade items & enhance power', icon: '⚔️', action: 'store', gradient: 'from-amber-900 to-amber-700' },
+                  { title: 'Hall of Legends', desc: 'Behold the mighty champions', icon: '👑', action: 'fame', gradient: 'from-purple-900 to-purple-700' }
+                ].map((card, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setAppState(card.action)}
+                    className={`fantasy-card bg-gradient-to-br ${card.gradient} p-6 rounded-2xl cursor-pointer active:scale-95 transition-all duration-300 hover:shadow-2xl hover:shadow-yellow-900/50`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="text-5xl torch-glow">{card.icon}</div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-yellow-400 mb-1" style={{fontFamily: 'Cinzel, serif', textShadow: '1px 1px 3px rgba(0,0,0,0.8)'}}>
+                          {card.title}
+                        </h3>
+                        <p className="text-sm text-amber-300">{card.desc}</p>
+                      </div>
+                      <div className="text-2xl text-yellow-600">▶</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="fantasy-card border-0 border-t-4 p-4 flex gap-3 justify-center relative z-10">
+              <button 
+                onClick={() => {
+                    playSound('click');
+  haptic('medium');
+                  loadDataFromFirebase();
+                  alert('✅ Ancient scrolls refreshed! 📜');
+                }} 
+                className="flex-1 medieval-button px-4 py-3 rounded-xl font-semibold transition text-sm"
+              >
+                🔄 Refresh
+              </button>
+              <button 
+                 onClick={() => {
+  playSound('click');
+  haptic('medium');
+  handleLogout();
+}}
+                className="flex-1 bg-gradient-to-r from-red-900 to-red-700 border-2 border-red-600 text-red-200 px-4 py-3 rounded-xl font-semibold transition text-sm hover:from-red-800 hover:to-red-600 active:scale-95"
+                style={{fontFamily: 'Cinzel, serif', textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}
+              >
+                🚪 Logout
+              </button>
+            </div>
+          </div>
+        );
+      }
+      // PROFILE SCREEN
+      if (appState === 'profile') {
+        const user = currentUser;
+        const userLevel = getUserLevel(userData[user].totalXP);
+        const power = getTotalPower(user);
+        const rank = getRank(power);
+        const remaining = userData[user].totalXP - userData[user].spentXP;
+
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 p-4 sm:p-8 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-5" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5 15h15l-12 9 5 15-13-10-13 10 5-15-12-9h15z' fill='%23d4af37' fill-opacity='1'/%3E%3C/svg%3E")`,
+              backgroundSize: '60px 60px'
+            }}></div>
+
+            <div className="flex justify-between items-center mb-6 gap-2 sm:gap-4 relative z-10">
+              <button
+               onClick={() => {
+  playSound('click');
+  haptic('light');
+  setAppState('dashboard');
+}}
+                className="medieval-button px-4 py-2 rounded-full font-bold text-xs sm:text-sm transition"
+              >
+                Path
+              </button>
+              <h1 className="text-2xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500 text-center" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>
+                🛡️ Hero Profile 🛡️
+              </h1>
+              <button
+                onClick={() => {
+  playSound('click');
+  haptic('medium');
+  handleLogout();
+}}
+                className="bg-gradient-to-r from-red-900 to-red-700 border-2 border-red-600 text-red-200 px-4 py-2 rounded-full font-bold text-xs sm:text-sm transition hover:from-red-800 hover:to-red-600 active:scale-95"
+                style={{fontFamily: 'Cinzel, serif'}}
+              >
+                Exit
+              </button>
+            </div>
+
+            <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6 relative z-10">
+              <div className="fantasy-card rounded-2xl p-6 sm:p-8 flex flex-col items-center">
+                <div className="text-center mb-4">
+                  <div className="text-3xl mb-2 torch-glow">⚔️</div>
+                  <h3 className="text-lg font-bold text-yellow-400" style={{fontFamily: 'Cinzel, serif'}}>The Champion</h3>
+                  <div className="h-0.5 w-20 mx-auto bg-gradient-to-r from-transparent via-yellow-600 to-transparent mt-2"></div>
+                </div>
+
+                <div className="relative mb-6">
+                  <div className="w-40 h-40 sm:w-48 sm:h-48 bg-gradient-to-br from-amber-900 to-amber-700 rounded-full flex items-center justify-center shadow-2xl shadow-amber-900/50 border-4 border-yellow-500 overflow-hidden relative">
+                    <img src={avatarUrls[userData[user].avatarId]} alt="avatar" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 border-4 border-yellow-400 rounded-full" style={{
+                      boxShadow: 'inset 0 0 20px rgba(212, 175, 55, 0.5)'
+                    }}></div>
+                  </div>
+                </div>
+
+                <h2 className="text-2xl font-bold text-yellow-400 mb-4 text-center" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>
+                  {userData[user].avatarName}
+                </h2>
+                
+                <div className="w-full mb-6">
+                  <input
+                    type="text"
+                    value={userData[user].avatarName}
+                    onChange={(e) => {
+                      const newData = JSON.parse(JSON.stringify(userData));
+                      newData[user].avatarName = e.target.value;
+                      setUserData(newData);
+                    }}
+                    className="w-full parchment-bg text-yellow-300 border-2 border-amber-800 rounded-lg p-3 text-center font-bold"
+                    placeholder="Name the champion..."
+                    style={{fontFamily: 'Cinzel, serif'}}
+                  />
+                </div>
+
+                <div className="flex items-center justify-center gap-4 mb-4">
+                  <button
+                    onClick={() => {
+                        playSound('click');
+  haptic('light');
+                      const newId = (userData[user].avatarId - 1 + avatarUrls.length) % avatarUrls.length;
+                      const newData = JSON.parse(JSON.stringify(userData));
+                      newData[user].avatarId = newId;
+                      setUserData(newData);
+                    }}
+                    className="medieval-button p-3 rounded-full transition transform hover:scale-110 shadow-lg text-xl"
+                  >
+                    ←
+                  </button>
+                  
+                  <div className="parchment-bg px-4 py-2 rounded-lg">
+                    <span className="text-sm text-amber-400 font-bold">{userData[user].avatarId + 1} / {avatarUrls.length}</span>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                        playSound('click');
+  haptic('light');
+                      const newId = (userData[user].avatarId + 1) % avatarUrls.length;
+                      const newData = JSON.parse(JSON.stringify(userData));
+                      newData[user].avatarId = newId;
+                      setUserData(newData);
+                    }}
+                    className="medieval-button p-3 rounded-full transition transform hover:scale-110 shadow-lg text-xl"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+
+              <div className="fantasy-card rounded-2xl p-6 sm:p-8">
+                <div className="text-center mb-6">
+                  <div className="text-3xl mb-2 torch-glow">📜</div>
+                  <h3 className="text-lg font-bold text-yellow-400" style={{fontFamily: 'Cinzel, serif'}}>Hero Statistics</h3>
+                  <div className="h-0.5 w-20 mx-auto bg-gradient-to-r from-transparent via-yellow-600 to-transparent mt-2"></div>
+                </div>
+
+                <div className="mb-6 pb-6 border-b-2 border-amber-900">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className="text-2xl">⭐</span>
+                    <h3 className="text-xl font-bold text-yellow-400" style={{fontFamily: 'Cinzel, serif'}}>Level {userLevel.level}</h3>
+                    <span className="text-2xl">⭐</span>
+                  </div>
+                  <p className="font-bold text-amber-300 text-center mb-3">{userLevel.name}</p>
+                  <div className="w-full parchment-bg rounded-full h-4 overflow-hidden border-2 border-amber-800">
+                    <div
+                      className="h-full bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600 transition-all duration-500 relative"
+                      style={{ width: `${getXpProgress(userData[user].totalXP)}%` }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="parchment-bg p-4 rounded-xl text-center border-2 border-amber-800">
+                    <p className="text-amber-400 text-xs mb-1" style={{fontFamily: 'Cinzel, serif'}}>Total XP</p>
+                    <p className="text-2xl font-bold text-yellow-400">{userData[user].totalXP}</p>
+                  </div>
+                  <div className="parchment-bg p-4 rounded-xl text-center border-2 border-amber-800">
+                    <p className="text-amber-400 text-xs mb-1" style={{fontFamily: 'Cinzel, serif'}}>Available</p>
+                    <p className="text-2xl font-bold text-green-400">{remaining}</p>
+                  </div>
+                  <div className="parchment-bg p-4 rounded-xl text-center border-2 border-amber-800">
+                    <p className="text-amber-400 text-xs mb-1" style={{fontFamily: 'Cinzel, serif'}}>Power</p>
+                    <p className={`text-2xl font-bold ${
+                      power > 70 ? "text-green-400" : power > 35 ? "text-yellow-400" : "text-red-400"
+                    }`}>
+                      {power.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="parchment-bg p-4 rounded-xl text-center border-2 border-amber-800">
+                    <p className="text-amber-400 text-xs mb-1" style={{fontFamily: 'Cinzel, serif'}}>Arsenal</p>
+                    <p className="text-2xl font-bold text-yellow-400">
+                      {userData[user].inventory.reduce((sum, inv) => sum + inv.quantity, 0)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="parchment-bg p-4 rounded-xl text-center mb-4 border-2 border-amber-800">
+                  <p className="text-amber-400 text-sm mb-2" style={{fontFamily: 'Cinzel, serif'}}>Battle Rank</p>
+                  <p className="text-3xl mb-2">{'⭐'.repeat(rank.stars)}</p>
+                  <p className="text-xl font-bold text-blue-400" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '1px 1px 3px rgba(0,0,0,0.8)'}}>
+                    {rank.name}
+                  </p>
+                </div>
+
+                <button
+                  onClick={handlePublishProfile}
+                  className="w-full medieval-button py-4 rounded-xl transition text-base"
+                  style={{fontFamily: 'Cinzel, serif'}}
+                >
+                  📜 Publish To Hall of Legends 📜
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // STORE SCREEN
+      if (appState === 'store') {
+        const user = currentUser;
+        const remaining = userData[user].totalXP - userData[user].spentXP;
+        const displayItems = getFilteredItems() || [];
+
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 p-4 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-5" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5 15h15l-12 9 5 15-13-10-13 10 5-15-12-9h15z' fill='%23d4af37' fill-opacity='1'/%3E%3C/svg%3E")`,
+              backgroundSize: '60px 60px'
+            }}></div>
+
+            {showDescModal && (
+              <div 
+                className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+                onClick={() => setShowDescModal(null)}
+              >
+                <div 
+                  className="fantasy-card rounded-2xl p-6 max-w-sm w-full relative"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button 
+                    onClick={() => setShowDescModal(null)}
+                    className="absolute top-3 right-3 medieval-button w-10 h-10 rounded-full flex items-center justify-center text-xl"
+                  >
+                    ×
+                  </button>
+
+                  <div className="text-center mb-4">
+                    <div className="text-4xl mb-2 torch-glow">⚔️</div>
+                    <h3 className="text-xl font-bold text-yellow-400 mb-2" style={{fontFamily: 'MedievalSharp, cursive'}}>
+                      {showDescModal.name}
+                    </h3>
+                    <div className="h-0.5 w-20 mx-auto bg-gradient-to-r from-transparent via-yellow-600 to-transparent"></div>
+                  </div>
+
+                  <p className="text-amber-400 text-sm mb-3 text-center font-semibold" style={{fontFamily: 'Cinzel, serif'}}>
+                    {showDescModal.category}
+                  </p>
+                  <p className="text-amber-200 text-sm leading-relaxed mb-4 parchment-bg p-4 rounded-lg border-2 border-amber-800">
+                    {showDescModal.desc}
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <span className="parchment-bg border-2 border-red-600 text-red-400 px-4 py-2 rounded-full text-sm font-bold">
+                      ⚡ Power: {showDescModal.hp}
+                    </span>
+                    <span className="medieval-button px-4 py-2 rounded-full text-sm">
+                      {showDescModal.price} XP
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center mb-6 gap-2 relative z-10">
+              <button 
+               onClick={() => {
+  playSound('click');
+  haptic('light');
+  setAppState('dashboard');
+}}
+                className="medieval-button px-4 py-2 rounded-full font-bold text-xs transition"
+              >
+                Path
+              </button>
+              <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>
+                ⚔️ Guild Store ⚔️
+              </h1>
+              <button 
+               onClick={() => {
+  playSound('click');
+  haptic('medium');
+  handleLogout();
+}}
+                className="bg-gradient-to-r from-red-900 to-red-700 border-2 border-red-600 text-red-200 px-4 py-2 rounded-full font-bold text-xs transition hover:from-red-800 hover:to-red-600 active:scale-95"
+                style={{fontFamily: 'Cinzel, serif'}}
+              >
+                Exit
+              </button>
+            </div>
+
+            <div className="max-w-md mx-auto relative z-10">
+              <div className="fantasy-card rounded-2xl p-5 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="text-center flex-1">
+                    <div className="text-2xl mb-1 torch-glow">💰</div>
+                    <h3 className="text-xs text-amber-400 mb-1" style={{fontFamily: 'Cinzel, serif'}}>Available XP</h3>
+                    <p className="text-2xl font-bold text-green-400">{remaining}</p>
+                  </div>
+                  <div className="h-16 w-px bg-gradient-to-b from-transparent via-amber-600 to-transparent"></div>
+                  <div className="text-center flex-1">
+                    <div className="text-2xl mb-1 torch-glow">🎒</div>
+                    <h3 className="text-xs text-amber-400 mb-1" style={{fontFamily: 'Cinzel, serif'}}>Total Items</h3>
+                    <p className="text-2xl font-bold text-green-400">
+                      {userData[user].inventory.reduce((sum, inv) => sum + inv.quantity, 0)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mb-5">
+                <div className="flex flex-wrap gap-2 justify-center mb-3">
+                  {[
+                    { id: 'All Items', label: 'All Items', icon: '📜' },
+                    { id: 'Purchased', label: 'Owned', icon: '🎒' },
+                    { id: 'Equipped', label: 'Equipped', icon: '⚔️' }
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                     onClick={() => {
+  playSound('click');
+  haptic('light');
+  setFilterCategory(cat.id);
+}}
+                      className={`px-4 py-2 rounded-full font-semibold transition text-xs ${
+                        filterCategory === cat.id
+                          ? 'medieval-button'
+                          : 'parchment-bg border-2 border-amber-800 text-amber-300'
+                      }`}
+                      style={{fontFamily: 'Cinzel, serif'}}
+                    >
+                      {cat.icon} {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {[
+                    { id: 'Weapons', label: 'Weapons', icon: '⚔️' },
+                    { id: 'Armor', label: 'Armor', icon: '🛡️' },
+                    { id: 'Skills', label: 'Skills', icon: '✨' },
+                    { id: 'Consumables', label: 'Potions', icon: '🧪' }
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                     onClick={() => {
+  playSound('click');
+  haptic('light');
+  setFilterCategory(cat.id);
+}}
+                      className={`px-4 py-2 rounded-full font-semibold transition text-xs ${
+                        filterCategory === cat.id
+                          ? 'medieval-button'
+                          : 'parchment-bg border-2 border-amber-800 text-amber-300'
+                      }`}
+                      style={{fontFamily: 'Cinzel, serif'}}
+                    >
+                      {cat.icon} {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {displayItems.length === 0 ? (
+                <div className="fantasy-card rounded-2xl p-8 text-center">
+                  <div className="text-5xl mb-4 opacity-50">📦</div>
+                  <p className="text-amber-300 text-lg" style={{fontFamily: 'Cinzel, serif'}}>
+                    No items found in this category
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {displayItems.map((item) => {
+                    const showBuyButton = filterCategory === 'All Items' || ['Weapons', 'Armor', 'Skills', 'Consumables'].includes(filterCategory);
+                    const showSellButton = item.isInInventory;
+                    const showEquipButton = item.isInInventory && !item.isEquipped;
+                    const showUnequipButton = item.isEquipped;
+                    
+                    return (
+                      <div key={item.id} 
+                        className={`fantasy-card ${
+                          item.isEquipped ? 'border-4 border-yellow-400 shadow-xl shadow-yellow-600/50' : ''
+                        } rounded-xl p-3 flex flex-col relative`}
+                      >
+                        <button
+                          onClick={() => setShowDescModal(item)}
+                          className="absolute top-2 right-2 w-7 h-7 medieval-button rounded-full flex items-center justify-center text-xs font-bold z-10"
+                        >
+                          i
+                        </button>
+
+                        <div className="absolute top-2 left-2 parchment-bg border-2 border-red-600 text-red-400 px-2 py-0.5 rounded-full text-xs font-bold">
+                          ⚡{item.hp}
+                        </div>
+                        
+                        <div className="w-full aspect-square bg-gradient-to-br from-amber-900 to-amber-700 rounded-xl flex items-center justify-center mb-2 mt-6 overflow-hidden border-2 border-amber-600 relative">
+                          <img 
+                            src={itemGifs[item.id]} 
+                            alt={item.name}
+                            className="w-full h-full object-contain p-2"
+                            onError={(e) => {
+                              e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjN0Y0N0JGIi8+Cjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Tm8gSW1hZ2U8L3RleHQ+Cjwvc3ZnPg==';
+                            }}
+                          />
+                          {item.isEquipped && (
+                            <div className="absolute inset-0 border-2 border-yellow-400 rounded-xl animate-pulse"></div>
+                          )}
+                        </div>
+                        
+                        <h4 className="text-yellow-300 font-bold text-xs text-center mb-1 line-clamp-2 min-h-[2rem]" style={{fontFamily: 'Cinzel, serif'}}>
+                          {item.name}
+                        </h4>
+                        
+                        <div className="text-yellow-400 font-bold text-xs text-center mb-2">
+                          💰 {item.price} XP
+                        </div>
+                        
+                        {item.quantity > 0 && (
+                          <div className="text-green-400 font-bold text-xs text-center mb-2">
+                            Owned: ×{item.quantity}
+                          </div>
+                        )}
+                        
+                        <div className="flex flex-col gap-1.5 w-full mt-auto">
+                          {showBuyButton && (
+                            <button
+                              onClick={() => handleBuyItem(item)}
+                              disabled={remaining < item.price}
+                              className={`px-3 py-2 rounded-full font-bold text-xs transition ${
+                                remaining >= item.price
+                                  ? 'bg-gradient-to-r from-green-800 to-green-600 border-2 border-green-500 text-green-200 hover:from-green-700 hover:to-green-500 active:scale-95'
+                                  : 'bg-gray-700 border-2 border-gray-600 text-gray-500 cursor-not-allowed'
+                              }`}
+                              style={{fontFamily: 'Cinzel, serif'}}
+                            >
+                              {remaining >= item.price ? '🛒 Buy' : '🔒 Locked'}
+                            </button>
+                          )}
+                          
+                          {(showEquipButton || showUnequipButton) && (
+                            <button
+                              onClick={() => handleEquipItem(item.id)}
+                              className={`px-3 py-2 rounded-full font-bold text-xs transition ${
+                                showUnequipButton
+                                  ? 'bg-gradient-to-r from-red-800 to-red-600 border-2 border-red-500 text-red-200 hover:from-red-700 hover:to-red-500 active:scale-95'
+                                  : 'medieval-button'
+                              }`}
+                              style={{fontFamily: 'Cinzel, serif'}}
+                            >
+                              {showUnequipButton ? '❌ Unequip' : '⚔️ Equip'}
+                            </button>
+                          )}
+                          
+                          {showSellButton && (
+                            <button
+                              onClick={() => handleSellItem(item.id)}
+                              className="px-3 py-2 rounded-full font-bold text-xs bg-gradient-to-r from-orange-800 to-orange-600 border-2 border-orange-500 text-orange-200 hover:from-orange-700 hover:to-orange-500 transition active:scale-95"
+                              style={{fontFamily: 'Cinzel, serif'}}
+                            >
+                              💰 Sell
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+{filterCategory === 'Purchased' && userData[user].purchaseHistory.length > 0 && (
+  <div className="mt-6 max-w-md mx-auto fantasy-card rounded-2xl p-5 relative z-10">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <span className="text-2xl torch-glow">📜</span>
+        <h3 className="text-lg font-bold text-yellow-400" style={{fontFamily: 'Cinzel, serif'}}>Purchase Ledger</h3>
+      </div>
+      <span className="medieval-button px-3 py-1 rounded-full font-bold text-xs">
+  {userData[user].inventory.reduce((sum, inv) => sum + inv.quantity, 0)} Total
+</span>
+    </div>
+    
+    <div className="parchment-bg border-2 border-amber-800 rounded-xl overflow-hidden">
+      <table className="w-full">
+        <thead>
+          <tr className="bg-gradient-to-r from-amber-900 to-amber-800 border-b-2 border-amber-700">
+            <th className="text-left px-3 py-2 text-amber-300 text-xs font-bold" style={{fontFamily: 'Cinzel, serif'}}>Item</th>
+            <th className="text-center px-3 py-2 text-amber-300 text-xs font-bold" style={{fontFamily: 'Cinzel, serif'}}>Icon</th>
+            <th className="text-center px-3 py-2 text-amber-300 text-xs font-bold" style={{fontFamily: 'Cinzel, serif'}}>Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {userData[user].inventory.map((inv, index) => {
+  const item = rewards.find(r => r.id === inv.itemId);
+  return (
+    <tr key={inv.itemId} className={`border-b border-amber-900 ${index % 2 === 0 ? 'bg-amber-950/30' : 'bg-transparent'} hover:bg-amber-900/40 transition`}>
+                <td className="px-3 py-2 text-yellow-300 text-xs font-semibold" style={{fontFamily: 'Cinzel, serif'}}>
+                  {item.name}
+                </td>
+                <td className="px-3 py-2 text-center">
+                  <div className="w-10 h-10 mx-auto bg-gradient-to-br from-amber-800 to-amber-600 rounded-lg flex items-center justify-center overflow-hidden border-2 border-amber-500">
+                    <img 
+                      src={itemGifs[item.id]} 
+                      alt={item.name}
+                      className="w-full h-full object-contain p-1"
+                    />
+                  </div>
+                </td>
+                <td className="px-3 py-2 text-center">
+                  <span className="medieval-button text-xs font-bold px-2 py-1 rounded-full inline-block">
+  ×{inv.quantity}
+</span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+          </div>
+        );
+      }
+
+      // FAME SCREEN (HALL OF LEGENDS)
+      if (appState === 'fame') {
+        const allProfiles = [];
+        
+        if (userData.Bikram.publishedProfile) {
+          allProfiles.push({ ...userData.Bikram.publishedProfile, id: 'bikram' });
+        }
+        if (userData.Piyali.publishedProfile) {
+          allProfiles.push({ ...userData.Piyali.publishedProfile, id: 'piyali' });
+        }
+
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 p-4 sm:p-8 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-5" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5 15h15l-12 9 5 15-13-10-13 10 5-15-12-9h15z' fill='%23d4af37' fill-opacity='1'/%3E%3C/svg%3E")`,
+              backgroundSize: '60px 60px'
+            }}></div>
+
+            <div className="flex justify-between items-center mb-8 gap-2 sm:gap-4 relative z-10">
+              <button
+               onClick={() => {
+  playSound('click');
+  haptic('light');
+  setAppState('dashboard');
+}}
+                className="medieval-button px-4 py-2 rounded-full font-bold text-xs sm:text-sm transition"
+              >
+                Path
+              </button>
+              <div className="text-center">
+                <div className="text-3xl mb-1 torch-glow">👑</div>
+                <h1 className="text-2xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>
+                  Hall of Legends
+                </h1>
+              </div>
+              <button
+                onClick={() => {
+  playSound('click');
+  haptic('medium');
+  handleLogout();
+}}
+                className="bg-gradient-to-r from-red-900 to-red-700 border-2 border-red-600 text-red-200 px-4 py-2 rounded-
+                rounded-full font-bold text-xs sm:text-sm transition hover:from-red-800 hover:to-red-600 active:scale-95"
+                style={{fontFamily: 'Cinzel, serif'}}
+              >
+                Exit
+              </button>
+            </div>
+
+            <div className="max-w-6xl mx-auto relative z-10">
+              {allProfiles.length === 0 ? (
+                <div className="fantasy-card rounded-2xl p-12 text-center">
+                  <div className="text-6xl mb-6 opacity-50 torch-glow">🏰</div>
+                  <p className="text-amber-300 text-xl mb-2" style={{fontFamily: 'Cinzel, serif'}}>
+                    The Hall Awaits Its First Legend
+                  </p>
+                  <p className="text-amber-500 text-sm italic">Be the first to etch the name in history!</p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
+                  {allProfiles.map((profile) => (
+                    <div
+                      key={profile.id}
+                      className="fantasy-card rounded-2xl p-6 sm:p-8 hover:scale-105 transition-transform duration-300 relative overflow-hidden"
+                    >
+                      <div className="absolute top-3 left-3 text-2xl text-yellow-600">◆</div>
+                      <div className="absolute top-3 right-3 text-2xl text-yellow-600">◆</div>
+                      <div className="absolute bottom-3 left-3 text-2xl text-yellow-600">◆</div>
+                      <div className="absolute bottom-3 right-3 text-2xl text-yellow-600">◆</div>
+
+                      <div className="flex flex-col items-center text-center relative z-10">
+                        <div className="w-32 h-32 bg-gradient-to-br from-amber-900 to-amber-700 rounded-full flex items-center justify-center shadow-2xl shadow-amber-900/50 mb-4 border-4 border-yellow-500 overflow-hidden relative">
+                          <img src={profile.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 border-4 border-yellow-400 rounded-full" style={{
+                            boxShadow: 'inset 0 0 20px rgba(212, 175, 55, 0.5)'
+                          }}></div>
+                        </div>
+                        
+                        <h2 className="text-3xl font-bold text-yellow-400 drop-shadow-lg mb-2" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '2px 2px 6px rgba(0,0,0,0.9)'}}>
+                          {profile.avatarName}
+                        </h2>
+                        <p className="text-lg text-amber-300 font-semibold mb-5" style={{fontFamily: 'Cinzel, serif'}}>@{profile.user}</p>
+                        
+                        <div className="w-full parchment-bg border-2 border-amber-800 rounded-xl p-5 mb-5">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-amber-400 font-semibold mb-1" style={{fontFamily: 'Cinzel, serif'}}>Level</p>
+                              <p className="text-2xl font-bold text-yellow-400">{profile.level}</p>
+                              <p className="text-xs text-amber-500">{profile.levelName}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-amber-400 font-semibold mb-1" style={{fontFamily: 'Cinzel, serif'}}>Total XP</p>
+                              <p className="text-2xl font-bold text-yellow-400">{profile.totalXP}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-amber-400 font-semibold mb-1" style={{fontFamily: 'Cinzel, serif'}}>Power</p>
+                              <p className="text-2xl font-bold text-green-400">{profile.power.toFixed(1)}%</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-amber-400 font-semibold mb-1" style={{fontFamily: 'Cinzel, serif'}}>Arsenal</p>
+                              <p className="text-2xl font-bold text-yellow-400">{profile.totalPurchased}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="w-full parchment-bg border-2 border-amber-800 rounded-xl p-4 mb-4">
+                          <p className="text-sm text-amber-400 font-semibold mb-2" style={{fontFamily: 'Cinzel, serif'}}>Battle Rank</p>
+                          <p className="text-2xl font-bold text-blue-400 mb-2" style={{fontFamily: 'MedievalSharp, cursive', textShadow: '1px 1px 3px rgba(0,0,0,0.8)'}}>
+                            {profile.rank}
+                          </p>
+                          <p className="text-3xl">{'⭐'.repeat(profile.stars)}</p>
+                        </div>
+
+                        <p className="text-xs text-amber-600 mb-5 italic">Enshrined: {profile.timestamp}</p>
+
+                        <button
+                          onClick={() => setViewingProfile(profile)}
+                          className="w-full medieval-button px-4 py-3 rounded-xl font-semibold transition text-sm"
+                          style={{fontFamily: 'Cinzel, serif'}}
+                        >
+                          📜 View Legend Card 📜
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      return null;
+    };
+
+    // Mount the app
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<QuestForge />);
+  </script>
+</body>
+</html>
