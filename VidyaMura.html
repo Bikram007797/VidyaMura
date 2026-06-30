@@ -1600,6 +1600,13 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   display: flex; align-items: center; gap: 10px;
   flex-wrap: wrap; font-size: 0.73rem; color: var(--text-secondary);
 }
+
+/* ── Reusable glowing centered page title (same style as Mura Market) ── */
+.page-title-glow {
+  font-family: var(--font-head); font-weight: 700; font-size: 1.3rem; color: transparent;
+  background: linear-gradient(90deg, #ffd700, #ffaa00); -webkit-background-clip: text; background-clip: text;
+  animation: pulse-glow 2s ease-in-out infinite; letter-spacing: 2px; text-align: center; margin-bottom: 14px;
+}
 </style>
 </head>
 <body>
@@ -1711,10 +1718,10 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <div class="filter-tab" id="ft-all"     onclick="filterTasks('all',this)">All</div>
       <div class="filter-tab" id="ft-data"    onclick="filterTasks('data',this)">📊 Data</div>
     </div>
-    <div class="section-header">
-      <div class="section-title" id="tasks-tab-title">Daily Tasks</div>
-      <button class="btn-add" id="tasks-add-btn" onclick="openTaskModal()">+ Add Task</button>
-    </div>
+    <div class="page-title-glow" id="tasks-tab-title">Daily Tasks</div>
+<div class="section-header" style="justify-content:flex-end">
+  <button class="btn-add" id="tasks-add-btn" onclick="openTaskModal()">+ Add Task</button>
+</div>
     <div id="tasks-list"></div>
 
     <!-- DATA TABLE VIEW (read-only) -->
@@ -1745,10 +1752,10 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <!-- COURSES TAB -->
   <div id="tab-courses" class="tab-content">
     <div id="courses-list-view">
-      <div class="section-header">
-        <div class="section-title">My Courses</div>
-        <button class="btn-add" onclick="openCourseModal()">+ Add Course</button>
-      </div>
+     <div class="page-title-glow">My Courses</div>
+<div class="section-header" style="justify-content:flex-end">
+  <button class="btn-add" onclick="openCourseModal()">+ Add Course</button>
+</div>
       <div class="course-filter-tabs">
         <div class="course-filter-tab active" onclick="filterCourses('all',this)">All</div>
         <div class="course-filter-tab" onclick="filterCourses('In Progress',this)">In Progress</div>
@@ -1781,10 +1788,10 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
 
   <!-- EXAMS TAB -->
   <div id="tab-exams" class="tab-content">
-    <div class="section-header">
-      <div class="section-title">Exam Hub</div>
-      <button class="btn-add" onclick="openExamModal()">+ Add Exam</button>
-    </div>
+   <div class="page-title-glow">Exam Hub</div>
+<div class="section-header" style="justify-content:flex-end">
+  <button class="btn-add" onclick="openExamModal()">+ Add Exam</button>
+</div>
     <div class="course-filter-tabs">
       <div class="course-filter-tab active" onclick="filterExams('all',this)">All</div>
       <div class="course-filter-tab" onclick="filterExams('Not Started',this)">Not Started</div>
@@ -1797,8 +1804,8 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
 
   <!-- ARENA TAB -->
   <div id="tab-analytics" class="tab-content">
-    <div class="section-title" style="margin-bottom:4px">Leaderboard</div>
-    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:16px">Compare your growth with your fellow scholar</div>
+<div class="page-title-glow" style="margin-bottom:4px">Leaderboard</div>
+<div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:16px;text-align:center">Compare your growth with your fellow scholar</div>
     <div id="arena-cards-list"></div>
   </div>
 
@@ -1928,7 +1935,11 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <div class="profile-stat-block"><div class="psb-val" id="pstat-total-done">0</div><div class="psb-lbl">TOTAL TASKS DONE</div></div>
       <div class="profile-stat-block"><div class="psb-val" id="pstat-task-time">0h</div><div class="psb-lbl">TOTAL TASK TIME</div></div>
       <div class="profile-stat-block"><div class="psb-val" id="pstat-power">0.0</div><div class="psb-lbl">TOTAL POWER</div></div>
-      <div class="profile-stat-block"><div class="psb-val" id="pstat-rank">RECRUIT</div><div class="psb-lbl">CURRENT RANK</div></div>
+       <div class="profile-stat-block">
+  <div class="psb-val" id="pstat-rank">RECRUIT</div>
+  <div class="psb-lbl">CURRENT RANK</div>
+  <div id="pstat-rank-stars" style="color:var(--accent-gold);font-size:0.72rem;margin-top:3px;letter-spacing:1px"></div>
+</div>
       <div class="profile-stat-block"><div class="psb-val" id="pstat-rewards">0</div><div class="psb-lbl">REWARDS PURCHASED</div></div>
       <div class="profile-stat-block" style="grid-column:span 2"><div class="psb-val" id="pstat-timer-time">0h</div><div class="psb-lbl">TOTAL TIMER TIME</div></div>
     </div>
@@ -3817,7 +3828,7 @@ async function updateAnalytics() {
       return `<div class="arena-card ${isLeader ? 'leader' : ''}">
         ${isLeader ? '<div class="arena-crown">👑</div>' : ''}
         <div class="arena-avatar-wrap"><div class="arena-avatar">${avatarHtml}</div></div>
-        <div class="arena-user-name">${u.name || 'Warrior'}</div>
+<div class="arena-user-name">${u.name || 'Warrior'} <span style="color:var(--accent-gold);font-size:0.78rem">${'⭐'.repeat(rank.stars)}</span></div>
         <div class="arena-progress-row"><div class="arena-period-lbl">Daily</div><div class="arena-bar-track"><div class="arena-bar-fill" style="width:${dailyPct}%"></div></div><div class="arena-pct-lbl">${dailyPct}%</div></div>
         <div class="arena-progress-row"><div class="arena-period-lbl">Weekly</div><div class="arena-bar-track"><div class="arena-bar-fill" style="width:${weeklyPct}%"></div></div><div class="arena-pct-lbl">${weeklyPct}%</div></div>
         <div class="arena-progress-row"><div class="arena-period-lbl">Monthly</div><div class="arena-bar-track"><div class="arena-bar-fill" style="width:${monthlyPct}%"></div></div><div class="arena-pct-lbl">${monthlyPct}%</div></div>
@@ -4677,6 +4688,8 @@ function updateProfile() {
   if(pPowEl) pPowEl.textContent = power.toFixed(1);
   const pRankEl = document.getElementById('pstat-rank');
   if(pRankEl) pRankEl.textContent = rank.name;
+  const pRankStarsEl = document.getElementById('pstat-rank-stars');
+if(pRankStarsEl) pRankStarsEl.textContent = '⭐'.repeat(rank.stars);
   const pRewEl = document.getElementById('pstat-rewards');
   if(pRewEl) pRewEl.textContent = totalPurchased;
   
