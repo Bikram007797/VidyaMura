@@ -1823,7 +1823,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
   <div>
     <div style="font-size:0.6rem;color:var(--text-muted);letter-spacing:0.5px;margin-bottom:4px">🌱 JOURNEY LEVEL</div>
-    <div style="font-size:0.78rem;font-weight:700;color:var(--accent-gold);font-family:var(--font-head);line-height:1.3" id="guild-level-name">Novice</div>
+    <div style="font-size:0.78rem;font-weight:700;color:var(--accent-gold);font-family:var(--font-head);line-height:1.3" id="guild-level-name">Nava Shishya</div>
   </div>
   <div style="border-left:1px solid var(--border);border-right:1px solid var(--border)">
     <div style="font-size:0.6rem;color:var(--text-muted);letter-spacing:0.5px;margin-bottom:4px">🍃 PRANA</div>
@@ -1831,7 +1831,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   </div>
   <div>
     <div style="font-size:0.6rem;color:var(--text-muted);letter-spacing:0.5px;margin-bottom:4px">🌟 AURA</div>
-    <div style="font-size:0.72rem;font-weight:700;color:var(--accent-cyan);font-family:var(--font-head);line-height:1.3" id="guild-rank">RECRUIT</div>
+    <div style="font-size:0.72rem;font-weight:700;color:var(--accent-cyan);font-family:var(--font-head);line-height:1.3" id="guild-rank">🌑 Dormant</div>
     <div style="font-size:0.62rem;color:var(--accent-gold)" id="guild-stars">★</div>
   </div>
 </div>
@@ -1923,7 +1923,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
         <input type="text" id="prof-name-input" style="text-align:center;margin-bottom:6px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:8px 12px;width:100%;outline:none">
         <button class="btn-primary" style="padding:8px" onclick="saveName()">Save</button>
       </div>
-      <div class="profile-level" id="prof-level">LEVEL 1 · NOVICE EXPLORER</div>
+      <div class="profile-level" id="prof-level">LEVEL 1 · NAVA SHISHYA</div>
       <div style="font-size:0.82rem;color:var(--accent-gold);margin-top:4px" id="prof-pts-diamonds">✨ 0 pts · 💎 0</div>
       <div class="xp-bar-wrap">
         <div class="xp-label"><span id="xp-current">0 pts</span><span id="xp-next">Next: 100 pts</span></div>
@@ -1936,7 +1936,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <div class="profile-stat-block"><div class="psb-val" id="pstat-task-time">0h</div><div class="psb-lbl">TOTAL TASK TIME</div></div>
       <div class="profile-stat-block"><div class="psb-val" id="pstat-power">0.0</div><div class="psb-lbl">🍃 TOTAL PRANA</div></div>
        <div class="profile-stat-block">
-  <div class="psb-val" id="pstat-rank">RECRUIT</div>
+  <div class="psb-val" id="pstat-rank">🌑 Dormant</div>
   <div class="psb-lbl">🌟 CURRENT AURA</div>
   <div id="pstat-rank-stars" style="color:var(--accent-gold);font-size:0.72rem;margin-top:3px;letter-spacing:1px"></div>
 </div>
@@ -2168,9 +2168,9 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     <div class="drawer-name" id="drawer-name">—</div>
     <div class="drawer-level-row">
       <span class="drawer-level-badge" id="drawer-level">Lv.1</span>
-      <span style="font-size:0.7rem;color:var(--text-muted)" id="drawer-level-name">Novice</span>
+      <span style="font-size:0.7rem;color:var(--text-muted)" id="drawer-level-name">Nava Shishya</span>
     </div>
-    <div class="drawer-rank-name" id="drawer-rank">RECRUIT</div>
+    <div class="drawer-rank-name" id="drawer-rank">🌑 Dormant</div>
     <div class="drawer-stars" id="drawer-stars">⭐</div>
   </div>
 
@@ -4282,16 +4282,16 @@ function closeGuildDesc() { document.getElementById('guild-desc-overlay').classL
 function getGuildRankNew(power, xp) {
   const pct = Math.min(100, power);
   const rankDefs = [
-  {name: 'NAVA SHISHYA',    stars: 1},   // নতুন ছাত্র
-  {name: 'GRAMA BALAK',      stars: 2},   // গ্রামের বালক
-  {name: 'PATH WALKER',     stars: 3},   // পথ চলক
-  {name: 'TEMPLE KEEPER',   stars: 4},   // মন্দির রক্ষক
-  {name: 'ZEN ADEPT',       stars: 5},   // জেন শিক্ষার্থী
-  {name: 'MURA SCHOLAR',    stars: 6},   // মুরার পণ্ডিত
-  {name: 'VIDYA SENSEI',    stars: 7},   // বিদ্যার সেন্সেই
-  {name: 'FOREST SAGE',     stars: 8},   // বনের ঋষি
-  {name: 'GRAND ACHARYA',   stars: 9},   // মহা আচার্য
-  {name: 'ENLIGHTENED ONE', stars: 10}   // আলোকিত
+  {name: '🌑 Dormant',    stars: 1},
+  {name: '🌒 Awakened',   stars: 2},
+  {name: '🟢 Centered',   stars: 3},
+  {name: '🍃 Flowing',    stars: 4},
+  {name: '🔥 Focused',    stars: 5},
+  {name: '⚡ Empowered',  stars: 6},
+  {name: '🌸 Harmonized', stars: 7},
+  {name: '☀️ Radiant',    stars: 8},
+  {name: '🌟 Ascended',   stars: 9},
+  {name: '✨ Divine',     stars: 10}
 ];
   const idx = pct <= 10 ? 0 : pct <= 20 ? 1 : pct <= 30 ? 2 : pct <= 40 ? 3 :
               pct <= 50 ? 4 : pct <= 60 ? 5 : pct <= 70 ? 6 : pct <= 80 ? 7 :
@@ -4790,9 +4790,9 @@ const ACHIEVEMENT_GROUPS = [
     ]},
   { cat:'🌟 Aura', color:'var(--accent-gold)', metric:d=>d._rankStars||1,
     tiers:[
-      {v:4, icon:'🏯', name:'Temple Keeper Aura', desc:'Reach Temple Keeper aura'},
-      {v:7, icon:'🌸', name:'Vidya Sensei Aura', desc:'Reach Vidya Sensei aura'},
-      {v:10, icon:'🌟', name:'Enlightened One', desc:'Reach the highest aura'}
+      {v:4, icon:'🍃', name:'Flowing Aura', desc:'Reach Flowing aura'},
+      {v:7, icon:'🌸', name:'Harmonized Aura', desc:'Reach Harmonized aura'},
+      {v:10, icon:'✨', name:'Divine Aura', desc:'Reach the highest aura'}
     ]},
   { cat:'Notes', color:'var(--accent-green)', metric:d=>d._notesCount||0,
     tiers:[
