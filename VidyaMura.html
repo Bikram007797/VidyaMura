@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="VidyaMura">
 <meta name="theme-color" content="#121614">
 
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230a0a0f'/%3E%3Crect width='512' height='512' rx='112' fill='url(%23grad)'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231a1030'/%3E%3Cstop offset='1' stop-color='%230a0a0f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='256' cy='256' r='200' fill='none' stroke='%23d4a84b' stroke-width='8' opacity='0.4'/%3E%3Ccircle cx='256' cy='256' r='170' fill='none' stroke='%237c5cbf' stroke-width='4' opacity='0.3'/%3E%3Ctext x='256' y='310' font-size='180' text-anchor='middle' font-family='serif'%3E%E2%9A%94%EF%B8%8F%3C/text%3E%3Ctext x='256' y='440' font-size='52' text-anchor='middle' fill='%23d4a84b' font-family='Georgia,serif' font-weight='700' letter-spacing='6'%3EDUOQUEST%3C/text%3E%3C/svg%3E">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230a0a0f'/%3E%3Ctext y='.85em' font-size='72' text-anchor='middle' x='50'%3E%E2%9A%94%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231b211e'/%3E%3Cstop offset='1' stop-color='%23121614'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='url(%23grad)'/%3E%3Ccircle cx='256' cy='256' r='205' fill='none' stroke='%23e5c07b' stroke-width='7' opacity='0.35'/%3E%3Ccircle cx='256' cy='256' r='172' fill='none' stroke='%2388b394' stroke-width='4' opacity='0.3'/%3E%3Ctext x='256' y='312' font-size='190' text-anchor='middle' font-family='serif'%3E%E2%9B%A9%EF%B8%8F%3C/text%3E%3Ctext x='256' y='440' font-size='46' text-anchor='middle' fill='%23e5c07b' font-family='Georgia,serif' font-weight='700' letter-spacing='4'%3EVIDYAMURA%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='gi' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231b211e'/%3E%3Cstop offset='1' stop-color='%23121614'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23gi)'/%3E%3Ctext y='.85em' font-size='68' text-anchor='middle' x='50'%3E%E2%9B%A9%EF%B8%8F%3C/text%3E%3C/svg%3E">
 
 <script>
 (function(){
@@ -23,7 +23,7 @@ description: "Cultivate Your Knowledge in Harmony",
    background_color: "#121614",
 theme_color: "#121614",
     orientation: "portrait",
-    icons: [{ src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230a0a0f'/%3E%3Ctext x='256' y='340' font-size='300' text-anchor='middle'%3E%E2%9A%94%EF%B8%8F%3C/text%3E%3C/svg%3E", sizes: "512x512", type: "image/svg+xml" }]
+    icons: [{ src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='gm' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231b211e'/%3E%3Cstop offset='1' stop-color='%23121614'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='url(%23gm)'/%3E%3Ccircle cx='256' cy='256' r='205' fill='none' stroke='%23e5c07b' stroke-width='7' opacity='0.35'/%3E%3Ctext x='256' y='340' font-size='300' text-anchor='middle'%3E%E2%9B%A9%EF%B8%8F%3C/text%3E%3C/svg%3E", sizes: "512x512", type: "image/svg+xml" }]
   };
   const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1648,18 +1648,44 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <div id="tab-tasks" class="tab-content">
    
     <div class="filter-tabs">
+      <div class="filter-tab" id="ft-planner" onclick="filterTasks('planner',this)">📋 Planner</div>
       <div class="filter-tab active" id="ft-daily"   onclick="filterTasks('daily',this)">Daily</div>
       <div class="filter-tab" id="ft-weekly"  onclick="filterTasks('weekly',this)">Weekly</div>
       <div class="filter-tab" id="ft-monthly" onclick="filterTasks('monthly',this)">Monthly</div>
       <div class="filter-tab" id="ft-due"     onclick="filterTasks('due',this)">Due</div>
       <div class="filter-tab" id="ft-done"    onclick="filterTasks('done',this)">Done</div>
       <div class="filter-tab" id="ft-all"     onclick="filterTasks('all',this)">All</div>
+      <div class="filter-tab" id="ft-data"    onclick="filterTasks('data',this)">📊 Data</div>
     </div>
     <div class="section-header">
       <div class="section-title" id="tasks-tab-title">Daily Tasks</div>
-      <button class="btn-add" onclick="openTaskModal()">+ Add Task</button>
+      <button class="btn-add" id="tasks-add-btn" onclick="openTaskModal()">+ Add Task</button>
     </div>
     <div id="tasks-list"></div>
+
+    <!-- DATA TABLE VIEW (read-only) -->
+    <div id="tasks-data-view" style="display:none">
+      <div style="margin-bottom:12px">
+        <select id="data-month-select" onchange="renderTaskDataTable()" style="width:100%;padding:10px 12px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-primary);font-family:Inter,sans-serif;font-size:0.85rem"></select>
+      </div>
+      <div class="task-table-wrap">
+        <table class="task-table" id="data-table">
+          <thead><tr id="data-table-head"></tr></thead>
+          <tbody id="data-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WEEKLY PLANNER VIEW -->
+    <div id="tasks-planner-view" style="display:none">
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px" id="planner-actions"></div>
+      <div class="task-table-wrap">
+        <table class="task-table" id="planner-table" style="min-width:760px">
+          <thead><tr><th style="min-width:140px">Subject / Item</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th><th style="min-width:30px"></th></tr></thead>
+          <tbody id="planner-table-body"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- COURSES TAB -->
@@ -2344,6 +2370,8 @@ let courseFilter = 'all';
 let courseTaskFilter = 'all';
 let examFilter = 'all';
 let weeklyGoal = '';
+let plannerRows = [];
+let plannerEditMode = false;
 let selectedCourseColor = '#7c5cbf';
 let selectedExamColor = '#7c5cbf';
 
@@ -2543,6 +2571,10 @@ const u4 = db.collection('exams').onSnapshot(snap => {
     if(data.weeklyGoal !== undefined) {
       weeklyGoal = data.weeklyGoal;
       updateHomeGoal();
+    }
+    if(data.plannerRows !== undefined) {
+      plannerRows = data.plannerRows || [];
+      if(document.getElementById('ft-planner')?.classList.contains('active')) renderPlanner();
     }
     refreshCoursesList();
     if(currentCourseId) refreshCourseDetail();
@@ -2771,9 +2803,34 @@ function renderTasks() {
   const curMonth = new Date().toISOString().slice(0, 7);
   const todayStr = getLocalDateString();
 
-  const titles = {daily: 'Daily Tasks', weekly: 'Weekly Tasks', monthly: 'Monthly Tasks', due: 'Due Tasks', done: 'Completed Tasks', all: 'All Tasks'};
+  const titles = {daily: 'Daily Tasks', weekly: 'Weekly Tasks', monthly: 'Monthly Tasks', due: 'Due Tasks', done: 'Completed Tasks', all: 'All Tasks', data: '📊 Full Task Data', planner: '📋 Weekly Planner'};
   const titleEl = document.getElementById('tasks-tab-title');
   if(titleEl) titleEl.textContent = titles[taskFilter] || 'Tasks';
+
+  const listEl = document.getElementById('tasks-list');
+  const dataViewEl = document.getElementById('tasks-data-view');
+  const plannerViewEl = document.getElementById('tasks-planner-view');
+  const addBtnEl = document.getElementById('tasks-add-btn');
+  if(taskFilter === 'data') {
+    if(listEl) listEl.style.display = 'none';
+    if(dataViewEl) dataViewEl.style.display = 'block';
+    if(plannerViewEl) plannerViewEl.style.display = 'none';
+    if(addBtnEl) addBtnEl.style.display = 'none';
+    renderTaskDataTable();
+    return;
+  } else if(taskFilter === 'planner') {
+    if(listEl) listEl.style.display = 'none';
+    if(dataViewEl) dataViewEl.style.display = 'none';
+    if(plannerViewEl) plannerViewEl.style.display = 'block';
+    if(addBtnEl) addBtnEl.style.display = 'none';
+    renderPlanner();
+    return;
+  } else {
+    if(listEl) listEl.style.display = '';
+    if(dataViewEl) dataViewEl.style.display = 'none';
+    if(plannerViewEl) plannerViewEl.style.display = 'none';
+    if(addBtnEl) addBtnEl.style.display = '';
+  }
 
   const overallTasksCount = allTasks.length;
   const overallTimeCount = allTasks.reduce((sum, t) => sum + (parseFloat(t.hours) || 0), 0);
@@ -2881,6 +2938,164 @@ function renderTasks() {
 }
 
 function toggleMonthGroup(header) { header.classList.toggle('open'); header.nextElementSibling.classList.toggle('open'); }
+
+function getUserTaskStatus(task, uid) {
+  const done = (task.completions || []).some(c => c.endsWith('_' + uid));
+  if(done) return {label: 'Done', cls: 'status-done', icon: '✅'};
+  if(task.dueDate) {
+    const d = new Date(task.dueDate + 'T00:00:00');
+    const today = new Date(); today.setHours(0,0,0,0);
+    if(d < today) return {label: 'Overdue', cls: 'status-due', icon: '🔴'};
+  }
+  return {label: 'Due', cls: 'status-pending', icon: '🟡'};
+}
+
+function renderTaskDataTable() {
+  const sel = document.getElementById('data-month-select');
+  if(!sel) return;
+  const groups = {};
+  allTasks.forEach(t => {
+    const key = (t.dueDate || (t.createdAt?.toDate ? t.createdAt.toDate().toISOString() : new Date().toISOString())).slice(0, 7);
+    if(!groups[key]) groups[key] = [];
+    groups[key].push(t);
+  });
+  const sortedKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+  if(!sel.dataset.built || sel.dataset.builtCount != sortedKeys.length) {
+    sel.innerHTML = `<option value="__all__">📅 All Months (${allTasks.length})</option>` +
+      sortedKeys.map(k => `<option value="${k}">📅 ${getMonthLabel(k)} (${groups[k].length})</option>`).join('');
+    sel.dataset.built = '1';
+    sel.dataset.builtCount = sortedKeys.length;
+  }
+
+  const myUid = currentUser.uid;
+  const myName = currentUserData?.name || 'Me';
+  const partnerUid = partnerData?.id || null;
+  const partnerName = partnerData?.name || 'Partner';
+
+  const head = document.getElementById('data-table-head');
+  head.innerHTML = `<th>Task Name</th><th>What To Do</th><th>Date</th><th>${myName}</th><th>${partnerName}</th>`;
+
+  const chosen = sel.value || '__all__';
+  let tasks = chosen === '__all__' ? [...allTasks] : (groups[chosen] || []);
+  tasks = tasks.slice().sort((a, b) => (b.dueDate || '').localeCompare(a.dueDate || ''));
+
+  const body = document.getElementById('data-table-body');
+  if(!tasks.length) {
+    body.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🎋</div><div class="empty-text">No tasks here yet!</div></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = tasks.map(t => {
+    const myStat = getUserTaskStatus(t, myUid);
+    const pStat = partnerUid ? getUserTaskStatus(t, partnerUid) : {label: '—', icon: ''};
+    return `<tr>
+      <td class="td-name">${t.name || '—'}</td>
+      <td>${t.desc || '—'}</td>
+      <td>${t.dueDate ? fmtDateShort(t.dueDate) : '—'}</td>
+      <td><span class="status-badge ${myStat.cls||''}">${myStat.icon} ${myStat.label}</span></td>
+      <td><span class="status-badge ${pStat.cls||''}">${pStat.icon} ${pStat.label}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// WEEKLY PLANNER (shared, read-only after save)
+// ═══════════════════════════════════════════
+const PLANNER_DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
+
+function newPlannerRowObj() {
+  return { id: 'pr_' + Date.now() + Math.random().toString(36).slice(2,7), label: '', days: {mon:'',tue:'',wed:'',thu:'',fri:'',sat:'',sun:''} };
+}
+
+function renderPlanner() {
+  const actionsEl = document.getElementById('planner-actions');
+  const bodyEl = document.getElementById('planner-table-body');
+  if(!actionsEl || !bodyEl) return;
+
+  if(!plannerRows.length && !plannerEditMode) plannerEditMode = true; // first time -> straight to edit
+
+  if(plannerEditMode) {
+    actionsEl.innerHTML = `
+      <button class="btn-add" onclick="addPlannerRow()">+ Add Row</button>
+      <button class="btn-add" style="background:var(--accent-gold)" onclick="savePlanner()">💾 Save</button>
+    `;
+    bodyEl.innerHTML = plannerRows.map(r => `
+      <tr>
+        <td><input type="text" value="${(r.label||'').replace(/"/g,'&quot;')}" placeholder="Subject / Item"
+          oninput="updatePlannerCell('${r.id}','label',this.value)"
+          style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:6px 8px;font-size:0.78rem;font-family:Inter,sans-serif"></td>
+        ${PLANNER_DAYS.map(d => `<td style="position:relative">
+          <span onclick="clearPlannerCell('${r.id}','${d}')" title="Clear this cell" style="position:absolute;top:2px;right:2px;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;background:var(--accent-red);color:#fff;font-size:0.65rem;cursor:pointer;z-index:2">✕</span>
+          <textarea id="pcell-${r.id}-${d}" rows="2" placeholder="—"
+          oninput="updatePlannerCell('${r.id}','${d}',this.value)"
+          style="width:100%;min-width:80px;resize:vertical;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:6px 8px;padding-top:14px;font-size:0.75rem;font-family:Inter,sans-serif">${(r.days?.[d]||'')}</textarea>
+        </td>`).join('')}
+        <td><button onclick="deletePlannerRow('${r.id}')" style="background:none;border:none;color:var(--accent-red);font-size:1.1rem;cursor:pointer">🗑</button></td>
+      </tr>`).join('') || `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Tap "+ Add Row" to start planning!</div></div></td></tr>`;
+  } else {
+    actionsEl.innerHTML = `<button class="btn-add" onclick="editPlanner()">✏️ Edit Planner</button>`;
+    bodyEl.innerHTML = plannerRows.length ? plannerRows.map(r => `
+      <tr>
+        <td class="td-name">${r.label || '—'}</td>
+        ${PLANNER_DAYS.map(d => `<td style="white-space:pre-line">${(r.days?.[d]||'').trim() ? r.days[d] : '✕'}</td>`).join('')}
+        <td></td>
+      </tr>`).join('') : `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No planner yet. Tap Edit to create one!</div></div></td></tr>`;
+  }
+}
+
+function addPlannerRow() {
+  plannerRows.push(newPlannerRowObj());
+  renderPlanner();
+}
+
+function deletePlannerRow(id) {
+  if(!confirm('এই row টা delete করবে?')) return;
+  plannerRows = plannerRows.filter(r => r.id !== id);
+  renderPlanner();
+}
+
+function clearPlannerCell(id, day) {
+  if(!confirm('এই cell টা clear করবে?')) return;
+  const row = plannerRows.find(r => r.id === id);
+  if(!row) return;
+  row.days[day] = '';
+  const ta = document.getElementById('pcell-' + id + '-' + day);
+  if(ta) ta.value = '';
+}
+
+function updatePlannerCell(id, field, value) {
+  const row = plannerRows.find(r => r.id === id);
+  if(!row) return;
+  if(field === 'label') row.label = value;
+  else row.days[field] = value;
+}
+
+function editPlanner() {
+  plannerEditMode = true;
+  renderPlanner();
+}
+
+async function savePlanner() {
+  if(!currentUser) return;
+  const cleaned = plannerRows
+    .filter(r => (r.label||'').trim() || PLANNER_DAYS.some(d => (r.days?.[d]||'').trim()))
+    .map(r => ({ id: r.id, label: r.label || '', days: { ...r.days } }));
+  try {
+    await db.collection('sharedCourseData').doc('main').set({
+      plannerRows: cleaned,
+      plannerUpdatedBy: currentUser.uid,
+      plannerUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    plannerRows = cleaned;
+    plannerEditMode = false;
+    renderPlanner();
+    toast('📋 Planner saved for both!');
+  } catch(err) {
+    console.error("Planner save error:", err);
+    playSFX('error');
+    toast('❌ Planner save failed!');
+  }
+}
 function isTaskDoneToday(task, today) { if(!task.completions) return false; return task.completions.includes(today + '_' + currentUser.uid); }
 
 function confirmUncheck(id, questDay) {
