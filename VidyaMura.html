@@ -135,6 +135,26 @@ theme_color: "#121614",
 [data-theme="light"] #timer-fullscreen { background: #f0ede6; }
 [data-theme="light"] #timer-fullscreen .fs-ring::before { background: #f0ede6; }
 
+/* --- Light-mode readability fixes ---
+   These containers had a hardcoded dark background regardless of theme, while their text used
+   theme variables that correctly flip to dark in light mode — meaning dark text ended up sitting
+   on a background that never lightened, making it unreadable. */
+[data-theme="light"] #auth-screen { background: radial-gradient(ellipse at top, #fdf8ee 0%, #f0ede6 60%); }
+[data-theme="light"] .drawer-header { background: linear-gradient(160deg, #fdf8ee 0%, #f0ede6 100%); }
+
+/* .home-exam-box keeps its own colorful gradient in light mode (already set above), so its text
+   needs to stay light/white rather than switching to the standard dark text variables. */
+[data-theme="light"] .home-exam-label { color: rgba(255,255,255,0.85); }
+[data-theme="light"] .home-exam-name  { color: #ffe9b3; }
+[data-theme="light"] .home-exam-date  { color: rgba(255,255,255,0.72); }
+[data-theme="light"] .home-cd-val     { color: #ffffff; }
+[data-theme="light"] .home-cd-sep     { color: rgba(255,255,255,0.6); }
+[data-theme="light"] .home-cd-lbl     { color: rgba(255,255,255,0.68); }
+[data-theme="light"] .home-no-exam    { color: rgba(255,255,255,0.8); }
+
+[data-theme="light"] #planner-table tbody tr:nth-child(odd) .td-name { background: #f0ede6; }
+[data-theme="light"] #planner-table tbody tr:nth-child(odd) td { background: rgba(100,70,10,0.025); }
+
 .theme-toggle-btn {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -1341,6 +1361,26 @@ border: 2px solid #3d6b4a; background: #0f1a12; color: var(--accent-green);
  box-shadow: 0 4px 20px rgba(136,179,148,0.55);
  transition: all 0.25s;
 }
+/* Bug fix: this class was referenced in HTML/JS to show unclaimed-achievement badges, but was
+   never actually defined here — so toggling display:block did nothing visible (zero size, no color). */
+.nav-red-dot {
+  display: none;
+  position: absolute;
+  top: -2px; right: -2px;
+  width: 11px; height: 11px;
+  background: var(--accent-red);
+  border: 2px solid var(--bg-deep);
+  border-radius: 50%;
+  z-index: 5;
+}
+.notif-card {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 12px 14px; margin-bottom: 10px;
+}
+.notif-icon { font-size: 1.25rem; flex-shrink: 0; margin-top: 1px; }
+.notif-msg { font-size: 0.87rem; color: var(--text-primary); line-height: 1.4; }
+.notif-time { font-size: 0.71rem; color: var(--text-muted); margin-top: 4px; }
 .fab-center.open { transform: translate(-50%, 50%) rotate(45deg); background: linear-gradient(135deg, var(--accent-red), #a00); }
 .fab-center:active { box-shadow: 0 2px 10px rgba(136,179,148,0.5); }
 
@@ -1764,6 +1804,56 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
 .productivity-slider { width: 100%; margin: 10px 0; accent-color: var(--accent-gold); }
 .journal-tag { display: inline-block; padding: 2px 8px; border-radius: 6px; background: var(--accent-purple); color: #fff; font-size: 0.65rem; margin-right: 4px; }
 
+/* ═══════════════════════════════════════
+   ZEN GAMES
+═══════════════════════════════════════ */
+.game-subtab {
+  flex: 1; padding: 10px; border-radius: 20px; border: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.85rem;
+  font-weight: 600; cursor: pointer; text-align: center; transition: all 0.15s ease;
+}
+.game-subtab.active { background: var(--accent-purple); color: #fff; border-color: var(--accent-purple); }
+
+.blossom-board {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+  background: var(--bg-elevated); border-radius: 14px; padding: 8px;
+  border: 1px solid var(--border);
+}
+.blossom-tile {
+  aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;
+  font-size: 1.35rem; background: var(--bg-card); border-radius: 8px;
+  cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+.blossom-tile:active { transform: scale(0.9); }
+.blossom-tile.selected { box-shadow: 0 0 0 3px var(--accent-gold); transform: scale(1.06); }
+
+.koi-pond {
+  position: relative; width: 100%; height: 320px; border-radius: var(--radius);
+  background: radial-gradient(ellipse at 30% 20%, #2d5f6e 0%, #1a3a45 70%, #122730 100%);
+  overflow: hidden; border: 1px solid var(--border); cursor: pointer;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.3);
+}
+[data-theme="light"] .koi-pond {
+  background: radial-gradient(ellipse at 30% 20%, #a8d8e0 0%, #6bb3c4 70%, #4a94a8 100%);
+}
+.koi-fish {
+  position: absolute; top: 0; left: 0; font-size: 1.6rem;
+  transition: transform 0.05s linear; will-change: transform;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+  pointer-events: none;
+}
+.lily-pad { position: absolute; font-size: 1.4rem; opacity: 0.85; pointer-events: none; }
+.koi-ripple {
+  position: absolute; width: 10px; height: 10px; margin-left: -5px; margin-top: -5px;
+  border: 2px solid rgba(255,255,255,0.65); border-radius: 50%;
+  animation: koiRippleAnim 0.9s ease-out forwards; pointer-events: none;
+}
+@keyframes koiRippleAnim {
+  0%   { width: 10px; height: 10px; margin-left: -5px;  margin-top: -5px;  opacity: 0.9; }
+  100% { width: 70px; height: 70px; margin-left: -35px; margin-top: -35px; opacity: 0; }
+}
+
 </style>
 </head>
 <body>
@@ -1821,6 +1911,10 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <div class="top-bar">
 <div class="app-logo">⛩️ VidyaMura</div>
     <div class="top-bar-right">
+      <button class="theme-toggle-btn" id="notif-bell-btn" onclick="openNotificationPanel()" style="position:relative" title="Notifications">
+        🔔
+        <div class="nav-red-dot" id="notif-red-dot"></div>
+      </button>
       <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Switch theme">🌙</button>
       <div class="xp-badge" id="top-xp">0 XP</div>
       <div class="avatar-sm" id="top-avatar" onclick="openDrawer()" style="display:none">?</div>
@@ -1849,6 +1943,15 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
         <div class="home-goal-text" id="home-goal-display">Tap to set your weekly goal...</div>
       </div>
       <div class="home-goal-edit">Edit</div>
+    </div>
+    <div class="home-goal-card" id="home-challenge-card">
+      <div class="home-goal-icon">⚔️</div>
+      <div style="flex:1">
+        <div class="home-goal-label">🏯 Weekly Guild Challenge</div>
+        <div class="home-goal-text" id="home-challenge-text">Loading challenge...</div>
+        <div class="dq-progress-bar" style="margin-top:7px"><div class="dq-progress-fill" id="home-challenge-fill" style="width:0%;background:linear-gradient(90deg,var(--accent-purple),var(--accent-cyan))"></div></div>
+      </div>
+      <div class="home-goal-edit" id="home-challenge-action">Edit</div>
     </div>
    <div class="profile-stats-grid" style="margin-bottom:14px">
       <div class="profile-stat-block"><div class="psb-val" id="stat-overall-tasks">0</div><div class="psb-lbl">TOTAL TASKS</div></div>
@@ -2219,10 +2322,38 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
 <!-- ANALYTICS -->
     <div class="drawer-tab-content active" id="drawer-analytics">
       
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div class="avatar-sm" id="da-profile-avatar" style="cursor:default">?</div>
+        <div style="font-family:var(--font-head);font-size:1rem;color:var(--text-primary);font-weight:700" id="da-profile-name">—</div>
+      </div>
+
       <div class="page-title-glow" style="margin-bottom:4px">Scholar's Insight</div>
       <div style="font-size: 0.79rem;color:var(--text-muted);margin-bottom:16px;text-align:center">Visualizing your path to mastery</div>
 
       <div class="da-stat-grid" id="da-stat-grid"></div>
+
+      <div class="da-chart-card">
+        <div class="da-chart-title">📊 Daily Tasks & Time (30-Day Trend)</div>
+        <div class="da-chart-container"><canvas id="taskTimeTrendChart"></canvas></div>
+      </div>
+
+      <div class="da-chart-card">
+        <div class="da-chart-title">🏆 Your Best Day</div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1;text-align:center;padding:8px 0">
+            <div class="da-stat-val" id="da-best-tasks-val">—</div>
+            <div class="da-stat-sub" id="da-best-tasks-date">—</div>
+            <div class="da-stat-lbl">Most Tasks</div>
+          </div>
+          <div style="width:1px;background:var(--border)"></div>
+          <div style="flex:1;text-align:center;padding:8px 0">
+            <div class="da-stat-val" id="da-best-hours-val">—</div>
+            <div class="da-stat-sub" id="da-best-hours-date">—</div>
+            <div class="da-stat-lbl">Most Time</div>
+          </div>
+        </div>
+      </div>
+
       <div class="da-section-title">📅 This Week</div>
       <div class="da-bar-chart" id="da-week-chart"></div>
       <div class="da-section-title">📚 Subject Breakdown</div>
@@ -2263,6 +2394,11 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <div class="da-chart-card">
         <div class="da-chart-title">🏆 Exam Readiness</div>
         <div class="da-chart-container"><canvas id="examStackChart"></canvas></div>
+      </div>
+
+      <div class="da-chart-card">
+        <div class="da-chart-title">⏰ Time of Day Productivity</div>
+        <div class="da-chart-container"><canvas id="timeOfDayChart"></canvas></div>
       </div>
 
     </div> <!-- END of drawer-analytics -->
@@ -2322,7 +2458,37 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     <div id="journal-history"></div>
 </div>
 
-    <!-- SETTINGS -->
+    <!-- ZEN GAMES -->
+    <div class="drawer-tab-content" id="drawer-games">
+      <div class="page-title-glow" style="margin-bottom:4px">Zen Garden</div>
+      <div style="color:var(--text-muted);font-size:0.82rem;margin-bottom:14px">Take a mindful break 🌸</div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="game-subtab active" id="game-subtab-blossom" onclick="switchGameSubtab('blossom')">🌸 Blossom Match</button>
+        <button class="game-subtab" id="game-subtab-koi" onclick="switchGameSubtab('koi')">🐟 Koi Pond</button>
+      </div>
+
+      <!-- BLOSSOM MATCH -->
+      <div id="blossom-game-wrap">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:0.85rem">
+          <div>Score: <span id="blossom-score" style="color:var(--accent-gold);font-weight:700">0</span></div>
+          <div>Best: <span id="blossom-best" data-best="0" style="color:var(--accent-purple-bright);font-weight:700">0</span></div>
+          <div id="blossom-timer" style="color:var(--accent-red);font-weight:700">60s</div>
+        </div>
+        <div id="blossom-board" class="blossom-board"></div>
+        <div id="blossom-gameover" style="display:none;text-align:center;margin-top:16px">
+          <div style="font-size:1.1rem;font-weight:700;color:var(--accent-gold);margin-bottom:8px">🌸 Time's up!</div>
+          <div style="margin-bottom:12px;font-size:0.9rem">Final Score: <span id="blossom-final-score" style="font-weight:700"></span></div>
+          <button class="btn-primary" style="padding:10px 26px" onclick="startBlossomGame()">Play Again</button>
+        </div>
+      </div>
+
+      <!-- KOI POND -->
+      <div id="koi-pond-wrap" style="display:none">
+        <div id="koi-pond" class="koi-pond" onclick="feedKoi(event)"></div>
+        <div style="text-align:center;color:var(--text-muted);font-size:0.8rem;margin-top:10px">Tap the water to feed the koi 🍘</div>
+      </div>
+    </div>
     <div class="drawer-tab-content" id="drawer-settings">
      <div class="settings-section">
   <div class="settings-section-title">👤 Profile</div>
@@ -2439,6 +2605,11 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     <span>Journal</span>
     <span class="drawer-tab-arrow">›</span>
   </div>
+  <div class="drawer-tab" onclick="openDrawerPage('games')">
+    <span class="drawer-tab-icon">🎮</span>
+    <span>Zen Games</span>
+    <span class="drawer-tab-arrow">›</span>
+  </div>
   <div class="drawer-tab" onclick="openDrawerPage('settings')">
     <span class="drawer-tab-icon">⚙️</span>
     <span>Settings</span>
@@ -2457,6 +2628,16 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
 </div>
 </div>
 <!-- END SIDE DRAWER -->
+
+<!-- NOTIFICATION PANEL -->
+<div id="notif-panel-overlay" style="display:none;position:fixed;inset:0;background:var(--bg-deep);z-index:650;flex-direction:column;overflow:hidden">
+  <div style="display:flex;align-items:center;gap:14px;padding:16px 16px 12px;border-bottom:1px solid var(--border);background:var(--bg-card);flex-shrink:0;padding-top:calc(16px + var(--safe-top))">
+    <button onclick="closeNotificationPanel()" style="background:none;border:none;color:var(--accent-purple-bright);font-size:1.2rem;cursor:pointer;padding:4px">↩️</button>
+    <div style="font-family:var(--font-head);font-size:1rem;color:var(--accent-gold);font-weight:700;flex:1">🔔 Notifications</div>
+    <button onclick="ignoreAllNotifications()" style="background:none;border:1px solid var(--border);color:var(--text-muted);font-size:0.75rem;font-weight:600;padding:7px 13px;border-radius:20px;cursor:pointer;white-space:nowrap">Ignore All</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px" id="notif-panel-body"></div>
+</div>
 
 <!-- TASK MODAL -->
 <div class="modal-overlay" id="task-modal">
@@ -2621,6 +2802,19 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   </div>
 </div>
 
+<div class="modal-overlay" id="challenge-modal">
+  <div class="modal goal-modal-wrap">
+    <button class="modal-close" onclick="closeModal('challenge-modal')">✕</button>
+    <div class="modal-title">⚔️ Weekly Guild Challenge</div>
+    <div class="form-group">
+      <label>COMBINED STUDY HOURS TARGET (THIS WEEK)</label>
+      <input type="number" id="cm-hours" min="1" step="0.5" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:11px 14px;font-size: 0.9rem;outline:none;font-family:Inter,sans-serif" placeholder="e.g. 25">
+      <div style="font-size: 0.76rem;color:var(--text-muted);margin-top:8px;line-height:1.5">Set a combined hours goal for everyone in your guild this week (your Task hours + Timer hours together). Hit it together and everyone can claim a <b>+50 pts</b> bonus.</div>
+    </div>
+   <button class="btn-primary" style="width: 100%; padding: 12px; margin-top: 10px; font-size: 0.95rem; font-weight: 700;" onclick="saveWeeklyChallenge()">Set Challenge</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div class="claim-popup-overlay" id="claim-popup" onclick="closeClaimPopup()">
@@ -2758,6 +2952,9 @@ let courseTaskFilter = 'all';
 let examFilter = 'all';
 let weeklyGoal = '';
 let plannerRows = [];
+let currentChallenge = null;
+let currentChallengeWeekId = null;
+let allNotifications = [];
 let plannerEditMode = false;
 let selectedCourseColor = '#7c5cbf';
 let selectedExamColor = '#7c5cbf';
@@ -2876,6 +3073,7 @@ async function startListeners() {
       initAvatarIndex();
       updateStreak();
       updateHomeGoal();
+      refreshWeeklyChallenge();
       refreshCoursesList();
       if(currentCourseId) refreshCourseDetail();
     }
@@ -2887,6 +3085,7 @@ async function startListeners() {
     updateTaskStats();
     renderHomeTasks();
     updateProfile();
+    refreshWeeklyChallenge();
   });
 
   // Partner listener (Arena tab comparison)
@@ -2933,7 +3132,22 @@ if(partnerData) {
   }
 });
 
-listeners = [u1, u2, u3, u4, u5];
+  // Weekly Guild Challenge listener — the doc id changes every Monday
+  currentChallengeWeekId = getCurrentWeekId();
+  const u6 = db.collection('weeklyChallenges').doc(currentChallengeWeekId).onSnapshot(snap => {
+    currentChallenge = snap.exists ? snap.data() : null;
+    refreshWeeklyChallenge();
+  });
+
+  // Notifications listener — only notifications addressed to me
+  const u7 = db.collection('notifications').where('toUid', '==', currentUser.uid).onSnapshot(snap => {
+    allNotifications = snap.docs.map(d => ({id: d.id, ...d.data()}))
+      .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+    renderNotificationDot();
+    if(document.getElementById('notif-panel-overlay')?.style.display === 'flex') renderNotificationList();
+  });
+
+listeners = [u1, u2, u3, u4, u5, u6, u7];
 }
 
 // ═══════════════════════════════════════════
@@ -2964,6 +3178,7 @@ listeners = [u1, u2, u3, u4, u5];
     type: a.type || 'Practice',
     notes: a.notes || '',
     done: !!a.done,
+    completedBy: Array.isArray(a.completedBy) ? a.completedBy.filter(u => typeof u === 'string') : [],
     uid: currentUser.uid
   }));
 
@@ -3132,6 +3347,244 @@ function startHomeCountdownMulti() {
 function updateHomeGoal() {
   const el = document.getElementById('home-goal-display');
   if(el) el.textContent = weeklyGoal || 'Tap to set your weekly goal...';
+}
+
+// ═══════════════════════════════════════════
+// WEEKLY GUILD CHALLENGE (combined hours goal, per-user bonus claim)
+// ═══════════════════════════════════════════
+function getCurrentWeekId() {
+  const { mon } = getCurrentWeekRange();
+  return mon.toLocaleDateString('sv-SE');
+}
+
+// Combines Focus Timer hours + completed-Task hours for every known user within the current
+// Mon–Sun window — same data sources the Analytics "This Week" chart already uses per-user.
+async function computeWeeklyContributions() {
+  const { mon, sun } = getCurrentWeekRange();
+  const monTime = mon.getTime(), sunTime = sun.getTime();
+  const uids = allUsersData.length ? allUsersData.map(u => u.id) : [currentUser.uid];
+  const perUser = {};
+
+  await Promise.all(uids.map(async uid => {
+    let hrs = 0;
+    try {
+      const snap = await db.collection('timerLogs').where('uid', '==', uid).get();
+      snap.docs.forEach(doc => {
+        const d = doc.data();
+        const t = new Date((d.date || '') + 'T00:00:00').getTime();
+        if(t >= monTime && t <= sunTime) hrs += (d.seconds || 0) / 3600;
+      });
+    } catch(e) { console.error('challenge timerLogs read error', e); }
+
+    allTasks.forEach(task => {
+      const taskHrs = parseFloat(task.hours) || 1;
+      (task.completions || []).forEach(c => {
+        if(!c.endsWith('_' + uid)) return;
+        const dateStr = c.substring(0, 10); // "YYYY-MM-DD" prefix of the "date_uid" key
+        const t = new Date(dateStr + 'T00:00:00').getTime();
+        if(t >= monTime && t <= sunTime) hrs += taskHrs;
+      });
+    });
+
+    perUser[uid] = hrs;
+  }));
+
+  return perUser;
+}
+
+async function refreshWeeklyChallenge() {
+  const textEl = document.getElementById('home-challenge-text');
+  const fillEl = document.getElementById('home-challenge-fill');
+  const actionEl = document.getElementById('home-challenge-action');
+  if(!textEl || !fillEl || !actionEl || !currentUser) return;
+
+  const target = currentChallenge?.targetHours || 0;
+  if(!target) {
+    textEl.textContent = 'No challenge set yet — tap Edit to set a combined hours goal 🎯';
+    fillEl.style.width = '0%';
+    actionEl.textContent = 'Edit';
+    actionEl.onclick = (e) => { e.stopPropagation(); openChallengeModal(); };
+    return;
+  }
+
+  const perUser = await computeWeeklyContributions();
+  const combined = Object.values(perUser).reduce((a, b) => a + b, 0);
+  const pct = Math.min(100, Math.round((combined / target) * 100));
+  const bonus = currentChallenge.bonusPoints || 50;
+  const claimedBy = currentChallenge.claimedBy || [];
+  const myHrs = (perUser[currentUser.uid] || 0).toFixed(1);
+  const otherLine = Object.entries(perUser)
+    .filter(([uid]) => uid !== currentUser.uid)
+    .map(([uid, h]) => `${(allUsersData.find(u => u.id === uid)?.name) || 'Guildmate'}: ${h.toFixed(1)}h`)
+    .join(' · ');
+
+  textEl.innerHTML = `🧑 You: ${myHrs}h${otherLine ? ' · ' + otherLine : ''}<br>🎯 Target: ${target}h (${pct}%)`;
+  fillEl.style.width = pct + '%';
+
+  if(combined >= target) {
+    fillEl.style.background = 'linear-gradient(90deg,var(--accent-gold),var(--accent-orange))';
+    if(claimedBy.includes(currentUser.uid)) {
+      actionEl.textContent = '✅ Claimed';
+      actionEl.onclick = (e) => e.stopPropagation();
+    } else {
+      actionEl.textContent = '🎁 Claim';
+      actionEl.onclick = (e) => { e.stopPropagation(); claimWeeklyChallenge(bonus); };
+    }
+  } else {
+    fillEl.style.background = 'linear-gradient(90deg,var(--accent-purple),var(--accent-cyan))';
+    actionEl.textContent = 'Edit';
+    actionEl.onclick = (e) => { e.stopPropagation(); openChallengeModal(); };
+  }
+}
+
+function openChallengeModal() {
+  const inputEl = document.getElementById('cm-hours');
+  if(inputEl) inputEl.value = currentChallenge?.targetHours || '';
+  openModal('challenge-modal');
+}
+
+async function saveWeeklyChallenge() {
+  const val = parseFloat(document.getElementById('cm-hours').value);
+  if(!val || val <= 0) { toast('❌ Enter a valid target'); return; }
+  const weekId = getCurrentWeekId();
+  try {
+    await db.collection('weeklyChallenges').doc(weekId).set({
+      targetHours: val,
+      bonusPoints: currentChallenge?.bonusPoints || 50,
+      claimedBy: currentChallenge?.claimedBy || [],
+      setBy: currentUser.uid,
+      setByName: currentUserData?.name || 'Someone',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    closeModal('challenge-modal');
+    toast('⚔️ Challenge set for the whole guild!');
+    playSFX('success');
+  } catch(err) {
+    console.error(err);
+    playSFX('error');
+    toast('❌ Could not save challenge');
+  }
+}
+
+async function claimWeeklyChallenge(bonus) {
+  const weekId = getCurrentWeekId();
+  try {
+    await db.collection('weeklyChallenges').doc(weekId).update({
+      claimedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    });
+    await db.collection('users').doc(currentUser.uid).update({
+      xp: firebase.firestore.FieldValue.increment(bonus)
+    });
+    fireConfetti();
+    playSFX('success');
+    toast(`🎉 Challenge bonus claimed! +${bonus} pts`);
+  } catch(err) {
+    console.error(err);
+    playSFX('error');
+    toast('❌ Could not claim bonus');
+  }
+}
+
+// ═══════════════════════════════════════════
+// NOTIFICATIONS (cross-user activity feed for Tasks / Courses / Assignments / Exams)
+// ═══════════════════════════════════════════
+
+// Sends one notification doc to every OTHER known user (not just "the one partner"),
+// so this keeps working correctly no matter how many people end up using the app.
+async function sendNotification(type, icon, message) {
+  if(!currentUser || !allUsersData.length) return;
+  const targets = allUsersData.filter(u => u.id !== currentUser.uid);
+  if(!targets.length) return;
+  try {
+    const batch = db.batch();
+    targets.forEach(u => {
+      const ref = db.collection('notifications').doc();
+      batch.set(ref, {
+        toUid: u.id,
+        fromUid: currentUser.uid,
+        fromName: currentUserData?.name || 'Someone',
+        icon,
+        message,
+        type,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        seen: false
+      });
+    });
+    await batch.commit();
+  } catch(e) { console.error('sendNotification error:', e); }
+}
+
+function getRelativeTime(ts) {
+  if(!ts || typeof ts.toDate !== 'function') return 'just now';
+  const diffMs = Date.now() - ts.toDate().getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if(mins < 1) return 'just now';
+  if(mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if(hrs < 24) return hrs + 'h ago';
+  const days = Math.floor(hrs / 24);
+  return days + 'd ago';
+}
+
+function renderNotificationDot() {
+  const dot = document.getElementById('notif-red-dot');
+  if(!dot) return;
+  const hasUnseen = allNotifications.some(n => !n.seen);
+  dot.style.display = hasUnseen ? 'block' : 'none';
+}
+
+function renderNotificationList() {
+  const body = document.getElementById('notif-panel-body');
+  if(!body) return;
+  if(!allNotifications.length) {
+    body.innerHTML = '<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-text">No notifications yet</div></div>';
+    return;
+  }
+  body.innerHTML = allNotifications.map(n => `
+    <div class="notif-card">
+      <div class="notif-icon">${n.icon || '🔔'}</div>
+      <div style="flex:1">
+        <div class="notif-msg">${n.message}</div>
+        <div class="notif-time">${getRelativeTime(n.createdAt)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function openNotificationPanel() {
+  const overlay = document.getElementById('notif-panel-overlay');
+  if(overlay) overlay.style.display = 'flex';
+  renderNotificationList();
+
+  // Opening the panel clears the red dot — mark everything currently unseen as seen.
+  const unseen = allNotifications.filter(n => !n.seen);
+  if(unseen.length) {
+    try {
+      const batch = db.batch();
+      unseen.forEach(n => batch.update(db.collection('notifications').doc(n.id), {seen: true}));
+      await batch.commit();
+    } catch(e) { console.error('mark notifications seen error:', e); }
+  }
+}
+
+function closeNotificationPanel() {
+  const overlay = document.getElementById('notif-panel-overlay');
+  if(overlay) overlay.style.display = 'none';
+}
+
+async function ignoreAllNotifications() {
+  if(!allNotifications.length) { toast('No notifications to clear'); return; }
+  if(!confirm('⚠️ Permanently delete all notifications? This can\'t be undone.')) return;
+  try {
+    const batch = db.batch();
+    allNotifications.forEach(n => batch.delete(db.collection('notifications').doc(n.id)));
+    await batch.commit();
+    playSFX('success');
+    toast('🗑 All notifications cleared');
+  } catch(e) {
+    console.error('ignoreAllNotifications error:', e);
+    toast('❌ Could not clear notifications');
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -3450,6 +3903,13 @@ async function savePlanner() {
 }
 function isTaskDoneToday(task, today) { if(!task.completions) return false; return task.completions.includes(today + '_' + currentUser.uid); }
 
+// Assignment completion is per-user (like tasks) — add/edit/delete stay shared, but "done" is tracked separately per person via completedBy[]
+function isAssignmentDoneBy(a, uid) {
+  if(Array.isArray(a.completedBy)) return a.completedBy.includes(uid);
+  return !!a.done; // legacy assignments saved before this fix — shown done for everyone until someone first toggles them
+}
+function isAssignmentDoneByMe(a) { return isAssignmentDoneBy(a, currentUser.uid); }
+
 function confirmUncheck(id, questDay) {
   const task = allTasks.find(t => t.id === id);
   if(!task) return;
@@ -3468,6 +3928,7 @@ async function toggleTask(id, questDay) {
     const pts = Math.round((parseFloat(task.hours) || 1) * 2);
     await userRef.update({xp: firebase.firestore.FieldValue.increment(pts), totalDone: firebase.firestore.FieldValue.increment(1), totalHours: firebase.firestore.FieldValue.increment(parseFloat(task.hours) || 1)});
     await db.collection('activityLog').add({uid: currentUser.uid, date: today, xp: pts, hours: parseFloat(task.hours) || 1, taskId: id, taskName: task.name});
+    sendNotification('task','✅',(currentUserData?.name||'Someone')+' completed a task: '+task.name);
     toast('🎋 +' + pts + ' pts earned!');
  
   } else {
@@ -3620,16 +4081,18 @@ async function saveTask(){
   const name=document.getElementById('task-name').value.trim();if(!name)return toast('Enter a task name');
   const data={name,desc:document.getElementById('task-desc').value.trim(),hours:parseFloat(document.getElementById('task-hours').value)||1,priority:document.getElementById('task-priority').value,dueDate:document.getElementById('task-due').value,examIds:getSelectedExamIds(),assigned:'both',createdBy:currentUser.uid,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
   if(document.getElementById('edit-task-id').value){await db.collection('tasks').doc(document.getElementById('edit-task-id').value).update(data);toast('Task updated!');}
-  else{data.completions=[];data.createdAt=firebase.firestore.FieldValue.serverTimestamp();await db.collection('tasks').add(data);toast('Task added!');}
+  else{data.completions=[];data.createdAt=firebase.firestore.FieldValue.serverTimestamp();await db.collection('tasks').add(data);toast('Task added!');sendNotification('task','📝',(currentUserData?.name||'Someone')+' added a new task: '+name);}
   closeModal('task-modal');
 }
 
-async function deleteTask(id){if(!confirm('Delete this task?'))return;await db.collection('tasks').doc(id).delete();toast('Task deleted');}
+async function deleteTask(id){if(!confirm('Delete this task?'))return;const task=allTasks.find(t=>t.id===id);await db.collection('tasks').doc(id).delete();if(task)sendNotification('task','🗑️',(currentUserData?.name||'Someone')+' deleted a task: '+task.name);toast('Task deleted');}
 async function deleteCurrentTask(){
   const id = document.getElementById('edit-task-id').value;
   if(!id) return;
   if(!confirm('⚠️ এই task টা delete করবে?')) return;
+  const task = allTasks.find(t => t.id === id);
   await db.collection('tasks').doc(id).delete();
+  if(task) sendNotification('task','🗑️',(currentUserData?.name||'Someone')+' deleted a task: '+task.name);
   closeModal('task-modal');
   toast('🗑 Task deleted');
 }
@@ -3660,7 +4123,7 @@ function closeCongratsPopup(){document.getElementById('congrats-overlay').classL
 // ═══════════════════════════════════════════
 function renderCourseCard(c) {
   const assignments = DB.assignments.filter(a => a.courseId === c.id);
-  const done = assignments.filter(a => a.done).length;
+  const done = assignments.filter(a => isAssignmentDoneByMe(a)).length;
   const pct = assignments.length ? Math.round(done / assignments.length * 100) : 0;
   const col = c.color || '#7c5cbf';
   const linkedExam = allExams.find(e => (e.linkedCourses || []).includes(c.id));
@@ -3738,23 +4201,24 @@ function refreshCourseDetail() {
   let assignments = DB.assignments.filter(a => a.courseId === currentCourseId);
   const now = new Date(); 
   now.setHours(0, 0, 0, 0);
-  if(courseTaskFilter === 'due') assignments = assignments.filter(a => !a.done && a.deadline && new Date(a.deadline) >= now);
-  else if(courseTaskFilter === 'overdue') assignments = assignments.filter(a => !a.done && a.deadline && new Date(a.deadline) < now);
+  if(courseTaskFilter === 'due') assignments = assignments.filter(a => !isAssignmentDoneByMe(a) && a.deadline && new Date(a.deadline) >= now);
+  else if(courseTaskFilter === 'overdue') assignments = assignments.filter(a => !isAssignmentDoneByMe(a) && a.deadline && new Date(a.deadline) < now);
   else if(courseTaskFilter === 'high') assignments = assignments.filter(a => a.priority === 'High');
-  else if(courseTaskFilter === 'done') assignments = assignments.filter(a => a.done);
+  else if(courseTaskFilter === 'done') assignments = assignments.filter(a => isAssignmentDoneByMe(a));
   const list = document.getElementById('course-tasks-list');
   if(!assignments.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-text">No assignments yet</div></div>'; return; }
   list.innerHTML = assignments.map(a => {
-    const isOverdue = !a.done && a.deadline && new Date(a.deadline) < now;
+    const myDone = isAssignmentDoneByMe(a);
+    const isOverdue = !myDone && a.deadline && new Date(a.deadline) < now;
     const priColors = {High: 'var(--accent-red)', Medium: 'var(--accent-gold)', Low: 'var(--accent-green)'};
     return `<div class="dq-task-item" onclick="openAssignmentModal('${a.id}')">
-      <div class="dq-task-check ${a.done ? 'done' : ''}" onclick="event.stopPropagation();toggleAssignment('${a.id}')">
-        ${a.done ? '✓' : ''}
+      <div class="dq-task-check ${myDone ? 'done' : ''}" onclick="event.stopPropagation();toggleAssignment('${a.id}')">
+        ${myDone ? '✓' : ''}
       </div>
       <div style="flex:1">
-        <div style="font-size: 0.9rem;font-weight:600;color:${a.done ? 'var(--text-muted)' : 'var(--text-primary)'};${a.done ? 'text-decoration:line-through' : ''}">${a.name}</div>
+        <div style="font-size: 0.9rem;font-weight:600;color:${myDone ? 'var(--text-muted)' : 'var(--text-primary)'};${myDone ? 'text-decoration:line-through' : ''}">${a.name}</div>
         <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
-          ${!a.done ? `<span style="font-size: 0.71rem;font-weight:700;padding:1px 6px;border-radius:4px;background:${a.priority === 'High' ? 'rgba(224,85,85,0.15)' : a.priority === 'Low' ? 'rgba(76,175,130,0.15)' : 'rgba(212,168,75,0.12)'};color:${priColors[a.priority] || 'var(--accent-gold)'}">${a.priority || 'Medium'}</span>` : ''}
+          ${!myDone ? `<span style="font-size: 0.71rem;font-weight:700;padding:1px 6px;border-radius:4px;background:${a.priority === 'High' ? 'rgba(224,85,85,0.15)' : a.priority === 'Low' ? 'rgba(76,175,130,0.15)' : 'rgba(212,168,75,0.12)'};color:${priColors[a.priority] || 'var(--accent-gold)'}">${a.priority || 'Medium'}</span>` : ''}
           ${a.type ? `<span style="font-size: 0.71rem;padding:1px 6px;border-radius:4px;background:var(--bg-elevated);color:var(--text-muted)">${a.type}</span>` : ''}
           ${a.deadline ? `<span style="font-size: 0.71rem;color:${isOverdue ? 'var(--accent-red)' : 'var(--text-muted)'}">${isOverdue ? '⚠ ' : ''} ${formatDateEN(a.deadline)}</span>` : ''}
         </div>
@@ -3808,6 +4272,7 @@ function saveCourse() {
     DB.courses.push(data); 
     playSFX('publish');
     toast('Course added!');
+    sendNotification('course','📚',(currentUserData?.name||'Someone')+' added a new course: '+name);
   }
   saveCourseDB(); 
   closeCModal('course-modal'); 
@@ -3817,12 +4282,14 @@ function saveCourse() {
 
 function deleteCurrentCourse() {
   if(!editingCourseId || !confirm('Delete this course and all its assignments?')) return;
+  const course = DB.courses.find(c => c.id === editingCourseId);
   DB.assignments = DB.assignments.filter(a => a.courseId !== editingCourseId);
   DB.courses = DB.courses.filter(c => c.id !== editingCourseId);
   saveCourseDB(); 
   closeCModal('course-modal');
   if(currentCourseId === editingCourseId) closeCourseDetail();
   refreshCoursesList(); 
+  if(course) sendNotification('course','🗑️',(currentUserData?.name||'Someone')+' deleted a course: '+course.name);
   toast('Course deleted');
 }
 
@@ -3865,13 +4332,14 @@ function saveAssignment() {
   const data = {name, courseId: document.getElementById('am-course').value, priority: getCsegVal('am-priority-group'), deadline: document.getElementById('am-deadline').value, type: getCsegVal('am-type-group'), notes: document.getElementById('am-notes').value.trim(), done: false};
   if(editingAssignmentId) {
     const idx = DB.assignments.findIndex(a => a.id === editingAssignmentId); 
-    if(idx > -1) DB.assignments[idx] = {...DB.assignments[idx], ...data, done: DB.assignments[idx].done}; 
+    if(idx > -1) DB.assignments[idx] = {...DB.assignments[idx], ...data, done: DB.assignments[idx].done, completedBy: DB.assignments[idx].completedBy || []}; 
     toast('Assignment updated!');
   } else {
     data.id = 'a' + Date.now(); 
     DB.assignments.push(data); 
     playSFX('publish');
     toast('Assignment added!');
+    sendNotification('assignment','📋',(currentUserData?.name||'Someone')+' added a new assignment: '+name);
   }
   saveCourseDB(); 
   closeCModal('assignment-modal'); 
@@ -3881,23 +4349,34 @@ function saveAssignment() {
 
 function deleteCurrentAssignment() {
   if(!editingAssignmentId || !confirm('Delete this assignment?')) return;
+  const assignment = DB.assignments.find(a => a.id === editingAssignmentId);
   DB.assignments = DB.assignments.filter(a => a.id !== editingAssignmentId);
   saveCourseDB(); 
   closeCModal('assignment-modal'); 
   if(currentCourseId) refreshCourseDetail(); 
   refreshCoursesList(); 
+  if(assignment) sendNotification('assignment','🗑️',(currentUserData?.name||'Someone')+' deleted an assignment: '+assignment.name);
   toast('Assignment deleted');
 }
 
 function toggleAssignment(id) {
   const a = DB.assignments.find(x => x.id === id); 
   if(!a) return;
-  a.done = !a.done; 
+  if(!Array.isArray(a.completedBy)) {
+    // One-time migration from the old shared checkbox: if it was already marked done for everyone,
+    // seed completedBy with every known user so no one's existing progress looks lost.
+    a.completedBy = a.done ? allUsersData.map(u => u.id) : [];
+  }
+  const uid = currentUser.uid;
+  const doneByMe = a.completedBy.includes(uid);
+  if(doneByMe) a.completedBy = a.completedBy.filter(u => u !== uid);
+  else a.completedBy.push(uid);
   saveCourseDB(); 
   refreshCourseDetail(); 
   refreshCoursesList();
   playSFX('success');
-  if(a.done) toast('✅ Assignment done!'); else toast('Assignment unchecked');
+  if(!doneByMe) sendNotification('assignment','✅',(currentUserData?.name||'Someone')+' completed an assignment: '+a.name);
+  toast(doneByMe ? 'Assignment unchecked' : '✅ Assignment done!');
 }
 
 // Status helpers
@@ -3916,7 +4395,7 @@ function renderExamCard(e){
   const daysLabel=daysN===null?'No date':daysN<0?`${Math.abs(daysN)}d ago`:daysN===0?'TODAY!':daysN+'d left';
   const linkedCourseIds=e.linkedCourses||[];
   const linkedCourses=DB.courses.filter(c=>linkedCourseIds.includes(c.id));
-  const totalPct=linkedCourses.length?Math.round(linkedCourses.reduce((s,c)=>{const all=DB.assignments.filter(a=>a.courseId===c.id);return s+(all.length?all.filter(a=>a.done).length/all.length*100:0);},0)/linkedCourses.length):0;
+  const totalPct=linkedCourses.length?Math.round(linkedCourses.reduce((s,c)=>{const all=DB.assignments.filter(a=>a.courseId===c.id);return s+(all.length?all.filter(a=>isAssignmentDoneByMe(a)).length/all.length*100:0);},0)/linkedCourses.length):0;
   return`<div class="dq-exam-card" onclick="openExamModal('${e.id}')">
     <div class="dq-exam-cover" style="background:linear-gradient(135deg,${col}40,${col}15);position:relative">
       <div style="position:absolute;inset:0;background:linear-gradient(135deg,${col}30,transparent)"></div>
@@ -4021,14 +4500,18 @@ async function saveExam(){
     data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
     data.createdBy=currentUser.uid;
     await db.collection('exams').add(data);playSFX('publish');toast('🏆 Exam added!');
+    sendNotification('exam','🎓',(currentUserData?.name||'Someone')+' added a new exam: '+name);
   }
   closeCModal('exam-modal');
 }
 
 async function deleteCurrentExam(){
   if(!editingExamId||!confirm('Delete this exam?'))return;
+  const exam = allExams.find(e => e.id === editingExamId);
   await db.collection('exams').doc(editingExamId).delete();
-  closeCModal('exam-modal');toast('Exam deleted');
+  closeCModal('exam-modal');
+  if(exam) sendNotification('exam','🗑️',(currentUserData?.name||'Someone')+' deleted an exam: '+exam.name);
+  toast('Exam deleted');
 }
 
 // ═══════════════════════════════════════════
@@ -5263,7 +5746,7 @@ function switchTab(tab) {
     updateAnalytics(); 
      // UI লোড হওয়ার পর চার্ট রেন্ডার
   }
-  if(tab === 'home') { renderHomeTasks(); updateHomeGoal(); }
+  if(tab === 'home') { renderHomeTasks(); updateHomeGoal(); refreshWeeklyChallenge(); }
   if(tab === 'rewards') setTimeout(renderGuildStore, 50);
   if(tab === 'timer') { renderTimerSubjects(); loadTimerStats(); }
   if(tab === 'courses') refreshCoursesList();
@@ -5319,6 +5802,7 @@ const drawerPageTitles = {
   analytics: '📊 Analytics',
   notes: '📝 Notes',
   journal: '📖 Journal',
+  games: '🎮 Zen Games',
   settings: '⚙️ Settings',
   about: '🏯 About Me'
 };
@@ -5331,7 +5815,10 @@ function openDrawerPage(tab) {
       loadDrawerAnalytics();
       setTimeout(initAdvancedAnalytics, 300); // সময়টা একটু বাড়িয়ে দিন
       setTimeout(loadScoreTrendChart, 350);
+      setTimeout(loadTimeOfDayChart, 400);
+      setTimeout(loadTaskTimeTrendChart, 450);
   }
+  if(tab === 'games') startBlossomGame();
   document.getElementById('drawer-page-title').textContent = drawerPageTitles[tab];
   document.querySelectorAll('.drawer-tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('drawer-' + tab).classList.add('active');
@@ -5395,12 +5882,44 @@ document.getElementById('drawer-name').textContent = currentUserData.name || '�
 async function loadDrawerAnalytics() {
   if(!currentUser) return;
 
-  // ১. Stat cards (এগুলো ঠিক আছে)
+  // ০. Profile header — whose analytics this is
+  const daAvatarEl = document.getElementById('da-profile-avatar');
+  const daNameEl = document.getElementById('da-profile-name');
+  if(daAvatarEl) {
+    if(currentUserData?.avatarUrl) daAvatarEl.innerHTML = `<img src="${currentUserData.avatarUrl}" alt="avatar">`;
+    else daAvatarEl.textContent = (currentUserData?.name || '?').charAt(0).toUpperCase();
+  }
+  if(daNameEl) daNameEl.textContent = currentUserData?.name || 'Scholar';
+
+  // ১. Stat cards — full overview grid
   const xp = currentUserData?.xp || 0;
   const totalDone = currentUserData?.totalDone || 0;
   const totalHours = currentUserData?.totalHours || 0;
+  const totalStudyHours = currentUserData?.totalStudyHours || 0;
+  const totalDiamonds = currentUserData?.totalDiamonds || 0;
   const streak = currentUserData?.streak || 0;
-  document.getElementById('da-stat-grid').innerHTML = `...`; // আপনার আগের কোড
+  const overallTasksCount = allTasks.length;
+  const overallTimeCount = allTasks.reduce((sum, t) => sum + (parseFloat(t.hours) || 0), 0);
+  const daLv = getGuildLevel(xp);
+  const daEquipped = currentUserData?.guildEquipped || [];
+  const daInventory = currentUserData?.guildInventory || [];
+  const daPower = getGuildPower(daEquipped, daInventory);
+  const daRank = getGuildRankNew(daPower, xp);
+  const daTotalPurchased = daInventory.reduce((s, i) => s + i.qty, 0);
+
+  document.getElementById('da-stat-grid').innerHTML = `
+    <div class="da-stat-card"><div class="da-stat-val">${overallTasksCount}</div><div class="da-stat-lbl">Total Tasks</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">${overallTimeCount.toFixed(1)}h</div><div class="da-stat-lbl">Total Time</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">${totalDone}</div><div class="da-stat-lbl">Completed Tasks</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">${totalHours.toFixed(1)}h</div><div class="da-stat-lbl">Spent Time</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">${xp}</div><div class="da-stat-lbl">Total Points</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">${totalStudyHours.toFixed(1)}h</div><div class="da-stat-lbl">Timer Time</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">💎 ${totalDiamonds.toFixed(1)}</div><div class="da-stat-lbl">Total Diamonds</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">🔥 ${streak}</div><div class="da-stat-lbl">Day Streak</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">Lv.${daLv.level}</div><div class="da-stat-sub">${daLv.name}</div><div class="da-stat-lbl">Journey Level</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">${'⭐'.repeat(daRank.stars)}</div><div class="da-stat-sub">${daRank.name}</div><div class="da-stat-lbl">Current Rank</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">${daTotalPurchased}</div><div class="da-stat-lbl">Items Purchased</div></div>
+  `;
 
   // ২. ডেটা প্রসেসিং
   const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -5434,6 +5953,24 @@ async function loadDrawerAnalytics() {
       // Heatmap
       heatMap[dateStr] = (heatMap[dateStr] || 0) + hrs;
     });
+
+    // Completed-task hours were missing here before — This Week/Heatmap only showed Focus Timer
+    // sessions and ignored task completions, so they looked empty for anyone who studies mainly
+    // via Tasks. Add task hours into the same weekData/heatMap buckets (same source the
+    // Doughnut/30-Day Trend charts below already use).
+    allTasks.forEach(t => {
+      const hrs = parseFloat(t.hours) || 1;
+      (t.completions || []).forEach(c => {
+        if(!c.endsWith('_' + currentUser.uid)) return;
+        const dateStr = c.substring(0, 10); // "YYYY-MM-DD" prefix of the "date_uid" key
+        const logDate = new Date(dateStr + 'T00:00:00').getTime();
+        if(logDate >= monTime && logDate <= sunTime) {
+          const dt = new Date(logDate);
+          weekData[days[dt.getDay()]] += hrs;
+        }
+        heatMap[dateStr] = (heatMap[dateStr] || 0) + hrs;
+      });
+    });
   } catch(e) { console.error('Error:', e); }
 
   // ৩. Weekly Bar Chart রেন্ডার
@@ -5463,6 +6000,8 @@ async function loadDrawerAnalytics() {
   // চার্ট ইনিশিয়ালাইজ করুন
   setTimeout(initAdvancedAnalytics, 100);
   setTimeout(loadScoreTrendChart, 150);
+  setTimeout(loadTimeOfDayChart, 200);
+  setTimeout(loadTaskTimeTrendChart, 250);
 }
 
 // ── NOTES ──
@@ -6023,6 +6562,14 @@ function applyTheme(theme) {
   const btn = document.getElementById('theme-toggle-btn');
   if(btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
   localStorage.setItem('vm_theme', theme);
+  // Charts bake their colors in as literal strings at render time, so if Analytics is open
+  // when the theme changes, re-render them now instead of waiting for the next visit.
+  if(document.getElementById('drawer-page-overlay')?.style.display === 'flex' && activeDrawerTab === 'analytics') {
+    initAdvancedAnalytics();
+    loadScoreTrendChart();
+    loadTimeOfDayChart();
+    loadTaskTimeTrendChart();
+  }
 }
 function toggleTheme() {
   applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
@@ -6261,14 +6808,25 @@ document.addEventListener('visibilitychange', () => {
 // গ্লোবাল ভ্যারিয়েবল চার্টগুলোর ইন্সট্যান্স ধরে রাখার জন্য
 let advancedCharts = {};
 
+// Chart.js needs literal color strings, not CSS var() references — so this reads the *current*
+// theme's colors at render time instead of a color baked in for dark mode only. This is why
+// charts previously looked broken in light mode: their text/grid colors were hardcoded for a
+// dark background and never adapted.
+function getChartTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  return {
+    textColor: isLight ? '#5a5346' : '#b5b09f',
+    gridColor: isLight ? 'rgba(100, 70, 10, 0.09)' : 'rgba(229, 192, 123, 0.1)'
+  };
+}
+
 function initAdvancedAnalytics() {
   if (!document.getElementById('subjectDoughnutChart')) return; // ক্যানভাস না থাকলে কাজ করবে না
   if (!currentUser) return;
 
-  // থিম কালারগুলো (Zen / Ghibli theme)
-  const colors = ['#88b394', '#e5c07b', '#c4756c', '#6ba4b8', '#d49764'];
-  const gridColor = 'rgba(229, 192, 123, 0.1)';
-  const textColor = '#b5b09f';
+  // থিম কালারগুলো (Zen / Ghibli theme) — richer, more vivid jewel-tone palette
+  const colors = ['#3ba282', '#f2b705', '#e2635a', '#3d97c9', '#f0954a', '#a685e2', '#e278a0', '#a8c94a'];
+  const { textColor, gridColor } = getChartTheme();
 
   // আগের চার্ট থাকলে মুছে ফেলা (যাতে ওভারল্যাপ না হয়)
   Object.keys(advancedCharts).forEach(key => {
@@ -6332,8 +6890,8 @@ function initAdvancedAnalytics() {
         datasets: [{
           label: 'Hours Studied',
           data: trendValues,
-          borderColor: '#e5c07b',
-          backgroundColor: 'rgba(229, 192, 123, 0.2)',
+          borderColor: '#f2b705',
+          backgroundColor: 'rgba(242, 183, 5, 0.18)',
           fill: true,
           tension: 0.4, // Smooth curve
           pointRadius: 0
@@ -6360,9 +6918,9 @@ function initAdvancedAnalytics() {
         datasets: [{
           label: 'Mastery Level',
           data: [80, 70, 90, 60, 85], // এই ভ্যালুগুলো ডাইনামিক করতে চাইলে পরে লজিক বসাতে হবে
-          backgroundColor: 'rgba(136, 179, 148, 0.3)', // Matcha Green
-          borderColor: '#88b394',
-          pointBackgroundColor: '#e5c07b',
+          backgroundColor: 'rgba(59, 162, 130, 0.32)',
+          borderColor: '#3ba282',
+          pointBackgroundColor: '#f2b705',
           borderWidth: 2
         }]
       },
@@ -6394,7 +6952,7 @@ function initAdvancedAnalytics() {
     const relatedAssignments = DB.assignments.filter(a => linkedCourseIds.includes(a.courseId));
     
     // অ্যাসাইনমেন্টের Progress (Done vs Pending) ক্যালকুলেট করা
-    const doneCount = relatedAssignments.filter(a => a.done).length;
+    const doneCount = relatedAssignments.filter(a => isAssignmentDoneByMe(a)).length;
     const pendingCount = relatedAssignments.length - doneCount;
     
     doneAssignments.push(doneCount);
@@ -6408,8 +6966,8 @@ function initAdvancedAnalytics() {
       data: {
         labels: examLabels.length ? examLabels : ['No Exams'],
         datasets: [
-          { label: 'Completed (Tasks)', data: doneAssignments.length ? doneAssignments : [0], backgroundColor: '#88b394' },
-          { label: 'Pending (Tasks)', data: pendingAssignments.length ? pendingAssignments : [0], backgroundColor: '#c4756c' }
+          { label: 'Completed (Tasks)', data: doneAssignments.length ? doneAssignments : [0], backgroundColor: '#3ba282' },
+          { label: 'Pending (Tasks)', data: pendingAssignments.length ? pendingAssignments : [0], backgroundColor: '#e2635a' }
         ]
       },
       options: {
@@ -6430,8 +6988,7 @@ async function loadScoreTrendChart() {
   if (!currentUser) return;
   const ctx = document.getElementById('scoreTrendChart');
   if (!ctx) return;
-  const gridColor = 'rgba(229, 192, 123, 0.1)';
-  const textColor = '#b5b09f';
+  const { textColor, gridColor } = getChartTheme();
 
   if (advancedCharts.scoreTrend) { advancedCharts.scoreTrend.destroy(); advancedCharts.scoreTrend = null; }
 
@@ -6460,8 +7017,8 @@ async function loadScoreTrendChart() {
       datasets: [{
         label: 'Productivity Score',
         data: values,
-        borderColor: '#c4756c',
-        backgroundColor: 'rgba(196, 117, 108, 0.2)',
+        borderColor: '#e2635a',
+        backgroundColor: 'rgba(226, 99, 90, 0.18)',
         fill: true,
         tension: 0.4,
         pointRadius: 2,
@@ -6477,6 +7034,491 @@ async function loadScoreTrendChart() {
       plugins: { legend: { display: false } }
     }
   });
+}
+
+// Buckets every Focus Timer session into a 4-hour block of the day (by its completion time),
+// so it shows which part of the day this user actually studies the most. Task completions don't
+// carry a clock time (only a date), so this pattern is built from Timer sessions only.
+async function loadTimeOfDayChart() {
+  if (!currentUser) return;
+  const ctx = document.getElementById('timeOfDayChart');
+  if (!ctx) return;
+  const { textColor, gridColor } = getChartTheme();
+
+  if (advancedCharts.timeOfDay) { advancedCharts.timeOfDay.destroy(); advancedCharts.timeOfDay = null; }
+
+  const blocks = ['🌌 12–4AM', '🌅 4–8AM', '☀️ 8AM–12PM', '🌤️ 12–4PM', '🌇 4–8PM', '🌙 8PM–12AM'];
+  const blockColors = ['#7c6fd6', '#f0954a', '#f2b705', '#3d97c9', '#e2635a', '#3ba282'];
+  const hoursByBlock = [0, 0, 0, 0, 0, 0];
+
+  try {
+    const snap = await db.collection('timerLogs').where('uid', '==', currentUser.uid).get();
+    snap.docs.forEach(d => {
+      const data = d.data();
+      if (!data.createdAt || typeof data.createdAt.toDate !== 'function') return;
+      const hour = data.createdAt.toDate().getHours();
+      const blockIdx = Math.min(5, Math.floor(hour / 4));
+      hoursByBlock[blockIdx] += (data.seconds || 0) / 3600;
+    });
+  } catch (e) { console.error('Time of day chart error:', e); }
+
+  advancedCharts.timeOfDay = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: blocks,
+      datasets: [{
+        label: 'Hours Studied',
+        data: hoursByBlock.map(h => Number(h.toFixed(1))),
+        backgroundColor: blockColors,
+        borderRadius: 6,
+        maxBarThickness: 36
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false }, ticks: { color: textColor, font: { size: 9 } } },
+        y: { grid: { color: gridColor }, ticks: { color: textColor } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+// Two lines, one chart: how many tasks were completed each day (left axis) and how many hours
+// were spent completing them (right axis) — same "date_uid" completion keys used everywhere else,
+// just grouped per day for the last 30 days instead of per-task.
+async function loadTaskTimeTrendChart() {
+  if (!currentUser) return;
+  const ctx = document.getElementById('taskTimeTrendChart');
+  if (!ctx) return;
+  const { textColor, gridColor } = getChartTheme();
+
+  if (advancedCharts.taskTimeTrend) { advancedCharts.taskTimeTrend.destroy(); advancedCharts.taskTimeTrend = null; }
+
+  const labels = [];
+  const countValues = [];
+  const hourValues = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toLocaleDateString('sv-SE');
+    labels.push(d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }));
+
+    const doneThatDay = allTasks.filter(t => (t.completions || []).includes(dateStr + '_' + currentUser.uid));
+    countValues.push(doneThatDay.length);
+    hourValues.push(Number(doneThatDay.reduce((sum, t) => sum + (parseFloat(t.hours) || 1), 0).toFixed(1)));
+  }
+
+  advancedCharts.taskTimeTrend = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Tasks Completed',
+          data: countValues,
+          borderColor: '#3d97c9',
+          backgroundColor: 'rgba(61, 151, 201, 0.15)',
+          tension: 0.4,
+          pointRadius: 2,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Hours Spent',
+          data: hourValues,
+          borderColor: '#f2b705',
+          backgroundColor: 'rgba(242, 183, 5, 0.15)',
+          tension: 0.4,
+          pointRadius: 2,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: textColor, maxTicksLimit: 6 } },
+        y: {
+          position: 'left', beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: { color: '#3d97c9', precision: 0 },
+          title: { display: true, text: 'Tasks', color: '#3d97c9', font: { size: 10 } }
+        },
+        y1: {
+          position: 'right', beginAtZero: true,
+          grid: { display: false },
+          ticks: { color: '#f2b705' },
+          title: { display: true, text: 'Hours', color: '#f2b705', font: { size: 10 } }
+        }
+      },
+      plugins: { legend: { display: true, position: 'top', labels: { color: textColor, font: { size: 10 }, boxWidth: 12 } } }
+    }
+  });
+
+  // "Your Best Day" — the highest point of each line within this same 30-day window
+  let bestTaskIdx = 0, bestHourIdx = 0;
+  countValues.forEach((v, i) => { if(v > countValues[bestTaskIdx]) bestTaskIdx = i; });
+  hourValues.forEach((v, i) => { if(v > hourValues[bestHourIdx]) bestHourIdx = i; });
+
+  const bestTasksValEl = document.getElementById('da-best-tasks-val');
+  const bestTasksDateEl = document.getElementById('da-best-tasks-date');
+  const bestHoursValEl = document.getElementById('da-best-hours-val');
+  const bestHoursDateEl = document.getElementById('da-best-hours-date');
+
+  if(bestTasksValEl && bestTasksDateEl) {
+    if(countValues[bestTaskIdx] > 0) {
+      bestTasksValEl.textContent = countValues[bestTaskIdx];
+      bestTasksDateEl.textContent = labels[bestTaskIdx];
+    } else {
+      bestTasksValEl.textContent = '—';
+      bestTasksDateEl.textContent = 'No data yet';
+    }
+  }
+  if(bestHoursValEl && bestHoursDateEl) {
+    if(hourValues[bestHourIdx] > 0) {
+      bestHoursValEl.textContent = hourValues[bestHourIdx] + 'h';
+      bestHoursDateEl.textContent = labels[bestHourIdx];
+    } else {
+      bestHoursValEl.textContent = '—';
+      bestHoursDateEl.textContent = 'No data yet';
+    }
+  }
+}
+
+// ═══════════════════════════════════════════
+// ZEN GAMES — Blossom Match (match-3) + Koi Pond
+// ═══════════════════════════════════════════
+function sleepMs(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+function switchGameSubtab(tab) {
+  document.getElementById('game-subtab-blossom')?.classList.toggle('active', tab === 'blossom');
+  document.getElementById('game-subtab-koi')?.classList.toggle('active', tab === 'koi');
+  const blossomWrap = document.getElementById('blossom-game-wrap');
+  const koiWrap = document.getElementById('koi-pond-wrap');
+  if(blossomWrap) blossomWrap.style.display = tab === 'blossom' ? 'block' : 'none';
+  if(koiWrap) koiWrap.style.display = tab === 'koi' ? 'block' : 'none';
+  if(tab === 'koi') initKoiPond();
+  else stopKoiPond();
+}
+
+// --- Blossom Match ---
+const BLOSSOM_SIZE = 7;
+const BLOSSOM_TYPES = ['🌸', '🍁', '🎋', '🏮', '⛩️', '🍵'];
+let blossomBoard = [];
+let blossomSelected = null;
+let blossomScore = 0;
+let blossomBusy = false;
+let blossomTimeLeft = 60;
+let blossomTimerInterval = null;
+
+function generateBlossomBoard() {
+  const board = [];
+  for(let r = 0; r < BLOSSOM_SIZE; r++) {
+    board.push([]);
+    for(let c = 0; c < BLOSSOM_SIZE; c++) {
+      let type;
+      let tries = 0;
+      do {
+        type = Math.floor(Math.random() * BLOSSOM_TYPES.length);
+        tries++;
+      } while(
+        tries < 20 && (
+          (c >= 2 && board[r][c-1] === type && board[r][c-2] === type) ||
+          (r >= 2 && board[r-1][c] === type && board[r-2][c] === type)
+        )
+      );
+      board[r].push(type);
+    }
+  }
+  return board;
+}
+
+function renderBlossomBoard() {
+  const el = document.getElementById('blossom-board');
+  if(!el) return;
+  el.innerHTML = '';
+  for(let r = 0; r < BLOSSOM_SIZE; r++) {
+    for(let c = 0; c < BLOSSOM_SIZE; c++) {
+      const type = blossomBoard[r][c];
+      const tile = document.createElement('div');
+      tile.className = 'blossom-tile' + (blossomSelected && blossomSelected.r === r && blossomSelected.c === c ? ' selected' : '');
+      tile.textContent = (type === null || type === undefined) ? '' : BLOSSOM_TYPES[type];
+      tile.onclick = () => handleBlossomTap(r, c);
+      el.appendChild(tile);
+    }
+  }
+}
+
+function handleBlossomTap(r, c) {
+  if(blossomBusy || blossomTimeLeft <= 0) return;
+  if(!blossomSelected) {
+    blossomSelected = {r, c};
+    renderBlossomBoard();
+    return;
+  }
+  const {r: sr, c: sc} = blossomSelected;
+  if(sr === r && sc === c) {
+    blossomSelected = null;
+    renderBlossomBoard();
+    return;
+  }
+  const isAdjacent = (Math.abs(sr - r) + Math.abs(sc - c)) === 1;
+  if(!isAdjacent) {
+    blossomSelected = {r, c};
+    renderBlossomBoard();
+    return;
+  }
+  blossomSelected = null;
+  attemptBlossomSwap(sr, sc, r, c);
+}
+
+function swapBlossomCells(r1, c1, r2, c2) {
+  const tmp = blossomBoard[r1][c1];
+  blossomBoard[r1][c1] = blossomBoard[r2][c2];
+  blossomBoard[r2][c2] = tmp;
+}
+
+async function attemptBlossomSwap(r1, c1, r2, c2) {
+  blossomBusy = true;
+  swapBlossomCells(r1, c1, r2, c2);
+  renderBlossomBoard();
+  await sleepMs(150);
+  const matches = findBlossomMatches();
+  if(matches.size === 0) {
+    swapBlossomCells(r1, c1, r2, c2);
+    renderBlossomBoard();
+    blossomBusy = false;
+    return;
+  }
+  await resolveBlossomMatches();
+  blossomBusy = false;
+}
+
+// Standard match-3 scan: for each row/column, find runs of 3+ identical consecutive tiles.
+function findBlossomMatches() {
+  const toClear = new Set();
+
+  for(let r = 0; r < BLOSSOM_SIZE; r++) {
+    let c = 0;
+    while(c < BLOSSOM_SIZE) {
+      const type = blossomBoard[r][c];
+      if(type === null || type === undefined) { c++; continue; }
+      let runEnd = c;
+      while(runEnd + 1 < BLOSSOM_SIZE && blossomBoard[r][runEnd + 1] === type) runEnd++;
+      if(runEnd - c + 1 >= 3) {
+        for(let k = c; k <= runEnd; k++) toClear.add(r + ',' + k);
+      }
+      c = runEnd + 1;
+    }
+  }
+
+  for(let c = 0; c < BLOSSOM_SIZE; c++) {
+    let r = 0;
+    while(r < BLOSSOM_SIZE) {
+      const type = blossomBoard[r][c];
+      if(type === null || type === undefined) { r++; continue; }
+      let runEnd = r;
+      while(runEnd + 1 < BLOSSOM_SIZE && blossomBoard[runEnd + 1][c] === type) runEnd++;
+      if(runEnd - r + 1 >= 3) {
+        for(let k = r; k <= runEnd; k++) toClear.add(k + ',' + c);
+      }
+      r = runEnd + 1;
+    }
+  }
+
+  return toClear;
+}
+
+function applyBlossomGravity() {
+  for(let c = 0; c < BLOSSOM_SIZE; c++) {
+    let writeRow = BLOSSOM_SIZE - 1;
+    for(let r = BLOSSOM_SIZE - 1; r >= 0; r--) {
+      if(blossomBoard[r][c] !== null) {
+        blossomBoard[writeRow][c] = blossomBoard[r][c];
+        if(writeRow !== r) blossomBoard[r][c] = null;
+        writeRow--;
+      }
+    }
+    for(let r = writeRow; r >= 0; r--) {
+      blossomBoard[r][c] = Math.floor(Math.random() * BLOSSOM_TYPES.length);
+    }
+  }
+}
+
+async function resolveBlossomMatches() {
+  let combo = 1;
+  while(true) {
+    const matches = findBlossomMatches();
+    if(matches.size === 0) break;
+    blossomScore += matches.size * 10 * combo;
+    updateBlossomScoreDisplay();
+    matches.forEach(key => {
+      const [r, c] = key.split(',').map(Number);
+      blossomBoard[r][c] = null;
+    });
+    renderBlossomBoard();
+    await sleepMs(200);
+    applyBlossomGravity();
+    renderBlossomBoard();
+    await sleepMs(200);
+    combo++;
+  }
+}
+
+function updateBlossomScoreDisplay() {
+  const el = document.getElementById('blossom-score');
+  if(el) el.textContent = blossomScore;
+}
+
+function updateBlossomTimerDisplay() {
+  const el = document.getElementById('blossom-timer');
+  if(el) el.textContent = blossomTimeLeft + 's';
+}
+
+function loadBlossomBest() {
+  const bestEl = document.getElementById('blossom-best');
+  if(!bestEl) return;
+  const best = currentUserData?.blossomMatchBest || 0;
+  bestEl.textContent = best;
+  bestEl.dataset.best = best;
+}
+
+function startBlossomTimer() {
+  clearInterval(blossomTimerInterval);
+  blossomTimeLeft = 60;
+  updateBlossomTimerDisplay();
+  blossomTimerInterval = setInterval(() => {
+    blossomTimeLeft--;
+    updateBlossomTimerDisplay();
+    if(blossomTimeLeft <= 0) {
+      clearInterval(blossomTimerInterval);
+      endBlossomGame();
+    }
+  }, 1000);
+}
+
+function startBlossomGame() {
+  const boardEl = document.getElementById('blossom-board');
+  if(!boardEl) return; // page not open yet
+  blossomBoard = generateBlossomBoard();
+  blossomSelected = null;
+  blossomScore = 0;
+  blossomBusy = false;
+  updateBlossomScoreDisplay();
+  renderBlossomBoard();
+  const overEl = document.getElementById('blossom-gameover');
+  if(overEl) overEl.style.display = 'none';
+  boardEl.style.display = 'grid';
+  loadBlossomBest();
+  startBlossomTimer();
+}
+
+async function endBlossomGame() {
+  blossomBusy = true;
+  const overEl = document.getElementById('blossom-gameover');
+  const finalEl = document.getElementById('blossom-final-score');
+  if(overEl) overEl.style.display = 'block';
+  if(finalEl) finalEl.textContent = blossomScore;
+
+  const bestEl = document.getElementById('blossom-best');
+  const currentBest = parseInt(bestEl?.dataset.best || '0');
+  if(blossomScore > currentBest && currentUser) {
+    try {
+      await db.collection('users').doc(currentUser.uid).update({ blossomMatchBest: blossomScore });
+      if(bestEl) { bestEl.textContent = blossomScore; bestEl.dataset.best = blossomScore; }
+      fireConfetti();
+    } catch(e) { console.error('blossomMatchBest save error:', e); }
+  }
+}
+
+// --- Koi Pond ---
+let koiFish = [];
+let koiAnimFrame = null;
+
+function initKoiPond() {
+  const pond = document.getElementById('koi-pond');
+  if(!pond) return;
+
+  if(!pond.dataset.lilyAdded) {
+    const lilyPositions = [{x: '10%', y: '15%'}, {x: '80%', y: '20%'}, {x: '20%', y: '75%'}, {x: '75%', y: '68%'}];
+    lilyPositions.forEach(pos => {
+      const lp = document.createElement('div');
+      lp.className = 'lily-pad';
+      lp.textContent = '🪷';
+      lp.style.left = pos.x; lp.style.top = pos.y;
+      pond.appendChild(lp);
+    });
+    pond.dataset.lilyAdded = 'true';
+  }
+
+  if(koiFish.length === 0) {
+    const rect = pond.getBoundingClientRect();
+    const w = rect.width || 300, h = rect.height || 320;
+    const emojis = ['🐟', '🐠', '🐡', '🐟', '🐠'];
+    koiFish = emojis.map(e => ({
+      el: null, emoji: e,
+      x: Math.random() * w, y: Math.random() * h,
+      targetX: Math.random() * w, targetY: Math.random() * h,
+      speed: 0.4 + Math.random() * 0.3,
+      angle: 0
+    }));
+    koiFish.forEach(f => {
+      const el = document.createElement('div');
+      el.className = 'koi-fish';
+      el.textContent = f.emoji;
+      pond.appendChild(el);
+      f.el = el;
+    });
+  }
+
+  if(!koiAnimFrame) koiAnimLoop();
+}
+
+function koiAnimLoop() {
+  const pond = document.getElementById('koi-pond');
+  if(!pond || pond.offsetParent === null) { koiAnimFrame = null; return; } // pond not visible — stop the loop
+  const rect = pond.getBoundingClientRect();
+  const w = rect.width, h = rect.height;
+
+  koiFish.forEach(f => {
+    const dx = f.targetX - f.x;
+    const dy = f.targetY - f.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if(dist < 8) {
+      f.targetX = Math.random() * w;
+      f.targetY = Math.random() * h;
+    } else {
+      f.x += (dx / dist) * f.speed * 2;
+      f.y += (dy / dist) * f.speed * 2;
+      f.angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    }
+    if(f.el) f.el.style.transform = `translate(${f.x}px, ${f.y}px) rotate(${f.angle}deg)`;
+  });
+
+  koiAnimFrame = requestAnimationFrame(koiAnimLoop);
+}
+
+function feedKoi(evt) {
+  const pond = document.getElementById('koi-pond');
+  if(!pond) return;
+  const rect = pond.getBoundingClientRect();
+  const x = (evt.touches ? evt.touches[0].clientX : evt.clientX) - rect.left;
+  const y = (evt.touches ? evt.touches[0].clientY : evt.clientY) - rect.top;
+
+  const ripple = document.createElement('div');
+  ripple.className = 'koi-ripple';
+  ripple.style.left = x + 'px'; ripple.style.top = y + 'px';
+  pond.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 900);
+
+  const sorted = [...koiFish].sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y));
+  sorted.slice(0, 2).forEach(f => { f.targetX = x; f.targetY = y; });
+}
+
+function stopKoiPond() {
+  if(koiAnimFrame) { cancelAnimationFrame(koiAnimFrame); koiAnimFrame = null; }
 }
 
 
