@@ -299,37 +299,62 @@ body {
 .top-bar {
   background: var(--bg-card);
   border-bottom: 1px solid var(--border);
-  padding: 0 16px;
-  height: var(--top-bar-h);
+  padding: 0 14px;
+  height: calc(var(--top-bar-h) + var(--safe-top));
   display: flex; align-items: center;
   justify-content: space-between;
+  gap: 8px;
   position: sticky; top: 0; z-index: 50;
   padding-top: var(--safe-top);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
 }
 .app-logo {
-  font-family: var(--font-head); font-weight: 700; font-size: 1.3rem; color: transparent;
+  font-family: var(--font-head); font-weight: 700; font-size: 1.14rem; color: transparent;
   background: linear-gradient(90deg, #ffd700, #ffaa00); -webkit-background-clip: text; background-clip: text;
-  animation: pulse-glow 2s ease-in-out infinite; letter-spacing: 2px; text-align: center; margin-bottom: 14px;
+  animation: pulse-glow 2s ease-in-out infinite; letter-spacing: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: flex; align-items: center; gap: 4px;
+  flex-shrink: 1; min-width: 0;
 }
-.top-bar-right { display: flex; align-items: center; gap: 10px; }
+.top-bar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.icon-btn-bar {
+  width: 34px; height: 34px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer; font-size: 1rem;
+  color: var(--text-primary);
+  transition: transform 0.15s ease, background 0.2s;
+  position: relative;
+}
+.icon-btn-bar:active { transform: scale(0.9); }
 .xp-badge {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 20px; padding: 6px 13px;
-  font-size: 0.84rem; color: var(--accent-gold);
+  border-radius: 20px; padding: 6px 12px;
+  font-size: 0.78rem; color: var(--accent-gold);
   font-weight: 700; white-space: nowrap;
+  flex-shrink: 0;
 }
 .avatar-sm {
-  width: 38px; height: 38px; border-radius: 50%;
+  width: 34px; height: 34px; border-radius: 50%;
   border: 2px solid var(--accent-purple);
   background: var(--accent-purple);
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.92rem; font-weight: 600; color: #fff;
+  font-size: 0.85rem; font-weight: 600; color: #fff;
   cursor: pointer; overflow: hidden; flex-shrink: 0;
   transition: transform 0.15s ease;
 }
 .avatar-sm:active { transform: scale(0.92); }
 .avatar-sm img { width:100%; height:100%; object-fit:cover; }
+
+@media (max-width: 360px) {
+  .app-logo { font-size: 1rem; }
+  .top-bar-right { gap: 6px; }
+  .xp-badge { padding: 5px 9px; font-size: 0.72rem; }
+  .icon-btn-bar, .avatar-sm { width: 30px; height: 30px; }
+}
 
 /* ═══════════════════════════════════════
    LAYOUT
@@ -1909,13 +1934,13 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
 <!-- MAIN APP -->
 <div id="app-screen" class="screen">
   <div class="top-bar">
-<div class="app-logo">⛩️ VidyaMura</div>
+    <div class="app-logo"><span aria-hidden="true">⛩️</span><span>VidyaMura</span></div>
     <div class="top-bar-right">
-      <button class="theme-toggle-btn" id="notif-bell-btn" onclick="openNotificationPanel()" style="position:relative" title="Notifications">
+      <button class="icon-btn-bar" id="notif-bell-btn" onclick="openNotificationPanel()" title="Notifications">
         🔔
         <div class="nav-red-dot" id="notif-red-dot"></div>
       </button>
-      <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Switch theme">🌙</button>
+      <button class="icon-btn-bar" id="theme-toggle-btn" onclick="toggleTheme()" title="Switch theme">🌙</button>
       <div class="xp-badge" id="top-xp">0 XP</div>
       <div class="avatar-sm" id="top-avatar" onclick="openDrawer()" style="display:none">?</div>
     </div>
@@ -2026,7 +2051,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     </div>
     <div id="course-detail-view" style="display:none">
       <div class="course-detail-header">
-        <div class="back-btn" onclick="closeCourseDetail()">←</div>
+        <div class="back-btn" onclick="closeCourseDetail()">⬅️</div>
         <div style="flex:1">
           <div style="font-family:'Cinzel',serif;font-size:1.1rem;color:var(--accent-gold)" id="detail-course-name">Course</div>
           <div style="font-size: 0.79rem;color:var(--text-muted);margin-top:2px" id="detail-course-sub">—</div>
@@ -2356,7 +2381,6 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
 
       <div class="da-section-title">📅 This Week</div>
       <div class="da-bar-chart" id="da-week-chart"></div>
-      <div class="da-section-title">📚 Subject Breakdown</div>
       <div id="da-subjects"></div>
       <div class="da-section-title">🔥 Activity (Last 28 Days)</div>
       <div class="da-heatmap-grid" id="da-heatmap"></div>
@@ -2410,7 +2434,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <button class="btn-primary" style="margin-bottom:12px;padding:10px" onclick="openNewNote()">+ New Note</button>
       <div class="notes-list" id="notes-list"></div>
       <div class="note-editor" id="note-editor">
-        <button class="note-editor-back" onclick="closeNoteEditor()">← Back to Notes</button>
+        <button class="note-editor-back" onclick="closeNoteEditor()">⬅️ Back to Notes</button>
         <input class="note-title-input" id="note-title-input" placeholder="Note title...">
         <textarea class="note-body-input" id="note-body-input" placeholder="Write your note here..."></textarea>
         <div class="note-actions">
@@ -2743,7 +2767,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     <div class="cmodal-actions">
       <button class="cbtn-secondary" onclick="closeCModal('assignment-modal')">Cancel</button>
       <button class="cbtn-danger" id="am-delete-btn" onclick="deleteCurrentAssignment()" style="display:none">Delete</button>
-      <button class="cbtn-primary" onclick="saveAssignment()">Save Assignment</button>
+      <button class="cbtn-primary" style="flex:1;padding:13px;border-radius:12px;color:#fff;font-family:var(--font-body);font-size: 0.9rem;font-weight:700;cursor:pointer" onclick="saveAssignment()">Save Assignment</button>
     </div>
   </div>
 </div>
