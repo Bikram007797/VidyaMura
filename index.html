@@ -2651,7 +2651,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <div style="text-align:center;padding:12px;background:var(--bg-deep);border-radius:10px;border:1px solid var(--border-bright)">
     <div style="font-size: 0.71rem;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Crafted with 🍵 by</div>
     <div style="font-size:1.05rem;font-weight:800;color:var(--accent-gold);letter-spacing:1px">Bikr@m</div>
-    <div style="font-size: 0.69rem;color:var(--text-muted);margin-top:3px">v1.0 · Made for scholars, by a scholar</div>
+    <div style="font-size: 0.69rem;color:var(--text-muted);margin-top:3px">v2.0 · Made for scholars, by a scholar</div>
   </div>
 </div>
     </div>
@@ -2893,7 +2893,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     <div class="form-group">
       <label>COMBINED STUDY HOURS TARGET (THIS WEEK)</label>
       <input type="number" id="cm-hours" min="1" step="0.5" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:11px 14px;font-size: 0.9rem;outline:none;font-family:Inter,sans-serif" placeholder="e.g. 25">
-      <div style="font-size: 0.76rem;color:var(--text-muted);margin-top:8px;line-height:1.5">Set a combined hours goal for everyone in your guild this week (your Task hours + Timer hours together). Hit it together and everyone can claim a <b>+50 pts</b> bonus.</div>
+      <div style="font-size: 0.76rem;color:var(--text-muted);margin-top:8px;line-height:1.5">Set a combined hours goal for everyone in your guild this week (your Task hours + Timer hours together). Hit it together and everyone can claim a <b>+25 pts</b> bonus.</div>
     </div>
    <button class="btn-primary" style="width: 100%; padding: 12px; margin-top: 10px; font-size: 0.95rem; font-weight: 700;" onclick="saveWeeklyChallenge()">Set Challenge</button>
   </div>
@@ -3501,7 +3501,7 @@ async function refreshWeeklyChallenge() {
   const perUser = await computeWeeklyContributions();
   const combined = Object.values(perUser).reduce((a, b) => a + b, 0);
   const pct = Math.min(100, Math.round((combined / target) * 100));
-  const bonus = currentChallenge.bonusPoints || 50;
+  const bonus = currentChallenge.bonusPoints || 25;
   const claimedBy = currentChallenge.claimedBy || [];
   const myHrs = (perUser[currentUser.uid] || 0).toFixed(1);
   const otherLine = Object.entries(perUser)
