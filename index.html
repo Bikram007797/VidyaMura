@@ -162,20 +162,32 @@
 .fs-top-bar {
   position: absolute; top: 0; left: 0; right: 0;
   padding: 14px 18px; padding-top: calc(14px + var(--safe-top));
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; gap: 8px;
 }
-.fs-sound-controls { display: flex; gap: 8px; align-items: center; }
+@media all and (display-mode: standalone) {
+  .fs-top-bar { padding-top: calc(14px + max(var(--safe-top), 26px)); }
+}
+.fs-sound-controls {
+  display: flex; gap: 8px; align-items: center;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; flex: 1; min-width: 0;
+  -webkit-mask-image: linear-gradient(to right, black 88%, transparent 100%);
+  mask-image: linear-gradient(to right, black 88%, transparent 100%);
+}
+.fs-sound-controls::-webkit-scrollbar { display: none; }
+.fs-top-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .fs-sound-btn {
   background: var(--bg-elevated); border: 1px solid var(--border);
   border-radius: 20px; padding: 6px 13px; font-size: 0.79rem;
   color: var(--text-secondary); cursor: pointer; font-weight: 600;
-  transition: all 0.2s; white-space: nowrap;
+  transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
 }
 .fs-sound-btn.active { background: rgba(136,179,148,0.2); border-color: var(--accent-purple); color: var(--accent-purple-bright); }
 .fs-close-btn {
   background: var(--bg-elevated); border: 1px solid var(--border);
   border-radius: 20px; padding: 6px 14px; font-size: 0.82rem;
   color: var(--text-secondary); cursor: pointer; font-weight: 600; transition: all 0.2s;
+  flex-shrink: 0;
 }
 .fs-sound-btn:active, .fs-close-btn:active { transform: scale(0.93); }
 .fs-phase { font-size: 0.8rem; color: var(--accent-purple-bright); letter-spacing: 1.5px; font-weight: 600; margin-bottom: 12px; text-align: center; }
@@ -291,6 +303,15 @@ body {
   padding-top: var(--safe-top);
   box-shadow: 0 2px 12px rgba(0,0,0,0.18);
 }
+/* Installed (standalone) Android PWAs often report env(safe-area-inset-top) as 0
+   even though the OS status bar overlaps the webview, cropping the top bar.
+   Force a minimum buffer only in standalone mode so normal browser tabs are unaffected. */
+@media all and (display-mode: standalone) {
+  .top-bar {
+    height: calc(var(--top-bar-h) + max(var(--safe-top), 26px));
+    padding-top: max(var(--safe-top), 26px);
+  }
+}
 .app-logo {
   font-family: var(--font-head); font-weight: 700; font-size: 1.14rem; color: transparent;
   background: linear-gradient(90deg, #ffd700, #ffaa00); -webkit-background-clip: text; background-clip: text;
@@ -337,6 +358,25 @@ body {
   .top-bar-right { gap: 6px; }
   .xp-badge { padding: 5px 9px; font-size: 0.72rem; }
   .icon-btn-bar, .avatar-sm { width: 30px; height: 30px; }
+}
+
+/* ═══════════════════════════════════════
+   GLOBAL TOUCH FEEDBACK
+═══════════════════════════════════════ */
+[onclick], button, .icon-btn-bar, .avatar-sm, .back-btn, .bgm-toggle-btn,
+.btn-add, .btn-claim, .btn-google, .btn-primary, .cbtn-danger, .cbtn-primary,
+.cbtn-secondary, .cseg-btn, .drawer-signout-btn, .forest-btn, .fs-btn,
+.fs-close-btn, .fs-sound-btn, .guild-btn, .guild-filter-btn,
+.guild-item-info-btn, .journal-save-btn, .note-delete-btn, .note-save-btn,
+.report-btn, .settings-save-btn, .view-toggle-btn {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.12s cubic-bezier(.4,0,.2,1), filter 0.12s ease, opacity 0.12s ease;
+  will-change: transform;
+}
+.tap-active {
+  transform: scale(0.93) !important;
+  filter: brightness(0.87);
 }
 
 /* ═══════════════════════════════════════
@@ -2322,11 +2362,18 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <div id="timer-fullscreen">
     <div class="fs-top-bar">
       <div class="fs-sound-controls">
-        <button class="fs-sound-btn" id="fs-tick-btn" onclick="fsToggleTick()">🔔 Tick</button>
-        <button class="fs-sound-btn" id="fs-tune-btn" onclick="fsToggleTune()">🎵 Tune</button>
-        <button class="fs-sound-btn" id="fs-mute-btn" onclick="fsToggleMute()">🔊</button>
+        <button class="fs-sound-btn" id="fs-tick-btn" data-sound="tick" onclick="selectTimerSound('tick')">🔔 Tick</button>
+        <button class="fs-sound-btn" id="fs-tune-btn" data-sound="tune" onclick="selectTimerSound('tune')">🎵 Tune</button>
+        <button class="fs-sound-btn" data-sound="bgm1" onclick="selectTimerSound('bgm1')">🎧 BGM 1</button>
+        <button class="fs-sound-btn" data-sound="bgm2" onclick="selectTimerSound('bgm2')">🎧 BGM 2</button>
+        <button class="fs-sound-btn" data-sound="bgm3" onclick="selectTimerSound('bgm3')">🎧 BGM 3</button>
+        <button class="fs-sound-btn" data-sound="bgm4" onclick="selectTimerSound('bgm4')">🎧 BGM 4</button>
+        <button class="fs-sound-btn" data-sound="bgm5" onclick="selectTimerSound('bgm5')">🎧 BGM 5</button>
       </div>
-      <button class="fs-close-btn" onclick="closeTimerFullscreen()">✕ Exit</button>
+      <div class="fs-top-right">
+        <button class="fs-sound-btn" id="fs-mute-btn" onclick="fsToggleMute()">🔊</button>
+        <button class="fs-close-btn" onclick="closeTimerFullscreen()">✕ Exit</button>
+      </div>
     </div>
     <div class="fs-phase" id="fs-phase">SET YOUR TIME</div>
     <div class="fs-ring" id="fs-ring">
@@ -3035,7 +3082,7 @@ let courseFilter = 'all';
 let courseTaskFilter = 'all';
 let examFilter = 'all';
 let coursesViewMode = localStorage.getItem('vm_courses_view') || 'card';
-let gamesBgmEnabled = localStorage.getItem('vm_games_bgm') === '1';
+let gamesBgmEnabled = localStorage.getItem('vm_games_bgm') !== '0';
 let gamesBgmMasterGain = null;
 let gamesBgmDroneOscs = [];
 let gamesBgmActive = false;
@@ -5241,9 +5288,10 @@ let timerSubjects = JSON.parse(localStorage.getItem('dq_subjects') || '["Math","
 
 function playAlert() {
   try {
-    const a = new Audio('audio/publish.mp3');
+    const a = new Audio('audio/Timer Alert.mp3');
     a.volume = 1.0;
     a.play().catch(() => {});
+    setTimeout(() => { try { a.pause(); a.currentTime = 0; } catch(e) {} }, 5000);
   } catch(e) {}
 }
 
@@ -5326,6 +5374,7 @@ function forestStart() {
   document.getElementById('forest-stop-btn').style.display = '';
   document.getElementById('slider-wrap').style.display = 'none';
   document.getElementById('slider-val-display').style.display = 'none';
+  startCurrentTimerSound();
   forestInterval = setInterval(() => {
     forestElapsed++;
     updateForestDisplay();
@@ -5346,6 +5395,7 @@ async function forestStop() {
   clearInterval(forestInterval);
   clearInterval(forestAlertInterval);
   forestRunning = false;
+  stopAllTimerSounds();
   document.getElementById('forest-start-btn').style.display = '';
   document.getElementById('forest-stop-btn').style.display = 'none';
   document.getElementById('slider-wrap').style.display = '';
@@ -6067,6 +6117,8 @@ function openDrawerPage(tab) {
     const tentsWrap = document.getElementById('tents-game-wrap');
     if(tentsWrap && tentsWrap.style.display === 'block') resumeTentsTimer();
     if(gamesBgmEnabled) startGamesBgm();
+  } else {
+    stopGamesBgm();
   }
   document.getElementById('drawer-page-title').textContent = drawerPageTitles[tab];
   document.querySelectorAll('.drawer-tab-content').forEach(c => c.classList.remove('active'));
@@ -6834,14 +6886,26 @@ updateGamesBgmBtn();
 // ═══════════════════════════════════════════
 let fsOpen = false;
 let fsPaused = false;
-let fsTickEnabled = false;
-let fsTuneEnabled = false;
 let fsMuted = false;
 
-// Audio context for tick sound (Web Audio API — no file needed)
+// currentTimerSound: null | 'tick' | 'tune' | 'bgm1'..'bgm5'
+// Only ONE of these ever plays at a time — selecting a new one always
+// cleanly stops whatever was playing first, so there's no lag/double-playing.
+let currentTimerSound = null;
+let fsTickEnabled = false; // kept for the per-second fsPlayTick() call site
+let fsTuneEnabled = false; // kept for legacy references
+
+const TIMER_BGM_FILES = {
+  bgm1: 'audio/Timer bgm 1.mp3',
+  bgm2: 'audio/Timer bgm 2.mp3',
+  bgm3: 'audio/Timer bgm 3.mp3',
+  bgm4: 'audio/Timer bgm 4.mp3',
+  bgm5: 'audio/Timer bgm 5.mp3'
+};
+const timerBgmAudioCache = {};
+
+// Audio context for tick/tune sounds (Web Audio API — no file needed)
 let fsAudioCtx = null;
-let fsTickNode = null;
-let fsTuneNode = null;
 let fsTuneGain = null;
 
 function getAudioCtx() {
@@ -6852,7 +6916,7 @@ function getAudioCtx() {
 }
 
 function fsPlayTick() {
-  if(fsMuted || !fsTickEnabled) return;
+  if(fsMuted || currentTimerSound !== 'tick') return;
   try {
     const ctx = getAudioCtx();
     const osc = ctx.createOscillator();
@@ -6866,10 +6930,9 @@ function fsPlayTick() {
 }
 
 function fsStartTune() {
-  if(fsMuted || !fsTuneEnabled) return;
+  if(fsMuted || currentTimerSound !== 'tune') return;
   try {
     const ctx = getAudioCtx();
-    if(fsTuneNode) { try { fsTuneNode.stop(); } catch(e){} }
     // Calm repeating pentatonic tune: C D E G A
     const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 392.00, 329.63, 293.66];
     const noteDur = 0.8;
@@ -6890,9 +6953,8 @@ function fsStartTune() {
         osc.start(t); osc.stop(t + noteDur);
         t += noteDur;
       });
-      // Schedule next loop slightly before end
       const loopDuration = notes.length * noteDur * 1000;
-      setTimeout(() => { if(fsTuneEnabled && !fsMuted && fsOpen) scheduleLoop(); }, loopDuration - 400);
+      setTimeout(() => { if(currentTimerSound === 'tune' && !fsMuted && fsOpen) scheduleLoop(); }, loopDuration - 400);
     }
     scheduleLoop();
   } catch(e) {}
@@ -6902,81 +6964,94 @@ function fsStopTune() {
   try { if(fsTuneGain) fsTuneGain.gain.value = 0; } catch(e) {}
 }
 
-function fsToggleTick() {
-  fsTickEnabled = !fsTickEnabled;
-  const btn = document.getElementById('fs-tick-btn');
-  if(btn) btn.classList.toggle('active', fsTickEnabled);
-  if(!fsTickEnabled) {} else fsPlayTick();
+function getTimerBgmAudio(key) {
+  if(!timerBgmAudioCache[key]) {
+    const a = new Audio(TIMER_BGM_FILES[key]);
+    a.loop = true;
+    a.volume = 1.0;
+    a.preload = 'auto';
+    timerBgmAudioCache[key] = a;
+  }
+  return timerBgmAudioCache[key];
 }
 
-function fsToggleTune() {
-  fsTuneEnabled = !fsTuneEnabled;
-  const btn = document.getElementById('fs-tune-btn');
-  if(btn) btn.classList.toggle('active', fsTuneEnabled);
-  if(fsTuneEnabled) fsStartTune(); else fsStopTune();
+// Stops every possible timer sound source — used before switching or on Stop.
+function stopAllTimerSounds() {
+  fsStopTune();
+  Object.values(timerBgmAudioCache).forEach(a => {
+    try { a.pause(); } catch(e) {}
+  });
+}
+
+// Actually starts whatever `currentTimerSound` currently points to.
+function startCurrentTimerSound() {
+  if(fsMuted || !currentTimerSound) return;
+  if(currentTimerSound === 'tune') {
+    fsStartTune();
+  } else if(currentTimerSound !== 'tick' && TIMER_BGM_FILES[currentTimerSound]) {
+    const a = getTimerBgmAudio(currentTimerSound);
+    try { a.currentTime = 0; } catch(e) {}
+    a.volume = 1.0;
+    a.play().catch(() => {});
+  }
+  // 'tick' needs no continuous start — it's fired once per second by fsPlayTick()
+}
+
+function updateTimerSoundButtons() {
+  document.querySelectorAll('.fs-sound-btn[data-sound]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sound === currentTimerSound);
+  });
+}
+
+// Called by every sound chip (Tick, Tune, BGM 1-5). Tapping the active one turns it off;
+// tapping a different one switches instantly and cleanly — no overlap, no double-playing.
+function selectTimerSound(key) {
+  const turningOff = currentTimerSound === key;
+  stopAllTimerSounds();
+  currentTimerSound = turningOff ? null : key;
+  fsTickEnabled = currentTimerSound === 'tick';
+  fsTuneEnabled = currentTimerSound === 'tune';
+  updateTimerSoundButtons();
+  if(!turningOff && !fsMuted) startCurrentTimerSound();
 }
 
 function fsToggleMute() {
   fsMuted = !fsMuted;
   const btn = document.getElementById('fs-mute-btn');
   if(btn) btn.textContent = fsMuted ? '🔇' : '🔊';
-  if(fsMuted) fsStopTune();
-  else if(fsTuneEnabled) fsStartTune();
+  if(fsMuted) stopAllTimerSounds();
+  else startCurrentTimerSound();
 }
 
 // ═══════════════════════════════════════════
-// ZEN GAMES — Calm Ambient BGM (Web Audio API, no file needed)
-// A soft root+fifth drone with a slow, spaced-out pentatonic phrase drifting over it.
+// ZEN GAMES — BGM (audio file, loops at 100% volume while in Games section)
 // ═══════════════════════════════════════════
-const GAMES_BGM_NOTES = [392.00, 440.00, 523.25, 440.00, 392.00, 329.63]; // G A C A G E — soft, spacious phrase
-const GAMES_BGM_NOTE_DUR = 1.7;
+let gamesBgmAudio = null;
+
+function getGamesBgmAudio() {
+  if(!gamesBgmAudio) {
+    gamesBgmAudio = new Audio('audio/Game bgm.mp3');
+    gamesBgmAudio.loop = true;
+    gamesBgmAudio.volume = 1.0;
+    gamesBgmAudio.preload = 'auto';
+  }
+  return gamesBgmAudio;
+}
 
 function startGamesBgm() {
-  if(!gamesBgmEnabled || gamesBgmActive) return;
+  if(!gamesBgmEnabled) return;
   try {
-    const ctx = getAudioCtx();
+    const a = getGamesBgmAudio();
+    a.currentTime = 0; // always start fresh from the beginning on entering Games
+    a.volume = 1.0;
+    a.play().catch(() => {});
     gamesBgmActive = true;
-    gamesBgmMasterGain = ctx.createGain();
-    gamesBgmMasterGain.gain.value = 0.09;
-    gamesBgmMasterGain.connect(ctx.destination);
-
-    // Sustained root + fifth drone underneath the melody
-    gamesBgmDroneOscs = [130.81, 196.00].map(freq => {
-      const osc = ctx.createOscillator();
-      osc.type = 'sine'; osc.frequency.value = freq;
-      const g = ctx.createGain();
-      g.gain.value = 0.4;
-      osc.connect(g); g.connect(gamesBgmMasterGain);
-      osc.start();
-      return osc;
-    });
-
-    let t = ctx.currentTime + 0.2;
-    function scheduleLoop() {
-      if(!gamesBgmEnabled) { gamesBgmActive = false; return; }
-      GAMES_BGM_NOTES.forEach(freq => {
-        const osc = ctx.createOscillator();
-        osc.type = 'sine'; osc.frequency.value = freq;
-        const g = ctx.createGain();
-        osc.connect(g); g.connect(gamesBgmMasterGain);
-        g.gain.setValueAtTime(0, t);
-        g.gain.linearRampToValueAtTime(0.7, t + 0.5);
-        g.gain.linearRampToValueAtTime(0, t + GAMES_BGM_NOTE_DUR - 0.3);
-        osc.start(t); osc.stop(t + GAMES_BGM_NOTE_DUR);
-        t += GAMES_BGM_NOTE_DUR;
-      });
-      const loopMs = GAMES_BGM_NOTES.length * GAMES_BGM_NOTE_DUR * 1000;
-      setTimeout(() => { if(gamesBgmEnabled) scheduleLoop(); else gamesBgmActive = false; }, loopMs - 600);
-    }
-    scheduleLoop();
   } catch(e) { gamesBgmActive = false; }
 }
 
 function stopGamesBgm() {
   try {
-    gamesBgmDroneOscs.forEach(osc => { try { osc.stop(); } catch(e){} });
-    gamesBgmDroneOscs = [];
-    if(gamesBgmMasterGain) gamesBgmMasterGain.gain.value = 0;
+    if(gamesBgmAudio) { gamesBgmAudio.pause(); gamesBgmAudio.currentTime = 0; }
   } catch(e) {}
   gamesBgmActive = false;
 }
@@ -7010,7 +7085,6 @@ function openTimerFullscreen() {
 function closeTimerFullscreen() {
   fsOpen = false;
   document.getElementById('timer-fullscreen').classList.remove('open');
-  fsStopTune();
 }
 
 function fsUpdateDisplay() {
@@ -7084,12 +7158,12 @@ function fsPause() {
         forestAlertInterval = setInterval(playAlert, 30*60*1000);
       }
     }, 1000);
-    if(fsTuneEnabled && !fsMuted) fsStartTune();
+    startCurrentTimerSound();
   } else {
     // Pause
     fsPaused = true;
     clearInterval(forestInterval);
-    fsStopTune();
+    stopAllTimerSounds();
   }
   fsUpdateDisplay();
 }
@@ -7098,9 +7172,10 @@ function fsRestart() {
   clearInterval(forestInterval); clearInterval(forestAlertInterval);
   forestElapsed = 0; forestAlertPlayed = false; fsPaused = false;
   forestRunning = false;
+  stopAllTimerSounds();
   updateForestDisplay();
   fsUpdateDisplay();
-  setTimeout(() => { forestStart(); if(fsTuneEnabled && !fsMuted) fsStartTune(); }, 100);
+  setTimeout(() => { forestStart(); }, 100);
 }
 
 async function fsStop() {
@@ -7108,15 +7183,14 @@ async function fsStop() {
     // Not running — start from fullscreen
     if(!timerSelectedSubject) { toast('Select a subject first!'); return; }
     forestStart();
-    if(fsTuneEnabled && !fsMuted) fsStartTune();
     fsUpdateDisplay();
     return;
   }
-  fsStopTune();
   await forestStop();
   fsPaused = false;
   fsUpdateDisplay();
 }
+
 
 // Background timer re-sync via Page Visibility API
 document.addEventListener('visibilitychange', () => {
@@ -8081,6 +8155,35 @@ if('serviceWorker' in navigator){
     });
   });
 }
+
+// Global touch feedback: works on every current AND future button
+// (dynamically rendered tabs/lists) since it's delegated on document.
+(function(){
+  var TAP_SELECTOR = '[onclick], button, .icon-btn-bar, .avatar-sm, .back-btn, '
+    + '.bgm-toggle-btn, .btn-add, .btn-claim, .btn-google, .btn-primary, '
+    + '.cbtn-danger, .cbtn-primary, .cbtn-secondary, .cseg-btn, .drawer-signout-btn, '
+    + '.forest-btn, .fs-btn, .fs-close-btn, .fs-sound-btn, .guild-btn, '
+    + '.guild-filter-btn, .guild-item-info-btn, .journal-save-btn, .note-delete-btn, '
+    + '.note-save-btn, .report-btn, .settings-save-btn, .view-toggle-btn';
+
+  function findTarget(e){
+    return e.target && e.target.closest ? e.target.closest(TAP_SELECTOR) : null;
+  }
+  function press(e){
+    var el = findTarget(e);
+    if(el) el.classList.add('tap-active');
+  }
+  function release(e){
+    var el = findTarget(e);
+    if(el){
+      var target = el;
+      setTimeout(function(){ target.classList.remove('tap-active'); }, 110);
+    }
+  }
+  document.addEventListener('pointerdown', press, {passive:true});
+  document.addEventListener('pointerup', release, {passive:true});
+  document.addEventListener('pointercancel', release, {passive:true});
+})();
 </script>
 </body>
 </html>
