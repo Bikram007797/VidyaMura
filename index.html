@@ -2278,8 +2278,20 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <div class="stat-card"><div class="stat-val" id="timer-total-time">0h</div><div class="stat-lbl">ALL TIME</div></div>
       <div class="stat-card"><div class="stat-val" id="timer-sessions">0</div><div class="stat-lbl">SESSIONS</div></div>
     </div>
-    <div class="section-title" style="margin-bottom:8px">By Subject</div>
-    <div id="timer-subject-log"></div>
+    <div class="section-title" style="margin-bottom:8px">History</div>
+    <div class="filter-tabs" id="timer-history-filters">
+      <div class="filter-tab active" onclick="setTimerHistoryFilter('today',this)">Today</div>
+      <div class="filter-tab" onclick="setTimerHistoryFilter('week',this)">Week</div>
+      <div class="filter-tab" onclick="setTimerHistoryFilter('month',this)">Month</div>
+      <div class="filter-tab" onclick="setTimerHistoryFilter('year',this)">Year</div>
+    </div>
+    <select id="timer-history-select" onchange="renderTimerHistory()" style="display:none;width:100%;padding:10px 12px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-primary);font-family:Inter,sans-serif;font-size: 0.87rem;margin-bottom:10px"></select>
+    <div class="task-table-wrap">
+      <table class="task-table" id="timer-history-table">
+        <thead><tr id="timer-history-head"></tr></thead>
+        <tbody id="timer-history-body"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- PROFILE TAB -->
@@ -5304,11 +5316,34 @@ let timerSelectedSubject = null;
 let timerSubjects = JSON.parse(localStorage.getItem('dq_subjects') || '["Math","Science","History","English"]');
 
 function playAlert() {
+  // Both the alert and the BGM play at full volume, so the alert used to get
+  // buried under the music. Duck (pause) whatever's currently playing for the
+  // duration of the alert, then resume it right after — same behavior for the
+  // audio-file BGMs and the Web Audio "Tune".
+  const duckedBgmKey = (currentTimerSound && TIMER_BGM_FILES[currentTimerSound]) ? currentTimerSound : null;
+  const duckedBgmAudio = duckedBgmKey ? timerBgmAudioCache[duckedBgmKey] : null;
+  const wasBgmPlaying = !!(duckedBgmAudio && !duckedBgmAudio.paused);
+  const wasTunePlaying = currentTimerSound === 'tune' && !!fsTuneGain;
+  const tuneOriginalGain = wasTunePlaying ? fsTuneGain.gain.value : null;
+
+  if(wasBgmPlaying) { try { duckedBgmAudio.pause(); } catch(e) {} }
+  if(wasTunePlaying) { try { fsTuneGain.gain.value = 0; } catch(e) {} }
+
   try {
     const a = new Audio('audio/Timer Alert.mp3');
     a.volume = 1.0;
     a.play().catch(() => {});
-    setTimeout(() => { try { a.pause(); a.currentTime = 0; } catch(e) {} }, 5000);
+    setTimeout(() => {
+      try { a.pause(); a.currentTime = 0; } catch(e) {}
+      // Only resume if that sound is still the active selection and not muted —
+      // the user may have switched or turned off sound during the alert.
+      if(wasBgmPlaying && currentTimerSound === duckedBgmKey && !fsMuted) {
+        try { duckedBgmAudio.play().catch(() => {}); } catch(e) {}
+      }
+      if(wasTunePlaying && currentTimerSound === 'tune' && !fsMuted && fsTuneGain) {
+        try { fsTuneGain.gain.value = tuneOriginalGain; } catch(e) {}
+      }
+    }, 5000);
   } catch(e) {}
 }
 
@@ -5595,19 +5630,133 @@ async function loadTimerStats() {
   if(tdEl) tdEl.textContent = totalDiamonds.toFixed(1);
   const tsEl = document.getElementById('timer-sessions');
   if(tsEl) tsEl.textContent = logs.length;
-  const bySubject = {};
-  logs.forEach(l => {
-    if(!bySubject[l.subject]) bySubject[l.subject] = {seconds: 0, diamonds: 0};
-    bySubject[l.subject].seconds += l.seconds;
-    bySubject[l.subject].diamonds += (l.diamonds || 0);
-  });
-  const subjectLog = document.getElementById('timer-subject-log');
-  if(!subjectLog) return;
-  const entries = Object.entries(bySubject).sort((a, b) => b[1].seconds - a[1].seconds);
-  if(!entries.length) {
-    subjectLog.innerHTML = '<div class="empty-state"><div class="empty-icon">⏱</div><div class="empty-text">Start a session to see stats</div></div>';
-  } else {
-    subjectLog.innerHTML = entries.map(([sub, data]) => `<div class="subject-log-item"><div><div class="subject-log-name">📚 ${sub}</div><div class="subject-log-diamonds">💎 ${data.diamonds.toFixed(1)} diamonds</div></div><div class="subject-log-time">${(data.seconds / 3600).toFixed(1)}h</div></div>`).join('');
+  timerLogsCache = logs;
+  renderTimerHistory();
+}
+
+// ═══════════════════════════════════════════
+// TIMER HISTORY — Today / Week / Month / Year (replaces the old "By Subject" list)
+// ═══════════════════════════════════════════
+let timerLogsCache = [];
+let timerHistoryFilter = 'today';
+
+function setTimerHistoryFilter(filter, el) {
+  timerHistoryFilter = filter;
+  document.querySelectorAll('#timer-history-filters .filter-tab').forEach(t => t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderTimerHistory();
+}
+
+// A session's exact start time isn't stored directly, but createdAt (saved right
+// when the session ends) minus its duration (seconds) gives it accurately —
+// works the same way for logs saved before this feature existed, too.
+function timerLogStartMs(log) {
+  const endMs = log.createdAt?.toDate ? log.createdAt.toDate().getTime() : Date.now();
+  return endMs - (log.seconds || 0) * 1000;
+}
+function fmtFullDate(ms) {
+  return new Date(ms).toLocaleDateString('en-IN', {day: 'numeric', month: 'long', year: 'numeric'});
+}
+function fmtTime12(ms) {
+  return new Date(ms).toLocaleTimeString('en-IN', {hour: 'numeric', minute: '2-digit', hour12: true});
+}
+function fmtMins(seconds) {
+  return Math.round((seconds || 0) / 60) + ' min';
+}
+function timerHistoryEmptyRow(colspan, text) {
+  return `<tr><td colspan="${colspan}"><div class="empty-state"><div class="empty-icon">⏱</div><div class="empty-text">${text}</div></div></td></tr>`;
+}
+
+function renderTimerHistory() {
+  const head = document.getElementById('timer-history-head');
+  const body = document.getElementById('timer-history-body');
+  const sel = document.getElementById('timer-history-select');
+  if(!head || !body || !sel) return;
+  const logs = timerLogsCache;
+  sel.style.display = 'none';
+
+  if(timerHistoryFilter === 'today') {
+    const todayStr = getLocalDateString(); // 4AM–4AM day boundary, same as Task tab's Daily
+    const rows = logs.filter(l => l.date === todayStr)
+      .slice().sort((a, b) => timerLogStartMs(b) - timerLogStartMs(a));
+    head.innerHTML = '<th>Subject</th><th>Date & Time</th><th>Total Time</th><th>💎</th>';
+    if(!rows.length) { body.innerHTML = timerHistoryEmptyRow(4, 'No sessions today yet'); return; }
+    body.innerHTML = rows.map(l => {
+      const ms = timerLogStartMs(l);
+      return `<tr><td>📚 ${l.subject || 'General'}</td><td>${fmtFullDate(ms)} · ${fmtTime12(ms)}</td><td>${fmtMins(l.seconds)}</td><td>💎 ${(l.diamonds || 0).toFixed(1)}</td></tr>`;
+    }).join('');
+
+  } else if(timerHistoryFilter === 'week') {
+    const {mon, sun} = getCurrentWeekRange();
+    const monStr = mon.toLocaleDateString('sv-SE'), sunStr = sun.toLocaleDateString('sv-SE');
+    const byDate = {};
+    logs.forEach(l => {
+      if(!l.date || l.date < monStr || l.date > sunStr) return;
+      if(!byDate[l.date]) byDate[l.date] = {seconds: 0, diamonds: 0};
+      byDate[l.date].seconds += l.seconds || 0;
+      byDate[l.date].diamonds += (l.diamonds || 0);
+    });
+    const keys = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
+    head.innerHTML = '<th>Date</th><th>Total Time</th><th>💎</th>';
+    if(!keys.length) { body.innerHTML = timerHistoryEmptyRow(3, 'No sessions this week yet'); return; }
+    body.innerHTML = keys.map(k => {
+      const d = byDate[k];
+      return `<tr><td>${fmtFullDate(new Date(k + 'T00:00:00').getTime())}</td><td>${fmtMins(d.seconds)}</td><td>💎 ${d.diamonds.toFixed(1)}</td></tr>`;
+    }).join('');
+
+  } else if(timerHistoryFilter === 'month') {
+    const curMonth = getLocalDateString().slice(0, 7);
+    const monthKeys = [...new Set(logs.map(l => l.month).filter(Boolean))].sort((a, b) => b.localeCompare(a));
+    if(!monthKeys.includes(curMonth)) monthKeys.unshift(curMonth);
+    const builtKey = 'month:' + monthKeys.join(',');
+    if(sel.dataset.builtFor !== builtKey) {
+      sel.innerHTML = monthKeys.map(k => `<option value="${k}">📅 ${getMonthLabel(k)}</option>`).join('');
+      sel.dataset.builtFor = builtKey;
+      sel.value = curMonth;
+    }
+    sel.style.display = '';
+    const chosen = sel.value || curMonth;
+    const byDate = {};
+    logs.forEach(l => {
+      if(l.month !== chosen) return;
+      if(!byDate[l.date]) byDate[l.date] = {seconds: 0, diamonds: 0};
+      byDate[l.date].seconds += l.seconds || 0;
+      byDate[l.date].diamonds += (l.diamonds || 0);
+    });
+    const keys = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
+    head.innerHTML = '<th>Date</th><th>Total Time</th><th>💎</th>';
+    if(!keys.length) { body.innerHTML = timerHistoryEmptyRow(3, 'No sessions this month'); return; }
+    body.innerHTML = keys.map(k => {
+      const d = byDate[k];
+      return `<tr><td>${fmtFullDate(new Date(k + 'T00:00:00').getTime())}</td><td>${fmtMins(d.seconds)}</td><td>💎 ${d.diamonds.toFixed(1)}</td></tr>`;
+    }).join('');
+
+  } else if(timerHistoryFilter === 'year') {
+    const curYear = getLocalDateString().slice(0, 4);
+    const yearKeys = [...new Set(logs.map(l => l.year).filter(Boolean))].sort((a, b) => b.localeCompare(a));
+    if(!yearKeys.includes(curYear)) yearKeys.unshift(curYear);
+    const builtKey = 'year:' + yearKeys.join(',');
+    if(sel.dataset.builtFor !== builtKey) {
+      sel.innerHTML = yearKeys.map(y => `<option value="${y}">📅 ${y}</option>`).join('');
+      sel.dataset.builtFor = builtKey;
+      sel.value = curYear;
+    }
+    sel.style.display = '';
+    const chosen = sel.value || curYear;
+    const byMonth = {};
+    logs.forEach(l => {
+      if(l.year !== chosen) return;
+      if(!byMonth[l.month]) byMonth[l.month] = {seconds: 0, diamonds: 0};
+      byMonth[l.month].seconds += l.seconds || 0;
+      byMonth[l.month].diamonds += (l.diamonds || 0);
+    });
+    const keys = Object.keys(byMonth).sort((a, b) => b.localeCompare(a));
+    head.innerHTML = '<th>Month</th><th>Total Time</th><th>💎</th>';
+    if(!keys.length) { body.innerHTML = timerHistoryEmptyRow(3, 'No sessions this year'); return; }
+    body.innerHTML = keys.map(k => {
+      const d = byMonth[k];
+      return `<tr><td>${getMonthLabel(k)}</td><td>${fmtMins(d.seconds)}</td><td>💎 ${d.diamonds.toFixed(1)}</td></tr>`;
+    }).join('');
   }
 }
 
