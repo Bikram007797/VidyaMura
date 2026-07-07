@@ -165,16 +165,8 @@
   display: flex; align-items: center; gap: 8px;
 }
 @media all and (display-mode: standalone) {
-  .fs-top-bar { padding-top: calc(14px + max(var(--safe-top), 26px)); }
+  .fs-top-bar { padding-top: calc(14px + max(var(--safe-top), 12px)); }
 }
-.fs-sound-controls {
-  display: flex; gap: 8px; align-items: center;
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; flex: 1; min-width: 0;
-  -webkit-mask-image: linear-gradient(to right, black 88%, transparent 100%);
-  mask-image: linear-gradient(to right, black 88%, transparent 100%);
-}
-.fs-sound-controls::-webkit-scrollbar { display: none; }
 .fs-top-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .fs-sound-btn {
   background: var(--bg-elevated); border: 1px solid var(--border);
@@ -183,6 +175,38 @@
   transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
 }
 .fs-sound-btn.active { background: rgba(136,179,148,0.2); border-color: var(--accent-purple); color: var(--accent-purple-bright); }
+
+/* Sound dropdown — replaces the old horizontally-scrolling chip row.
+   A single trigger opens a scrollable list, so adding more BGM tracks later
+   never runs into the "too many chips to scroll through" problem. */
+.fs-sound-dropdown { position: relative; flex: 1; min-width: 0; max-width: 168px; }
+.fs-sound-trigger {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 20px; padding: 6px 12px 6px 13px; font-size: 0.79rem;
+  color: var(--text-secondary); cursor: pointer; font-weight: 600;
+  transition: all 0.2s;
+}
+.fs-sound-trigger.active { background: rgba(136,179,148,0.2); border-color: var(--accent-purple); color: var(--accent-purple-bright); }
+.fs-sound-trigger-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fs-sound-caret { flex-shrink: 0; font-size: 0.7rem; transition: transform 0.2s; opacity: 0.75; }
+.fs-sound-dropdown.open .fs-sound-caret { transform: rotate(180deg); }
+.fs-sound-menu {
+  position: absolute; top: calc(100% + 8px); left: 0; min-width: 160px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 14px; padding: 6px; z-index: 850;
+  display: none; flex-direction: column; gap: 2px;
+  max-height: 46vh; overflow-y: auto;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+}
+.fs-sound-dropdown.open .fs-sound-menu { display: flex; }
+.fs-sound-option {
+  background: transparent; border: none; text-align: left;
+  padding: 10px 12px; border-radius: 9px; font-size: 0.83rem;
+  color: var(--text-secondary); cursor: pointer; font-weight: 600;
+  transition: background 0.15s;
+}
+.fs-sound-option.active { background: rgba(136,179,148,0.2); color: var(--accent-purple-bright); }
 .fs-close-btn {
   background: var(--bg-elevated); border: 1px solid var(--border);
   border-radius: 20px; padding: 6px 14px; font-size: 0.82rem;
@@ -305,11 +329,12 @@ body {
 }
 /* Installed (standalone) Android PWAs often report env(safe-area-inset-top) as 0
    even though the OS status bar overlaps the webview, cropping the top bar.
-   Force a minimum buffer only in standalone mode so normal browser tabs are unaffected. */
+   Force a minimum buffer only in standalone mode so normal browser tabs are unaffected.
+   Kept small (just enough to clear the status bar) so it doesn't look like a big empty gap. */
 @media all and (display-mode: standalone) {
   .top-bar {
-    height: calc(var(--top-bar-h) + max(var(--safe-top), 26px));
-    padding-top: max(var(--safe-top), 26px);
+    height: calc(var(--top-bar-h) + max(var(--safe-top), 12px));
+    padding-top: max(var(--safe-top), 12px);
   }
 }
 .app-logo {
@@ -1042,19 +1067,17 @@ select {
 .forest-extra-time { font-size: 0.78rem; color: var(--accent-orange); margin-top: 2px; }
 .forest-diamond-preview { font-size: 0.84rem; color: var(--accent-cyan); margin-bottom: 14px; font-weight: 600; }
 .forest-phase { font-size: 0.8rem; color: var(--accent-purple-bright); margin-bottom: 8px; letter-spacing: 1px; font-weight: 600; }
-.slider-wrap { padding: 0 6px; margin-bottom: 14px; }
-.slider-labels { display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px; }
-.forest-slider {
-  -webkit-appearance: none; width: 100%; height: 6px;
-  border-radius: 4px; outline: none; cursor: pointer;
-  background: linear-gradient(to right, var(--accent-purple) 0%, var(--accent-purple) 33%, var(--bg-elevated) 33%);
-  transition: background 0.1s;
-}
-.forest-slider::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-purple), var(--accent-gold));
-  cursor: pointer; border: 2px solid var(--bg-deep);
-  box-shadow: 0 2px 8px rgba(124,92,191,0.5);
+
+/* Circular drag-dial (Forest-app style) — replaces the old straight-line slider.
+   Dragging anywhere around the ring itself sets the duration; a small gold/purple
+   knob marks the current position and a thin gap at the top marks start/end. */
+.forest-ring.dial-mode { cursor: grab; touch-action: none; }
+.forest-ring.dial-mode:active { cursor: grabbing; }
+.forest-dial-handle {
+  position: absolute; top: 50%; left: 50%; width: 18px; height: 18px;
+  border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-purple));
+  border: 2px solid var(--bg-card); box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  z-index: 3; pointer-events: none;
 }
 .slider-val { text-align: center; font-family: var(--font-head); font-size: 1.1rem; color: var(--accent-gold); font-weight: 700; margin-bottom: 12px; }
 .forest-btn-row { display: flex; gap: 10px; justify-content: center; }
@@ -2219,17 +2242,14 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <div id="tab-timer" class="tab-content">
     <div class="forest-wrap">
       <div class="forest-phase" id="forest-phase">SET YOUR TIME</div>
-      <div class="forest-ring" id="forest-ring">
+      <div class="forest-ring dial-mode" id="forest-ring">
         <div class="forest-ring-inner">
           <div class="forest-time-display" id="forest-display">00:00</div>
           <div class="forest-extra-time" id="forest-extra" style="display:none">+00:00 extra</div>
         </div>
+        <div class="forest-dial-handle" id="forest-dial-handle"></div>
       </div>
       <div class="forest-diamond-preview" id="forest-diamonds">💎 0 diamonds</div>
-      <div class="slider-wrap" id="slider-wrap">
-        <div class="slider-labels"><span>15 min</span><span id="slider-val-label">60 min</span><span>120 min</span></div>
-        <input type="range" class="forest-slider" id="forest-slider" min="15" max="120" step="5" value="60" oninput="sliderMove(this.value)">
-      </div>
       <div class="slider-val" id="slider-val-display">60 minutes</div>
       <div class="timer-subject-tag" id="forest-subject-label" style="margin-bottom:14px">No subject selected</div>
       <div class="forest-btn-row">
@@ -2361,14 +2381,20 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <!-- FULLSCREEN TIMER OVERLAY -->
   <div id="timer-fullscreen">
     <div class="fs-top-bar">
-      <div class="fs-sound-controls">
-        <button class="fs-sound-btn" id="fs-tick-btn" data-sound="tick" onclick="selectTimerSound('tick')">🔔 Tick</button>
-        <button class="fs-sound-btn" id="fs-tune-btn" data-sound="tune" onclick="selectTimerSound('tune')">🎵 Tune</button>
-        <button class="fs-sound-btn" data-sound="bgm1" onclick="selectTimerSound('bgm1')">🎧 BGM 1</button>
-        <button class="fs-sound-btn" data-sound="bgm2" onclick="selectTimerSound('bgm2')">🎧 BGM 2</button>
-        <button class="fs-sound-btn" data-sound="bgm3" onclick="selectTimerSound('bgm3')">🎧 BGM 3</button>
-        <button class="fs-sound-btn" data-sound="bgm4" onclick="selectTimerSound('bgm4')">🎧 BGM 4</button>
-        <button class="fs-sound-btn" data-sound="bgm5" onclick="selectTimerSound('bgm5')">🎧 BGM 5</button>
+      <div class="fs-sound-dropdown" id="fs-sound-dropdown">
+        <button class="fs-sound-trigger" id="fs-sound-trigger" onclick="toggleSoundDropdown(event)">
+          <span class="fs-sound-trigger-label" id="fs-sound-trigger-label">🔈 Sound</span><span class="fs-sound-caret">▾</span>
+        </button>
+        <div class="fs-sound-menu" id="fs-sound-menu" onclick="event.stopPropagation()">
+          <button class="fs-sound-option" data-sound="off" onclick="selectTimerSound('off')">🔇 Off</button>
+          <button class="fs-sound-option" id="fs-tick-btn" data-sound="tick" onclick="selectTimerSound('tick')">🔔 Tick</button>
+          <button class="fs-sound-option" id="fs-tune-btn" data-sound="tune" onclick="selectTimerSound('tune')">🎵 Tune</button>
+          <button class="fs-sound-option" data-sound="bgm1" onclick="selectTimerSound('bgm1')">🎧 BGM 1</button>
+          <button class="fs-sound-option" data-sound="bgm2" onclick="selectTimerSound('bgm2')">🎧 BGM 2</button>
+          <button class="fs-sound-option" data-sound="bgm3" onclick="selectTimerSound('bgm3')">🎧 BGM 3</button>
+          <button class="fs-sound-option" data-sound="bgm4" onclick="selectTimerSound('bgm4')">🎧 BGM 4</button>
+          <button class="fs-sound-option" data-sound="bgm5" onclick="selectTimerSound('bgm5')">🎧 BGM 5</button>
+        </div>
       </div>
       <div class="fs-top-right">
         <button class="fs-sound-btn" id="fs-mute-btn" onclick="fsToggleMute()">🔊</button>
@@ -2940,7 +2966,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     <div class="form-group">
       <label>COMBINED STUDY HOURS TARGET (THIS WEEK)</label>
       <input type="number" id="cm-hours" min="1" step="0.5" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:11px 14px;font-size: 0.9rem;outline:none;font-family:Inter,sans-serif" placeholder="e.g. 25">
-      <div style="font-size: 0.76rem;color:var(--text-muted);margin-top:8px;line-height:1.5">Set a combined hours goal for everyone in your guild this week (your Task hours + Timer hours together). Hit it together and everyone can claim a <b>+25 pts</b> bonus.</div>
+      <div style="font-size: 0.76rem;color:var(--text-muted);margin-top:8px;line-height:1.5">Set a combined hours goal for everyone in your guild this week (based on completed Task hours only). Hit it together and everyone can claim a <b>+25 pts</b> bonus.</div>
     </div>
    <button class="btn-primary" style="width: 100%; padding: 12px; margin-top: 10px; font-size: 0.95rem; font-weight: 700;" onclick="saveWeeklyChallenge()">Set Challenge</button>
   </div>
@@ -3495,25 +3521,17 @@ function getCurrentWeekId() {
   return mon.toLocaleDateString('sv-SE');
 }
 
-// Combines Focus Timer hours + completed-Task hours for every known user within the current
-// Mon–Sun window — same data sources the Analytics "This Week" chart already uses per-user.
+// Counts completed-Task hours for every known user within the current Mon–Sun
+// window. Focus Timer session time is intentionally NOT included here anymore —
+// this challenge tracks task completion only, separate from the personal Timer stats.
 async function computeWeeklyContributions() {
   const { mon, sun } = getCurrentWeekRange();
   const monTime = mon.getTime(), sunTime = sun.getTime();
   const uids = allUsersData.length ? allUsersData.map(u => u.id) : [currentUser.uid];
   const perUser = {};
 
-  await Promise.all(uids.map(async uid => {
+  uids.forEach(uid => {
     let hrs = 0;
-    try {
-      const snap = await db.collection('timerLogs').where('uid', '==', uid).get();
-      snap.docs.forEach(doc => {
-        const d = doc.data();
-        const t = new Date((d.date || '') + 'T00:00:00').getTime();
-        if(t >= monTime && t <= sunTime) hrs += (d.seconds || 0) / 3600;
-      });
-    } catch(e) { console.error('challenge timerLogs read error', e); }
-
     allTasks.forEach(task => {
       const taskHrs = parseFloat(task.hours) || 1;
       (task.completions || []).forEach(c => {
@@ -3523,9 +3541,8 @@ async function computeWeeklyContributions() {
         if(t >= monTime && t <= sunTime) hrs += taskHrs;
       });
     });
-
     perUser[uid] = hrs;
-  }));
+  });
 
   return perUser;
 }
@@ -5295,14 +5312,99 @@ function playAlert() {
   } catch(e) {}
 }
 
-function sliderMove(val) {
-  forestSetMins = parseInt(val);
-  const pct = ((val - 15) / (120 - 15)) * 100;
-  document.getElementById('forest-slider').style.background = `linear-gradient(to right,var(--accent-purple) 0%,var(--accent-purple) ${pct}%,var(--bg-elevated) ${pct}%)`;
-  document.getElementById('slider-val-label').textContent = val + ' min';
-  document.getElementById('slider-val-display').textContent = val + ' minutes';
+// ═══════════════════════════════════════════
+// CIRCULAR DRAG-DIAL for "set your time" (Forest-app style)
+// Angle 0° = 12 o'clock, increasing clockwise. A small gap is left at the very
+// top so the two ends of the range (15 min / 120 min) have a clear physical
+// stop, just like a real dial — dragging into the gap snaps to whichever end
+// it's nearest.
+// ═══════════════════════════════════════════
+const DIAL_GAP_DEG = 30;
+const DIAL_START_DEG = DIAL_GAP_DEG / 2;
+const DIAL_END_DEG = 360 - DIAL_GAP_DEG / 2;
+const DIAL_SWEEP_DEG = DIAL_END_DEG - DIAL_START_DEG;
+const DIAL_MIN = 15, DIAL_MAX = 120;
+let dialDragging = false;
+
+function dialAngleForValue(val) {
+  return DIAL_START_DEG + (val - DIAL_MIN) / (DIAL_MAX - DIAL_MIN) * DIAL_SWEEP_DEG;
+}
+
+// Draws the ring's conic-gradient track + moves the handle dot to match `val`.
+// Only used while the ring is in "set your time" mode (not running) — once a
+// session starts, updateForestDisplay() takes back over with the plain
+// elapsed-progress ring, unchanged from before.
+function renderDial(val) {
+  const ring = document.getElementById('forest-ring');
+  const handle = document.getElementById('forest-dial-handle');
+  if(!ring) return;
+  const angle = dialAngleForValue(val);
+  ring.style.background = `conic-gradient(
+    var(--bg-deep) 0deg, var(--bg-deep) ${DIAL_START_DEG}deg,
+    var(--accent-purple) ${DIAL_START_DEG}deg, var(--accent-purple) ${angle}deg,
+    var(--bg-elevated) ${angle}deg, var(--bg-elevated) ${DIAL_END_DEG}deg,
+    var(--bg-deep) ${DIAL_END_DEG}deg, var(--bg-deep) 360deg
+  )`;
+  if(handle) {
+    const rad = angle * Math.PI / 180;
+    const r = 72; // sits mid-band between the ring's outer edge and the inset hole
+    const x = r * Math.sin(rad), y = -r * Math.cos(rad);
+    handle.style.display = '';
+    handle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+  }
+}
+
+function setDialValue(val) {
+  forestSetMins = val;
+  const display = document.getElementById('slider-val-display');
+  if(display) display.textContent = val + ' minutes';
+  if(!forestRunning) renderDial(val);
   updateForestDisplay();
 }
+
+function angleFromPointerEvent(e) {
+  const ring = document.getElementById('forest-ring');
+  const rect = ring.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+  const dx = e.clientX - cx, dy = e.clientY - cy;
+  let angle = Math.atan2(dx, -dy) * 180 / Math.PI;
+  if(angle < 0) angle += 360;
+  return angle;
+}
+
+function valueFromAngle(angle) {
+  let val;
+  if(angle < DIAL_START_DEG) val = DIAL_MIN;
+  else if(angle > DIAL_END_DEG) val = DIAL_MAX;
+  else val = DIAL_MIN + (angle - DIAL_START_DEG) / DIAL_SWEEP_DEG * (DIAL_MAX - DIAL_MIN);
+  val = Math.round(val / 5) * 5;
+  return Math.max(DIAL_MIN, Math.min(DIAL_MAX, val));
+}
+
+function forestDialPointerDown(e) {
+  if(forestRunning) return;
+  e.preventDefault();
+  dialDragging = true;
+  const ring = document.getElementById('forest-ring');
+  if(ring && ring.setPointerCapture) { try { ring.setPointerCapture(e.pointerId); } catch(err) {} }
+  setDialValue(valueFromAngle(angleFromPointerEvent(e)));
+}
+function forestDialPointerMove(e) {
+  if(!dialDragging) return;
+  setDialValue(valueFromAngle(angleFromPointerEvent(e)));
+}
+function forestDialPointerUp() {
+  dialDragging = false;
+}
+(function initForestDial() {
+  const ring = document.getElementById('forest-ring');
+  if(!ring) return;
+  ring.addEventListener('pointerdown', forestDialPointerDown);
+  ring.addEventListener('pointermove', forestDialPointerMove);
+  ring.addEventListener('pointerup', forestDialPointerUp);
+  ring.addEventListener('pointercancel', forestDialPointerUp);
+  renderDial(forestSetMins);
+})();
 
 function calcDiamonds(elapsedSecs, setMins) {
   const setDiamonds = Math.ceil(setMins / 15);
@@ -5346,9 +5448,13 @@ function updateForestDisplay() {
   }
   const ringEl = document.getElementById('forest-ring');
   if(ringEl) {
-    const pct = isOvertime ? 100 : Math.min(100, (elapsed / setTotalSecs) * 100);
-    const color = isOvertime ? 'var(--accent-orange)' : 'var(--accent-purple)';
-    ringEl.style.background = `conic-gradient(${color} ${pct}%,var(--bg-elevated) ${pct}%)`;
+    if(isRunning) {
+      const pct = isOvertime ? 100 : Math.min(100, (elapsed / setTotalSecs) * 100);
+      const color = isOvertime ? 'var(--accent-orange)' : 'var(--accent-purple)';
+      ringEl.style.background = `conic-gradient(${color} ${pct}%,var(--bg-elevated) ${pct}%)`;
+    } else {
+      renderDial(forestSetMins);
+    }
   }
   const {setDiamonds, extraDiamonds, total} = calcDiamonds(elapsed, forestSetMins);
   const dEl = document.getElementById('forest-diamonds');
@@ -5372,7 +5478,7 @@ function forestStart() {
   forestAlertPlayed = false;
   document.getElementById('forest-start-btn').style.display = 'none';
   document.getElementById('forest-stop-btn').style.display = '';
-  document.getElementById('slider-wrap').style.display = 'none';
+  document.getElementById('forest-dial-handle').style.display = 'none';
   document.getElementById('slider-val-display').style.display = 'none';
   startCurrentTimerSound();
   forestInterval = setInterval(() => {
@@ -5398,7 +5504,6 @@ async function forestStop() {
   stopAllTimerSounds();
   document.getElementById('forest-start-btn').style.display = '';
   document.getElementById('forest-stop-btn').style.display = 'none';
-  document.getElementById('slider-wrap').style.display = '';
   document.getElementById('slider-val-display').style.display = '';
   if(forestElapsed < 60) {
     toast('Session too short — minimum 1 minute needed');
@@ -6997,23 +7102,46 @@ function startCurrentTimerSound() {
   // 'tick' needs no continuous start — it's fired once per second by fsPlayTick()
 }
 
+const TIMER_SOUND_LABELS = {
+  tick: '🔔 Tick', tune: '🎵 Tune', bgm1: '🎧 BGM 1', bgm2: '🎧 BGM 2',
+  bgm3: '🎧 BGM 3', bgm4: '🎧 BGM 4', bgm5: '🎧 BGM 5'
+};
+
 function updateTimerSoundButtons() {
-  document.querySelectorAll('.fs-sound-btn[data-sound]').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.sound === currentTimerSound);
+  document.querySelectorAll('.fs-sound-option[data-sound]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sound === (currentTimerSound || 'off'));
   });
+  const trigger = document.getElementById('fs-sound-trigger');
+  const label = document.getElementById('fs-sound-trigger-label');
+  if(label) label.textContent = currentTimerSound ? TIMER_SOUND_LABELS[currentTimerSound] : '🔈 Sound';
+  if(trigger) trigger.classList.toggle('active', !!currentTimerSound);
 }
 
-// Called by every sound chip (Tick, Tune, BGM 1-5). Tapping the active one turns it off;
-// tapping a different one switches instantly and cleanly — no overlap, no double-playing.
+// Called from the sound dropdown (Off, Tick, Tune, BGM 1-5). Picking a different
+// option switches instantly and cleanly — no overlap, no double-playing.
 function selectTimerSound(key) {
-  const turningOff = currentTimerSound === key;
   stopAllTimerSounds();
-  currentTimerSound = turningOff ? null : key;
+  currentTimerSound = (key === 'off') ? null : key;
   fsTickEnabled = currentTimerSound === 'tick';
   fsTuneEnabled = currentTimerSound === 'tune';
   updateTimerSoundButtons();
-  if(!turningOff && !fsMuted) startCurrentTimerSound();
+  if(currentTimerSound && !fsMuted) startCurrentTimerSound();
+  closeSoundDropdown();
 }
+
+function toggleSoundDropdown(e) {
+  if(e) e.stopPropagation();
+  const dd = document.getElementById('fs-sound-dropdown');
+  if(dd) dd.classList.toggle('open');
+}
+function closeSoundDropdown() {
+  const dd = document.getElementById('fs-sound-dropdown');
+  if(dd) dd.classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  const dd = document.getElementById('fs-sound-dropdown');
+  if(dd && dd.classList.contains('open') && !dd.contains(e.target)) dd.classList.remove('open');
+});
 
 function fsToggleMute() {
   fsMuted = !fsMuted;
