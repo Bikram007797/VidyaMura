@@ -1058,7 +1058,7 @@ select {
   content: ''; position: absolute; inset: 12px;
   border-radius: 50%; background: var(--bg-card);
 }
-.forest-ring-inner { position: relative; z-index: 1; text-align: center; }
+.forest-ring-inner { position: absolute; inset: 12px; z-index: 1; text-align: center; }
 .forest-time-display {
   font-family: var(--font-head); font-size: 2rem; font-weight: 700;
   color: var(--text-primary); letter-spacing: 2px; line-height: 1.1;
@@ -1080,6 +1080,69 @@ select {
   z-index: 3; pointer-events: none;
 }
 .slider-val { text-align: center; font-family: var(--font-head); font-size: 1.1rem; color: var(--accent-gold); font-weight: 700; margin-bottom: 12px; }
+
+/* ── Forest Mode: HUD, growing tree, forest scene, tree shop ── */
+.forest-hud-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 10px; }
+.forest-hud-item {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 14px;
+  padding: 4px 10px; font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);
+}
+.forest-hud-shop-btn {
+  background: var(--bg-elevated); border: 1px solid var(--border-bright, var(--border)); border-radius: 14px;
+  padding: 4px 11px; font-size: 0.95rem; cursor: pointer; transition: transform 0.15s;
+}
+.forest-hud-shop-btn:active { transform: scale(0.92); }
+.dial-tree-stage { position: absolute; width: 84px; height: 106px; left: 50%; top: 50%; transform: translate(-50%, -58%); pointer-events: none; }
+.forest-time-cluster { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; }
+.forest-time-cluster .forest-time-display {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
+  background: rgba(18,22,20,0.55); padding: 2px 8px; border-radius: 8px; backdrop-filter: blur(2px);
+}
+@keyframes sway { 0%,100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+.apple-pop { animation: applePop 0.4s cubic-bezier(.34,1.6,.64,1); }
+@keyframes applePop { from { transform: scale(0); } to { transform: scale(1); } }
+
+.count-pill { font-family: var(--font-body); font-size: 0.72rem; background: var(--bg-elevated); color: var(--accent-purple-bright); padding: 3px 10px; border-radius: 12px; font-weight: 700; }
+.forest-scene-wrap {
+  position: relative; border-radius: 20px; overflow: hidden; margin-bottom: 16px;
+  background: linear-gradient(180deg, #1a2b24 0%, #223428 38%, #2b3f2e 62%, #1e2b20 100%);
+  border: 1px solid var(--border);
+}
+.forest-hills { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; }
+.forest-fireflies span {
+  position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--accent-gold);
+  box-shadow: 0 0 6px 2px rgba(229,192,123,0.6); animation: firefly 5s ease-in-out infinite;
+}
+@keyframes firefly { 0%,100% { opacity:0.15; transform: translateY(0); } 50% { opacity:0.9; transform: translateY(-8px); } }
+.forest-scene {
+  position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: flex-end;
+  justify-content: center; gap: 2px; padding: 20px 10px 10px; min-height: 130px;
+  max-height: 320px; overflow-y: auto;
+}
+.forest-tree-slot { display: flex; align-items: flex-end; justify-content: center; }
+.forest-tree-slot svg { display: block; }
+.forest-empty { width: 100%; text-align: center; padding: 26px 10px; color: rgba(234,230,217,0.45); font-size: 0.82rem; }
+
+/* Tree Shop */
+.shop-balance-row { text-align: center; font-size: 0.86rem; color: var(--accent-red); font-weight: 700; margin-bottom: 12px; }
+.shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.shop-card {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 14px;
+  padding: 10px 6px 8px; text-align: center; cursor: pointer; transition: all 0.15s; position: relative;
+}
+.shop-card:active { transform: scale(0.95); }
+.shop-card.selected { border-color: var(--accent-purple); box-shadow: 0 0 0 2px rgba(136,179,148,0.35); }
+.shop-card.locked { opacity: 0.62; }
+.shop-card svg { width: 44px; height: 56px; display: block; margin: 0 auto 6px; }
+.shop-card .sc-name { font-size: 0.66rem; font-weight: 700; color: var(--text-secondary); line-height: 1.2; min-height: 2.2em; display: flex; align-items: center; justify-content: center; }
+.shop-card .sc-cost { font-size: 0.68rem; color: var(--accent-gold); font-weight: 700; margin-top: 3px; }
+.shop-card .sc-badge {
+  position: absolute; top: 4px; right: 4px; font-size: 0.6rem; background: var(--accent-purple); color: #10241a;
+  border-radius: 8px; padding: 1px 6px; font-weight: 800;
+}
+.tree-confirm-preview { width: 76px; height: 96px; margin: 0 auto 10px; display: block; }
+.tree-confirm-text { text-align: center; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 4px; line-height: 1.5; }
+.tree-confirm-sub { text-align: center; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; }
 .forest-btn-row { display: flex; gap: 10px; justify-content: center; }
 .forest-btn { padding: 13px 36px; border-radius: 12px; border: none; font-size: 0.96rem; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: var(--font-head); }
 .forest-btn:active { transform: scale(0.96); }
@@ -2241,15 +2304,23 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <!-- TIMER TAB -->
   <div id="tab-timer" class="tab-content">
     <div class="forest-wrap">
+      <div class="forest-hud-row">
+        <div class="forest-hud-item">🌲 <span id="forest-hud-trees">0</span></div>
+        <div class="forest-hud-item">🍎 <span id="forest-hud-apples">0</span></div>
+        <button class="forest-hud-shop-btn" onclick="openTreeShop()" title="Tree Shop">🏠</button>
+      </div>
       <div class="forest-phase" id="forest-phase">SET YOUR TIME</div>
       <div class="forest-ring dial-mode" id="forest-ring">
         <div class="forest-ring-inner">
-          <div class="forest-time-display" id="forest-display">00:00</div>
-          <div class="forest-extra-time" id="forest-extra" style="display:none">+00:00 extra</div>
+          <svg class="dial-tree-stage" id="dial-tree" viewBox="0 0 120 160"></svg>
+          <div class="forest-time-cluster">
+            <div class="forest-time-display" id="forest-display">00:00</div>
+            <div class="forest-extra-time" id="forest-extra" style="display:none">+00:00 extra</div>
+          </div>
         </div>
         <div class="forest-dial-handle" id="forest-dial-handle"></div>
       </div>
-      <div class="forest-diamond-preview" id="forest-diamonds">💎 0 diamonds</div>
+      <div class="forest-diamond-preview" id="forest-diamonds">🌲 0 trees on completion</div>
       <div class="slider-val" id="slider-val-display">60 minutes</div>
       <div class="timer-subject-tag" id="forest-subject-label" style="margin-bottom:14px">No subject selected</div>
       <div class="forest-btn-row">
@@ -2277,6 +2348,15 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <div class="stat-card"><div class="stat-val" id="timer-total-diamonds">0</div><div class="stat-lbl">💎 TOTAL</div></div>
       <div class="stat-card"><div class="stat-val" id="timer-total-time">0h</div><div class="stat-lbl">ALL TIME</div></div>
       <div class="stat-card"><div class="stat-val" id="timer-sessions">0</div><div class="stat-lbl">SESSIONS</div></div>
+    </div>
+    <div class="section-title" style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">🌲 Forest <span class="count-pill" id="timer-forest-count-pill">0 trees</span></div>
+    <div class="forest-scene-wrap">
+      <svg class="forest-hills" viewBox="0 0 400 140" preserveAspectRatio="none">
+        <path d="M0,90 Q100,50 200,80 T400,70 V140 H0 Z" fill="#182720"/>
+        <path d="M0,110 Q120,80 220,105 T400,95 V140 H0 Z" fill="#1f3327"/>
+      </svg>
+      <div class="forest-fireflies" id="timer-fireflies"></div>
+      <div class="forest-scene" id="timer-forest-scene"></div>
     </div>
     <div class="section-title" style="margin-bottom:8px">History</div>
     <div class="filter-tabs" id="timer-history-filters">
@@ -2984,6 +3064,37 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   </div>
 </div>
 
+<!-- TREE SHOP MODAL -->
+<div class="modal-overlay" id="tree-shop-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('tree-shop-modal')">✕</button>
+    <div class="modal-title">🌳 Tree Shop</div>
+    <div class="shop-balance-row">🍎 <span id="shop-apple-balance">0</span> apples available</div>
+    <div class="filter-tabs" id="shop-filter-tabs">
+      <div class="filter-tab active" onclick="setShopFilter('all',this)">All</div>
+      <div class="filter-tab" onclick="setShopFilter('owned',this)">Owned</div>
+    </div>
+    <div class="shop-grid" id="shop-grid"></div>
+  </div>
+</div>
+
+<!-- TREE PURCHASE CONFIRMATION -->
+<div class="cmodal-overlay" id="tree-confirm-modal">
+  <div class="cmodal" style="max-height:none">
+    <div class="cmodal-handle"></div>
+    <div class="cmodal-header"><div class="cmodal-title">Confirm</div></div>
+    <div class="cmodal-body" style="text-align:center">
+      <svg class="tree-confirm-preview" id="tree-confirm-preview" viewBox="0 0 120 160"></svg>
+      <div class="tree-confirm-text" id="tree-confirm-text"></div>
+      <div class="tree-confirm-sub" id="tree-confirm-sub"></div>
+    </div>
+    <div class="cmodal-actions">
+      <button class="cbtn-secondary" onclick="closeTreeConfirm()">Cancel</button>
+      <button class="cbtn-primary" style="flex:1;padding:13px;border-radius:12px;color:#fff;font-family:var(--font-body);font-size:0.9rem;font-weight:700;cursor:pointer" onclick="confirmTreePurchase()">Unlock 🍎</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div class="claim-popup-overlay" id="claim-popup" onclick="closeClaimPopup()">
@@ -3251,6 +3362,7 @@ async function startListeners() {
       updateHomeGoal();
       refreshWeeklyChallenge();
       refreshCoursesList();
+      syncForestState();
       if(currentCourseId) refreshCourseDetail();
     }
   });
@@ -5315,6 +5427,262 @@ let forestAlertPlayed = false;
 let timerSelectedSubject = null; 
 let timerSubjects = JSON.parse(localStorage.getItem('dq_subjects') || '["Math","Science","History","English"]');
 
+// ═══════════════════════════════════════════
+// FOREST MODE — tree species catalog + unlock/selection state.
+// Apples (extraDiamonds from overtime) unlock new species; setDiamonds still
+// determines how many trees a session plants. The underlying diamond math is
+// untouched — only the presentation (and this new spendable apple currency) is new.
+// ═══════════════════════════════════════════
+const TREE_SPECIES = [
+  {id:'pine',   name:'Garden Pine',       cost:0,  shapeType:'round',  palette:['#3d5640','#5d7d5f','#9cc2a3']},
+  {id:'sakura', name:'Sakura Blossom',    cost:8,  shapeType:'round',  palette:['#6b3f47','#c98a9c','#f3c9d6']},
+  {id:'ginkgo', name:'Golden Ginkgo',     cost:12, shapeType:'wide',   palette:['#7a5f28','#c9a34e','#f0d98a']},
+  {id:'maple',  name:'Autumn Maple',      cost:15, shapeType:'tall',   palette:['#6e2f1d','#c1602f','#e8985a']},
+  {id:'bamboo', name:'Ancient Bamboo',    cost:20, shapeType:'bamboo', palette:['#3f5a30','#7fa35e','#c3d98f']},
+  {id:'willow', name:'Moonlit Willow',    cost:25, shapeType:'willow', palette:['#26424a','#4f7d82','#a8cdd0']},
+  {id:'torii',  name:'Sacred Torii Pine', cost:35, shapeType:'round',  palette:['#1c2820','#3d5940','#6f9270'], accent:'torii'}
+];
+let unlockedTreeSpeciesSet = new Set(['pine']);
+let selectedTreeSpecies = 'pine';
+let totalApples = 0;
+let totalTreesPlanted = 0;
+let shopFilter = 'all';
+let pendingShopSpeciesId = null;
+function getSpecies(id) { return TREE_SPECIES.find(s => s.id === id) || TREE_SPECIES[0]; }
+
+// Small deterministic PRNG so each planted tree's jitter/look stays stable across re-renders
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Ghibli-style tree SVG — clustered painterly foliage blobs, plus dedicated
+// bamboo/willow silhouettes and an optional torii accent for the rare species.
+function treeSVGMarkup(species, idPrefix) {
+  const [dark, mid, light] = species.palette;
+  const toriiBit = species.accent === 'torii' ? `
+    <path d="M42,118 L42,132 M78,118 L78,132" stroke="#a6342a" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M38,116 L82,116" stroke="#a6342a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M40,121 L80,121" stroke="#a6342a" stroke-width="2.2" stroke-linecap="round"/>` : '';
+
+  if(species.shapeType === 'bamboo') {
+    return `<g>${[46,60,74].map((x,i) => `
+        <rect x="${x-3}" y="${58+i*6}" width="6" height="${96-i*6}" rx="3" fill="${i===1?mid:dark}"/>
+        <rect x="${x-4}" y="${70+i*6}" width="8" height="2.4" fill="#26361f"/>
+        <rect x="${x-4}" y="${92+i*6}" width="8" height="2.4" fill="#26361f"/>
+        <rect x="${x-4}" y="${114+i*6}" width="8" height="2.4" fill="#26361f"/>
+        <path d="M${x},${58+i*6} q14,-4 20,-14" stroke="${light}" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M${x},${58+i*6} q-14,-4 -20,-14" stroke="${light}" stroke-width="3" fill="none" stroke-linecap="round"/>
+      `).join('')}</g>${toriiBit}`;
+  }
+  if(species.shapeType === 'willow') {
+    return `
+    <defs><filter id="${idPrefix}-soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.2"/></filter></defs>
+    <path d="M56,120 C54,100 55,80 58,60 L62,60 C65,80 66,100 64,120 Z" fill="#5a4030"/>
+    <g filter="url(#${idPrefix}-soft)"><ellipse cx="60" cy="56" rx="26" ry="16" fill="${dark}"/></g>
+    <ellipse cx="60" cy="56" rx="26" ry="16" fill="${dark}" opacity="0.9"/>
+    ${[-20,-9,3,15,26].map((dx,i) => `<path d="M${60+dx},58 C${58+dx},80 ${56+dx},100 ${54+dx},${118-Math.abs(dx)*0.6}" stroke="${i%2?light:mid}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`).join('')}
+    ${toriiBit}`;
+  }
+  const blobsByShape = {
+    round: `<ellipse cx="60" cy="70" rx="30" ry="26" fill="${dark}"/><ellipse cx="42" cy="60" rx="20" ry="18" fill="${mid}"/><ellipse cx="78" cy="58" rx="19" ry="17" fill="${mid}"/><ellipse cx="60" cy="46" rx="22" ry="19" fill="${light}"/>`,
+    tall:  `<ellipse cx="60" cy="66" rx="24" ry="30" fill="${dark}"/><ellipse cx="46" cy="50" rx="17" ry="20" fill="${mid}"/><ellipse cx="74" cy="52" rx="16" ry="19" fill="${mid}"/><ellipse cx="60" cy="34" rx="17" ry="17" fill="${light}"/>`,
+    wide:  `<ellipse cx="60" cy="74" rx="34" ry="22" fill="${dark}"/><ellipse cx="36" cy="62" rx="18" ry="16" fill="${mid}"/><ellipse cx="84" cy="62" rx="18" ry="16" fill="${mid}"/><ellipse cx="60" cy="52" rx="24" ry="18" fill="${light}"/><ellipse cx="48" cy="42" rx="13" ry="12" fill="${light}"/>`
+  };
+  const blobs = blobsByShape[species.shapeType] || blobsByShape.round;
+  return `
+  <defs><filter id="${idPrefix}-soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.4"/></filter></defs>
+  <g filter="url(#${idPrefix}-soft)">${blobs}</g>
+  <g opacity="0.9">${blobs}</g>
+  <path d="M56,112 C54,96 55,84 58,72 L62,72 C65,84 66,96 64,112 Z" fill="#6b4a35"/>
+  <path d="M56,112 Q50,116 47,124" stroke="#4a3324" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M64,112 Q70,116 73,124" stroke="#4a3324" stroke-width="3" fill="none" stroke-linecap="round"/>
+  ${toriiBit}`;
+}
+
+// Dial tree: growth staged via layered opacity/scale, species-aware, with
+// distinct bamboo/willow mature-stage silhouettes and apples appearing during overtime.
+function renderDialTree(pctOfSet, extraDiamonds) {
+  const svg = document.getElementById('dial-tree');
+  if(!svg) return;
+  const species = getSpecies(selectedTreeSpecies);
+  const stage = pctOfSet < 0.12 ? 0 : pctOfSet < 0.4 ? 1 : pctOfSet < 0.75 ? 2 : 3;
+  const trunkScale = Math.max(0.16, Math.min(1, pctOfSet));
+  const [dark, mid, light] = species.palette;
+  const appleCount = Math.min(6, Math.round(extraDiamonds / 0.5));
+  const applePositions = [[42,52],[78,50],[60,38],[50,66],[72,68],[60,58]];
+  const apples = applePositions.slice(0, appleCount).map(([x,y]) =>
+    `<circle cx="${x}" cy="${y}" r="4" fill="var(--accent-red)" stroke="#3a1c16" stroke-width="0.6" class="apple-pop"/>`
+  ).join('');
+
+  if(species.shapeType === 'bamboo') {
+    const stalks = [[52,0],[60,1],[68,2]].slice(0, stage+1);
+    svg.innerHTML = `
+      <g style="transform-origin:60px 140px; transform:scaleY(${trunkScale}); transition: transform 0.6s ease-out">
+        ${stalks.map(([x], i) => `
+          <rect x="${x-3}" y="${40+i*8}" width="6" height="${100-i*8}" rx="3" fill="${i===1?mid:dark}"/>
+          <rect x="${x-4}" y="${70+i*10}" width="8" height="2.4" fill="#26361f"/>
+          <rect x="${x-4}" y="${100+i*8}" width="8" height="2.4" fill="#26361f"/>
+        `).join('')}
+      </g>
+      <g class="foliage-anim" style="animation: sway 3.6s ease-in-out infinite; transform-origin:60px 90px;">
+        ${stage>=2 ? `<path d="M60,44 q16,-6 22,-18" stroke="${light}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M60,44 q-16,-6 -22,-18" stroke="${light}" stroke-width="3" fill="none" stroke-linecap="round"/>` : ''}
+        ${stage>=3 ? apples : ''}
+      </g>`;
+  } else if(species.shapeType === 'willow' && stage >= 3) {
+    svg.innerHTML = `
+      <g style="transform-origin:60px 140px; transform:scaleY(${trunkScale}); transition: transform 0.6s ease-out">
+        <path d="M57,140 C55,118 56,98 58,78 L62,78 C65,98 66,118 64,140 Z" fill="#5a4030"/>
+      </g>
+      <g class="foliage-anim" style="animation: sway 3.6s ease-in-out infinite; transform-origin:60px 74px;">
+        <ellipse cx="60" cy="72" rx="28" ry="17" fill="${dark}"/>
+        <ellipse cx="60" cy="72" rx="28" ry="17" fill="${dark}" opacity="0.9"/>
+        ${[-22,-10,2,14,26].map((dx,i) => `<path d="M${60+dx},74 C${58+dx},94 ${56+dx},112 ${54+dx},${130-Math.abs(dx)*0.5}" stroke="${i%2?light:mid}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`).join('')}
+        ${apples}
+      </g>`;
+  } else {
+    svg.innerHTML = `
+      <g class="tree-trunk-grp" style="transform-origin:60px 140px; transform:scaleY(${trunkScale}); transition: transform 0.6s ease-out">
+        <path d="M57,140 C55,120 56,105 58,90 L62,90 C64,105 65,120 63,140 Z" fill="#6b4a35"/>
+        ${stage >= 2 ? '<path d="M57,140 Q50,144 46,152" stroke="#4a3324" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M63,140 Q70,144 74,152" stroke="#4a3324" stroke-width="2.6" fill="none" stroke-linecap="round"/>' : ''}
+      </g>
+      <g class="foliage-anim" style="transform-origin:60px 90px; animation: sway 3.6s ease-in-out infinite;">
+        <g style="opacity:${stage>=1?1:0}; transform:scale(${stage>=1?1:0.3}); transform-origin:60px 78px; transition: all 0.7s cubic-bezier(.34,1.4,.64,1);">
+          <ellipse cx="60" cy="82" rx="14" ry="13" fill="${mid}"/>
+        </g>
+        <g style="opacity:${stage>=2?1:0}; transform:scale(${stage>=2?1:0.3}); transform-origin:60px 66px; transition: all 0.7s cubic-bezier(.34,1.4,.64,1) 0.1s;">
+          <ellipse cx="44" cy="70" rx="14" ry="13" fill="${dark}"/>
+          <ellipse cx="76" cy="68" rx="13" ry="12" fill="${dark}"/>
+        </g>
+        <g style="opacity:${stage>=3?1:0}; transform:scale(${stage>=3?1:0.3}); transform-origin:60px 50px; transition: all 0.7s cubic-bezier(.34,1.4,.64,1) 0.2s;">
+          <ellipse cx="60" cy="52" rx="22" ry="19" fill="${light}"/>
+          <ellipse cx="60" cy="66" rx="30" ry="22" fill="${dark}" opacity="0.55"/>
+          ${species.accent==='torii' ? '<path d="M42,118 L42,132 M78,118 L78,132" stroke="#a6342a" stroke-width="3.4" stroke-linecap="round"/><path d="M38,116 L82,116" stroke="#a6342a" stroke-width="4" stroke-linecap="round"/><path d="M40,121 L80,121" stroke="#a6342a" stroke-width="2.2" stroke-linecap="round"/>' : ''}
+        </g>
+        ${stage>=3 ? apples : ''}
+      </g>
+      ${stage === 0 ? `<ellipse cx="60" cy="150" rx="6" ry="2" fill="#000" opacity="0.15"/><path d="M59,150 L61,150 L60,138 Z" fill="${mid}"/><path d="M58,144 q-4,-3 -2,-7" stroke="${mid}" stroke-width="2" fill="none" stroke-linecap="round"/>` : ''}
+    `;
+  }
+}
+
+// Pulls unlocked species / selected species / totals from currentUserData (with
+// safe defaults for accounts that predate this feature), and refreshes the HUD.
+function syncForestState() {
+  if(!currentUserData) return;
+  unlockedTreeSpeciesSet = new Set(currentUserData.unlockedTreeSpecies || ['pine']);
+  selectedTreeSpecies = currentUserData.selectedTreeSpecies || 'pine';
+  totalApples = currentUserData.totalApples || 0;
+  totalTreesPlanted = currentUserData.totalTreesPlanted || 0;
+  updateForestHUD();
+  if(!forestRunning) renderDialTree(0, 0);
+  if(document.getElementById('tree-shop-modal')?.classList.contains('open')) renderTreeShop();
+}
+function updateForestHUD() {
+  const t = document.getElementById('forest-hud-trees');
+  const a = document.getElementById('forest-hud-apples');
+  if(t) t.textContent = totalTreesPlanted;
+  if(a) a.textContent = (Math.round(totalApples*10)/10);
+}
+
+// ═══════════════════════════════════════════
+// TREE SHOP — browse All/Owned species, buy with apples (confirmation required),
+// tap any owned species to make it the active one for new plantings.
+// ═══════════════════════════════════════════
+function openTreeShop() {
+  openModal('tree-shop-modal');
+  renderTreeShop();
+}
+function setShopFilter(f, el) {
+  shopFilter = f;
+  document.querySelectorAll('#shop-filter-tabs .filter-tab').forEach(t => t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderTreeShop();
+}
+function renderTreeShop() {
+  const grid = document.getElementById('shop-grid');
+  if(!grid) return;
+  const bal = document.getElementById('shop-apple-balance');
+  if(bal) bal.textContent = (Math.round(totalApples*10)/10);
+  const species = shopFilter === 'owned' ? TREE_SPECIES.filter(s => unlockedTreeSpeciesSet.has(s.id)) : TREE_SPECIES;
+  grid.innerHTML = species.map(sp => {
+    const unlocked = unlockedTreeSpeciesSet.has(sp.id);
+    const selected = selectedTreeSpecies === sp.id;
+    const canAfford = totalApples >= sp.cost;
+    const statusLine = unlocked ? (selected ? 'Selected' : 'Tap to select') : ('🍎 ' + sp.cost + (canAfford ? '' : ' 🔒'));
+    return `<div class="shop-card ${unlocked ? '' : 'locked'} ${selected ? 'selected' : ''}" onclick="unlockOrSelectTree('${sp.id}')">
+      ${selected ? '<div class="sc-badge">✓</div>' : ''}
+      <svg viewBox="0 0 120 160">${treeSVGMarkup(sp, 'shop-' + sp.id)}</svg>
+      <div class="sc-name">${sp.name}</div>
+      <div class="sc-cost">${statusLine}</div>
+    </div>`;
+  }).join('');
+}
+function unlockOrSelectTree(id) {
+  if(unlockedTreeSpeciesSet.has(id)) {
+    if(selectedTreeSpecies !== id) selectTreeSpecies(id);
+    return;
+  }
+  const sp = getSpecies(id);
+  pendingShopSpeciesId = id;
+  const preview = document.getElementById('tree-confirm-preview');
+  if(preview) preview.innerHTML = treeSVGMarkup(sp, 'confirm-' + id);
+  document.getElementById('tree-confirm-text').textContent = 'Unlock ' + sp.name + '?';
+  const canAfford = totalApples >= sp.cost;
+  const balStr = (Math.round(totalApples*10)/10);
+  document.getElementById('tree-confirm-sub').textContent = canAfford
+    ? ('This will use 🍎 ' + sp.cost + ' from your ' + balStr + ' apples.')
+    : ('You need 🍎 ' + (Math.round((sp.cost - totalApples)*10)/10) + ' more apples to unlock this.');
+  const confirmBtn = document.querySelector('#tree-confirm-modal .cbtn-primary');
+  if(confirmBtn) { confirmBtn.disabled = !canAfford; confirmBtn.style.opacity = canAfford ? '1' : '0.5'; }
+  openCModal('tree-confirm-modal');
+}
+function closeTreeConfirm() {
+  closeCModal('tree-confirm-modal');
+  pendingShopSpeciesId = null;
+}
+async function confirmTreePurchase() {
+  const id = pendingShopSpeciesId;
+  if(!id || !currentUser) return;
+  const sp = getSpecies(id);
+  if(totalApples < sp.cost) { toast('Not enough apples yet'); return; }
+  try {
+    await db.collection('users').doc(currentUser.uid).update({
+      totalApples: firebase.firestore.FieldValue.increment(-sp.cost),
+      unlockedTreeSpecies: firebase.firestore.FieldValue.arrayUnion(id),
+      selectedTreeSpecies: id
+    });
+    totalApples -= sp.cost;
+    unlockedTreeSpeciesSet.add(id);
+    selectedTreeSpecies = id;
+    updateForestHUD();
+    if(!forestRunning) renderDialTree(0, 0);
+    playSFX('coin');
+    toast('🔓 ' + sp.name + ' unlocked & selected!');
+  } catch(err) {
+    toast('❌ Purchase failed: ' + err.message);
+  }
+  closeTreeConfirm();
+  renderTreeShop();
+}
+async function selectTreeSpecies(id) {
+  if(!currentUser) return;
+  const sp = getSpecies(id);
+  try {
+    await db.collection('users').doc(currentUser.uid).update({ selectedTreeSpecies: id });
+    selectedTreeSpecies = id;
+    if(!forestRunning) renderDialTree(0, 0);
+    renderTreeShop();
+    toast('🌱 ' + sp.name + ' selected for planting');
+  } catch(err) {
+    toast('❌ Could not select: ' + err.message);
+  }
+}
+
 function playAlert() {
   // Both the alert and the BGM play at full volume, so the alert used to get
   // buried under the music. Duck (pause) whatever's currently playing for the
@@ -5390,6 +5758,7 @@ function renderDial(val) {
 }
 
 function setDialValue(val) {
+  if(val !== forestSetMins) playDialTick();
   forestSetMins = val;
   const display = document.getElementById('slider-val-display');
   if(display) display.textContent = val + ' minutes';
@@ -5439,7 +5808,23 @@ function forestDialPointerUp() {
   ring.addEventListener('pointerup', forestDialPointerUp);
   ring.addEventListener('pointercancel', forestDialPointerUp);
   renderDial(forestSetMins);
+  renderDialTree(0, 0);
 })();
+
+function initTimerFireflies() {
+  const wrap = document.getElementById('timer-fireflies');
+  if(!wrap || wrap.dataset.built) return;
+  wrap.dataset.built = '1';
+  let h = '';
+  for(let i = 0; i < 10; i++) {
+    const left = Math.round(Math.random()*95);
+    const top = Math.round(20 + Math.random()*70);
+    const delay = (Math.random()*5).toFixed(1);
+    h += `<span style="left:${left}%; top:${top}%; animation-delay:${delay}s"></span>`;
+  }
+  wrap.innerHTML = h;
+}
+initTimerFireflies();
 
 function calcDiamonds(elapsedSecs, setMins) {
   const setDiamonds = Math.ceil(setMins / 15);
@@ -5492,12 +5877,13 @@ function updateForestDisplay() {
     }
   }
   const {setDiamonds, extraDiamonds, total} = calcDiamonds(elapsed, forestSetMins);
+  renderDialTree(isRunning ? elapsed / setTotalSecs : 0, isRunning ? extraDiamonds : 0);
   const dEl = document.getElementById('forest-diamonds');
   if(dEl) {
     if(isRunning && isOvertime) {
-      dEl.textContent = '💎 ' + setDiamonds + ' (set) + ' + extraDiamonds.toFixed(1) + ' (extra) = ' + total.toFixed(1);
+      dEl.textContent = '🌲 ' + setDiamonds + (extraDiamonds ? ' + 🍎 ' + extraDiamonds.toFixed(1) : '');
     } else {
-      dEl.textContent = '💎 ' + setDiamonds + ' diamonds on completion';
+      dEl.textContent = '🌲 ' + setDiamonds + ' tree' + (setDiamonds===1?'':'s') + ' on completion';
     }
   }
   // Sync fullscreen display
@@ -5558,6 +5944,9 @@ async function forestStop() {
       seconds: forestElapsed,
       setMins: forestSetMins,
       diamonds: parseFloat(total.toFixed(1)),
+      trees: setDiamonds,
+      apples: extraDiamonds,
+      speciesId: selectedTreeSpecies,
       date: today,
       month,
       year,
@@ -5565,10 +5954,16 @@ async function forestStop() {
     });
     await db.collection('users').doc(currentUser.uid).update({
       totalDiamonds: firebase.firestore.FieldValue.increment(parseFloat(total.toFixed(1))),
-      totalStudyHours: firebase.firestore.FieldValue.increment(hours)
+      totalStudyHours: firebase.firestore.FieldValue.increment(hours),
+      totalApples: firebase.firestore.FieldValue.increment(extraDiamonds),
+      totalTreesPlanted: firebase.firestore.FieldValue.increment(setDiamonds)
     });
+    totalApples += extraDiamonds;
+    totalTreesPlanted += setDiamonds;
+    updateForestHUD();
     playSFX('success');
-    toast('✅ Session saved! 💎 +' + total.toFixed(1) + ' diamonds · ⏱ ' + (hours * 60).toFixed(0) + ' min');
+    playTreeChime();
+    toast('✅ Session saved! 🌲 +' + setDiamonds + (extraDiamonds ? ' 🍎 +' + extraDiamonds.toFixed(1) : '') + ' · ⏱ ' + (hours * 60).toFixed(0) + ' min');
   } catch(err) {
    playSFX('error');
     toast('❌ Save failed: ' + err.message);
@@ -5667,6 +6062,54 @@ function timerHistoryEmptyRow(colspan, text) {
   return `<tr><td colspan="${colspan}"><div class="empty-state"><div class="empty-icon">⏱</div><div class="empty-text">${text}</div></div></td></tr>`;
 }
 
+// Older sessions (saved before Forest Mode existed) don't have trees/apples
+// fields — derive them exactly from setMins/diamonds using the same formula,
+// so historical sessions still render correctly in the Forest and History.
+function logTrees(l) {
+  if(l.trees !== undefined) return l.trees;
+  return Math.ceil((l.setMins || 60) / 15);
+}
+function logApples(l) {
+  if(l.apples !== undefined) return l.apples;
+  return Math.max(0, (l.diamonds || 0) - logTrees(l));
+}
+function treeSizeFor(n) {
+  if(n <= 8) return 46;
+  if(n <= 20) return 36;
+  if(n <= 50) return 26;
+  if(n <= 120) return 18;
+  return 13;
+}
+function renderTimerForestScene(matchingLogs) {
+  const scene = document.getElementById('timer-forest-scene');
+  const pill = document.getElementById('timer-forest-count-pill');
+  if(!scene) return;
+  const units = [];
+  matchingLogs.forEach(l => {
+    const n = Math.round(logTrees(l));
+    for(let i = 0; i < n; i++) units.push(l.speciesId || 'pine');
+  });
+  const treeCount = units.length;
+  if(pill) pill.textContent = treeCount + (treeCount===1 ? ' tree' : ' trees');
+  if(!treeCount) { scene.innerHTML = '<div class="forest-empty">🌱 No trees planted yet for this period</div>'; return; }
+  const size = treeSizeFor(treeCount);
+  const rnd = mulberry32(treeCount * 7919 + 13);
+  let html = '';
+  units.forEach((speciesId, i) => {
+    const species = getSpecies(speciesId);
+    const rot = (rnd()*14 - 7).toFixed(1);
+    const dy = (rnd()*6 - 3).toFixed(1);
+    const scaleJ = (0.9 + rnd()*0.22).toFixed(2);
+    html += `<div class="forest-tree-slot" style="width:${size+10}px;height:${size*1.35+8}px">
+      <svg viewBox="0 0 120 160" width="${size}" height="${size*1.35}"
+           style="transform: rotate(${rot}deg) translateY(${dy}px) scale(${scaleJ}); transform-origin:60px 145px">
+        ${treeSVGMarkup(species, 'tf' + i)}
+      </svg>
+    </div>`;
+  });
+  scene.innerHTML = html;
+}
+
 function renderTimerHistory() {
   const head = document.getElementById('timer-history-head');
   const body = document.getElementById('timer-history-body');
@@ -5677,31 +6120,35 @@ function renderTimerHistory() {
 
   if(timerHistoryFilter === 'today') {
     const todayStr = getLocalDateString(); // 4AM–4AM day boundary, same as Task tab's Daily
-    const rows = logs.filter(l => l.date === todayStr)
-      .slice().sort((a, b) => timerLogStartMs(b) - timerLogStartMs(a));
-    head.innerHTML = '<th>Subject</th><th>Date & Time</th><th>Total Time</th><th>💎</th>';
+    const matchingLogs = logs.filter(l => l.date === todayStr);
+    const rows = matchingLogs.slice().sort((a, b) => timerLogStartMs(b) - timerLogStartMs(a));
+    renderTimerForestScene(matchingLogs);
+    head.innerHTML = '<th>Subject</th><th>Date & Time</th><th>Total Time</th><th>🌲/🍎</th>';
     if(!rows.length) { body.innerHTML = timerHistoryEmptyRow(4, 'No sessions today yet'); return; }
     body.innerHTML = rows.map(l => {
       const ms = timerLogStartMs(l);
-      return `<tr><td>📚 ${l.subject || 'General'}</td><td>${fmtFullDate(ms)} · ${fmtTime12(ms)}</td><td>${fmtMins(l.seconds)}</td><td>💎 ${(l.diamonds || 0).toFixed(1)}</td></tr>`;
+      const trees = logTrees(l), apples = logApples(l);
+      return `<tr><td>📚 ${l.subject || 'General'}</td><td>${fmtFullDate(ms)} · ${fmtTime12(ms)}</td><td>${fmtMins(l.seconds)}</td><td>🌲${trees}${apples ? ' 🍎' + apples.toFixed(1) : ''}</td></tr>`;
     }).join('');
 
   } else if(timerHistoryFilter === 'week') {
     const {mon, sun} = getCurrentWeekRange();
     const monStr = mon.toLocaleDateString('sv-SE'), sunStr = sun.toLocaleDateString('sv-SE');
+    const matchingLogs = logs.filter(l => l.date && l.date >= monStr && l.date <= sunStr);
+    renderTimerForestScene(matchingLogs);
     const byDate = {};
-    logs.forEach(l => {
-      if(!l.date || l.date < monStr || l.date > sunStr) return;
-      if(!byDate[l.date]) byDate[l.date] = {seconds: 0, diamonds: 0};
+    matchingLogs.forEach(l => {
+      if(!byDate[l.date]) byDate[l.date] = {seconds: 0, trees: 0, apples: 0};
       byDate[l.date].seconds += l.seconds || 0;
-      byDate[l.date].diamonds += (l.diamonds || 0);
+      byDate[l.date].trees += logTrees(l);
+      byDate[l.date].apples += logApples(l);
     });
     const keys = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
-    head.innerHTML = '<th>Date</th><th>Total Time</th><th>💎</th>';
+    head.innerHTML = '<th>Date</th><th>Total Time</th><th>🌲/🍎</th>';
     if(!keys.length) { body.innerHTML = timerHistoryEmptyRow(3, 'No sessions this week yet'); return; }
     body.innerHTML = keys.map(k => {
       const d = byDate[k];
-      return `<tr><td>${fmtFullDate(new Date(k + 'T00:00:00').getTime())}</td><td>${fmtMins(d.seconds)}</td><td>💎 ${d.diamonds.toFixed(1)}</td></tr>`;
+      return `<tr><td>${fmtFullDate(new Date(k + 'T00:00:00').getTime())}</td><td>${fmtMins(d.seconds)}</td><td>🌲${d.trees}${d.apples ? ' 🍎' + d.apples.toFixed(1) : ''}</td></tr>`;
     }).join('');
 
   } else if(timerHistoryFilter === 'month') {
@@ -5716,19 +6163,21 @@ function renderTimerHistory() {
     }
     sel.style.display = '';
     const chosen = sel.value || curMonth;
+    const matchingLogs = logs.filter(l => l.month === chosen);
+    renderTimerForestScene(matchingLogs);
     const byDate = {};
-    logs.forEach(l => {
-      if(l.month !== chosen) return;
-      if(!byDate[l.date]) byDate[l.date] = {seconds: 0, diamonds: 0};
+    matchingLogs.forEach(l => {
+      if(!byDate[l.date]) byDate[l.date] = {seconds: 0, trees: 0, apples: 0};
       byDate[l.date].seconds += l.seconds || 0;
-      byDate[l.date].diamonds += (l.diamonds || 0);
+      byDate[l.date].trees += logTrees(l);
+      byDate[l.date].apples += logApples(l);
     });
     const keys = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
-    head.innerHTML = '<th>Date</th><th>Total Time</th><th>💎</th>';
+    head.innerHTML = '<th>Date</th><th>Total Time</th><th>🌲/🍎</th>';
     if(!keys.length) { body.innerHTML = timerHistoryEmptyRow(3, 'No sessions this month'); return; }
     body.innerHTML = keys.map(k => {
       const d = byDate[k];
-      return `<tr><td>${fmtFullDate(new Date(k + 'T00:00:00').getTime())}</td><td>${fmtMins(d.seconds)}</td><td>💎 ${d.diamonds.toFixed(1)}</td></tr>`;
+      return `<tr><td>${fmtFullDate(new Date(k + 'T00:00:00').getTime())}</td><td>${fmtMins(d.seconds)}</td><td>🌲${d.trees}${d.apples ? ' 🍎' + d.apples.toFixed(1) : ''}</td></tr>`;
     }).join('');
 
   } else if(timerHistoryFilter === 'year') {
@@ -5743,19 +6192,21 @@ function renderTimerHistory() {
     }
     sel.style.display = '';
     const chosen = sel.value || curYear;
+    const matchingLogs = logs.filter(l => l.year === chosen);
+    renderTimerForestScene(matchingLogs);
     const byMonth = {};
-    logs.forEach(l => {
-      if(l.year !== chosen) return;
-      if(!byMonth[l.month]) byMonth[l.month] = {seconds: 0, diamonds: 0};
+    matchingLogs.forEach(l => {
+      if(!byMonth[l.month]) byMonth[l.month] = {seconds: 0, trees: 0, apples: 0};
       byMonth[l.month].seconds += l.seconds || 0;
-      byMonth[l.month].diamonds += (l.diamonds || 0);
+      byMonth[l.month].trees += logTrees(l);
+      byMonth[l.month].apples += logApples(l);
     });
     const keys = Object.keys(byMonth).sort((a, b) => b.localeCompare(a));
-    head.innerHTML = '<th>Month</th><th>Total Time</th><th>💎</th>';
+    head.innerHTML = '<th>Month</th><th>Total Time</th><th>🌲/🍎</th>';
     if(!keys.length) { body.innerHTML = timerHistoryEmptyRow(3, 'No sessions this year'); return; }
     body.innerHTML = keys.map(k => {
       const d = byMonth[k];
-      return `<tr><td>${getMonthLabel(k)}</td><td>${fmtMins(d.seconds)}</td><td>💎 ${d.diamonds.toFixed(1)}</td></tr>`;
+      return `<tr><td>${getMonthLabel(k)}</td><td>${fmtMins(d.seconds)}</td><td>🌲${d.trees}${d.apples ? ' 🍎' + d.apples.toFixed(1) : ''}</td></tr>`;
     }).join('');
   }
 }
@@ -7167,6 +7618,44 @@ function getAudioCtx() {
     fsAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
   return fsAudioCtx;
+}
+
+// A soft "detent click" as the dial snaps to each 5-minute step while dragging —
+// distinct timbre from the Tick BGM sound (triangle wave, lower, with tiny pitch
+// variance) so it reads as a physical dial click rather than a timer tick.
+function playDialTick() {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'triangle';
+    osc.frequency.value = 480 + Math.random() * 60;
+    gain.gain.setValueAtTime(0.14, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.06);
+  } catch(e) {}
+}
+
+// A short cheerful ascending chime played when a session completes and trees are
+// planted — separate from the app-wide generic playSFX('success') blip.
+function playTreeChime() {
+  try {
+    const ctx = getAudioCtx();
+    const notes = [523.25, 659.25, 783.99]; // C5 E5 G5
+    let t = ctx.currentTime;
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.16, t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      osc.start(t); osc.stop(t + 0.36);
+      t += 0.11;
+    });
+  } catch(e) {}
 }
 
 function fsPlayTick() {
