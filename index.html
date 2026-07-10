@@ -226,11 +226,13 @@
   content: ''; position: absolute; inset: 13px;
   border-radius: 50%; background: var(--bg-deep);
 }
-.fs-ring-inner { position: relative; z-index: 1; text-align: center; }
+.fs-ring-inner { position: absolute; inset: 13px; z-index: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 8%; }
+.fs-dial-tree-stage { width: 54%; height: 68%; max-width: 150px; max-height: 190px; }
 .fs-time {
   font-family: var(--font-head);
-  font-size: clamp(2.8rem, 12vw, 4.8rem);
-  font-weight: 700; color: var(--text-primary); letter-spacing: 3px; line-height: 1;
+  font-size: clamp(1.1rem, 4vw, 1.6rem);
+  font-weight: 700; color: var(--text-muted); letter-spacing: 2px; line-height: 1;
+  background: rgba(18,22,20,0.5); padding: 4px 14px; border-radius: 10px; margin-top: 8px;
 }
 .fs-time.running { color: var(--accent-gold); }
 .fs-extra { font-size: 0.9rem; color: var(--accent-orange); margin-top: 5px; }
@@ -1049,18 +1051,18 @@ select {
   border-radius: 20px; padding: 22px 18px 18px; margin-bottom: 16px; text-align: center;
 }
 .forest-ring {
-  width: 156px; height: 156px; border-radius: 50%; margin: 0 auto 14px;
+  width: 220px; height: 220px; border-radius: 50%; margin: 0 auto 14px;
   background: conic-gradient(var(--accent-purple) 0%, var(--bg-elevated) 0%);
   display: flex; align-items: center; justify-content: center;
   position: relative; transition: background 0.5s;
 }
 .forest-ring::before {
-  content: ''; position: absolute; inset: 12px;
+  content: ''; position: absolute; inset: 16px;
   border-radius: 50%; background: var(--bg-card);
 }
-.forest-ring-inner { position: absolute; inset: 12px; z-index: 1; text-align: center; }
+.forest-ring-inner { position: absolute; inset: 16px; z-index: 1; text-align: center; }
 .forest-time-display {
-  font-family: var(--font-head); font-size: 2rem; font-weight: 700;
+  font-family: var(--font-head); font-size: 2.3rem; font-weight: 700;
   color: var(--text-primary); letter-spacing: 2px; line-height: 1.1;
 }
 .forest-time-display.running { color: var(--accent-gold); }
@@ -1074,7 +1076,7 @@ select {
 .forest-ring.dial-mode { cursor: grab; touch-action: none; }
 .forest-ring.dial-mode:active { cursor: grabbing; }
 .forest-dial-handle {
-  position: absolute; top: 50%; left: 50%; width: 18px; height: 18px;
+  position: absolute; top: 50%; left: 50%; width: 24px; height: 24px;
   border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-purple));
   border: 2px solid var(--bg-card); box-shadow: 0 2px 6px rgba(0,0,0,0.4);
   z-index: 3; pointer-events: none;
@@ -1082,7 +1084,7 @@ select {
 .slider-val { text-align: center; font-family: var(--font-head); font-size: 1.1rem; color: var(--accent-gold); font-weight: 700; margin-bottom: 12px; }
 
 /* ── Forest Mode: HUD, growing tree, forest scene, tree shop ── */
-.forest-hud-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 10px; }
+.forest-hud-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 10px; }
 .forest-hud-item {
   background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 14px;
   padding: 4px 10px; font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);
@@ -1092,40 +1094,143 @@ select {
   padding: 4px 11px; font-size: 0.95rem; cursor: pointer; transition: transform 0.15s;
 }
 .forest-hud-shop-btn:active { transform: scale(0.92); }
-.dial-tree-stage { position: absolute; width: 84px; height: 106px; left: 50%; top: 50%; transform: translate(-50%, -58%); pointer-events: none; }
-.forest-time-cluster { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; }
+.dial-tree-stage { position: absolute; width: 120px; height: 152px; left: 50%; top: 50%; transform: translate(-50%, -58%); pointer-events: none; }
+.forest-time-cluster { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; }
 .forest-time-cluster .forest-time-display {
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
-  background: rgba(18,22,20,0.55); padding: 2px 8px; border-radius: 8px; backdrop-filter: blur(2px);
+  font-size: 0.86rem; font-weight: 700; letter-spacing: 1px;
+  background: rgba(18,22,20,0.55); padding: 3px 10px; border-radius: 8px; backdrop-filter: blur(2px);
 }
 @keyframes sway { 0%,100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
 .apple-pop { animation: applePop 0.4s cubic-bezier(.34,1.6,.64,1); }
 @keyframes applePop { from { transform: scale(0); } to { transform: scale(1); } }
+.tree-sparkle { animation: tree-twinkle 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes tree-twinkle { 0%,100% { opacity: 0.2; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1.15); } }
+.tree-ember { animation: tree-ember-rise 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes tree-ember-rise { 0% { opacity: 0; transform: translateY(6px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-14px); } }
+.tree-glow { animation: tree-glow-pulse 3s ease-in-out infinite; }
+@keyframes tree-glow-pulse { 0%,100% { opacity: 0.15; } 50% { opacity: 0.35; } }
+.tree-lantern { filter: drop-shadow(0 0 3px rgba(232,182,74,0.8)); animation: tree-lantern-glow 2.2s ease-in-out infinite; }
+@keyframes tree-lantern-glow { 0%,100% { opacity: 0.75; } 50% { opacity: 1; } }
 
 .count-pill { font-family: var(--font-body); font-size: 0.72rem; background: var(--bg-elevated); color: var(--accent-purple-bright); padding: 3px 10px; border-radius: 12px; font-weight: 700; }
+.forest-reshuffle-btn {
+  font-family: var(--font-body); font-size: 0.68rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+  background: var(--bg-elevated); color: var(--accent-purple-bright); border: 1px solid var(--border-bright, var(--border));
+  border-radius: 12px; padding: 3px 9px; transition: transform 0.15s;
+}
+.forest-reshuffle-btn:active { transform: scale(0.92) rotate(-8deg); }
 .forest-scene-wrap {
   position: relative; border-radius: 20px; overflow: hidden; margin-bottom: 16px;
+  border: 1px solid var(--border); aspect-ratio: 1 / 1; width: 100%;
+  transition: background 1.4s ease;
+}
+/* ── Time-of-day sky phases (auto-applied by JS via renderForestSky()) ── */
+.sky-night {
   background: linear-gradient(180deg, #1a2b24 0%, #223428 38%, #2b3f2e 62%, #1e2b20 100%);
-  border: 1px solid var(--border);
+  --hill1: #182720; --hill2: #1f3327;
+}
+.sky-day {
+  background: linear-gradient(180deg, #bfe4f5 0%, #d9f0f7 42%, #eaf6ee 72%, #cfe8d0 100%);
+  --hill1: #3f7a4a; --hill2: #58995f;
+}
+.sky-sunset {
+  background: linear-gradient(180deg, #f6c98a 0%, #f2a76b 32%, #e98a6b 58%, #c96a5a 82%, #7a4a4a 100%);
+  --hill1: #5a4a3a; --hill2: #7a5f45;
+}
+.sky-dawn {
+  background: linear-gradient(180deg, #cfa5c9 0%, #e8b48a 32%, #f3d19b 58%, #d7dba0 82%, #2b3f2e 100%);
+  --hill1: #3a4a42; --hill2: #4f6555;
 }
 .forest-hills { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; }
+.forest-hills .fh-1 { fill: var(--hill1); transition: fill 1.4s ease; }
+.forest-hills .fh-2 { fill: var(--hill2); transition: fill 1.4s ease; }
 .forest-fireflies span {
   position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--accent-gold);
   box-shadow: 0 0 6px 2px rgba(229,192,123,0.6); animation: firefly 5s ease-in-out infinite;
 }
 @keyframes firefly { 0%,100% { opacity:0.15; transform: translateY(0); } 50% { opacity:0.9; transform: translateY(-8px); } }
-.forest-scene {
-  position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: flex-end;
-  justify-content: center; gap: 2px; padding: 20px 10px 10px; min-height: 130px;
-  max-height: 320px; overflow-y: auto;
+/* ── Sun / moon ── */
+.forest-sun-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.fsun { position: absolute; border-radius: 50%; }
+.fsun-day {
+  width: 40px; height: 40px; top: 16px; right: 18px;
+  background: radial-gradient(circle at 35% 35%, #fff6d8, #ffdd6b 60%, #ffcf4d 100%);
+  box-shadow: 0 0 26px 10px rgba(255,221,107,0.55);
 }
-.forest-tree-slot { display: flex; align-items: flex-end; justify-content: center; }
+.fsun-sunset {
+  width: 46px; height: 46px; top: 26%; right: 20px;
+  background: radial-gradient(circle at 35% 35%, #ffe3b0, #ff9d5c 60%, #e8703f 100%);
+  box-shadow: 0 0 30px 12px rgba(255,140,80,0.5);
+}
+.fsun-dawn {
+  width: 34px; height: 34px; top: 32%; left: 20px;
+  background: radial-gradient(circle at 35% 35%, #ffe9d6, #f3b587 60%, #d98f7a 100%);
+  box-shadow: 0 0 22px 9px rgba(240,170,140,0.45);
+}
+.fmoon {
+  width: 30px; height: 30px; top: 16px; right: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff8e6, #e5c07b 70%, #a88c56 100%);
+  box-shadow: 0 0 18px 6px rgba(229,192,123,0.35);
+}
+/* ── Clouds ── */
+.forest-clouds { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.fcloud {
+  position: absolute; width: 58px; height: 20px; background: rgba(255,255,255,0.88);
+  border-radius: 20px; animation-name: cloud-drift; animation-timing-function: linear; animation-iteration-count: infinite;
+}
+.fcloud::before, .fcloud::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
+.fcloud::before { width: 28px; height: 28px; top: -13px; left: 6px; }
+.fcloud::after { width: 22px; height: 22px; top: -9px; left: 32px; }
+.fcloud-warm { background: rgba(255,232,208,0.88); }
+@keyframes cloud-drift { from { transform: translateX(0); } to { transform: translateX(340%); } }
+/* ── Birds ── */
+.forest-birds { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.fbird { position: absolute; left: -10%; width: 22px; height: 11px; animation-name: bird-fly; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+@keyframes bird-fly {
+  0%   { transform: translate(0,0); }
+  50%  { transform: translate(180%, -14px); }
+  100% { transform: translate(430%, 0); }
+}
+/* ── Seasonal weather effects (snow / rain / falling leaves) ── */
+.forest-season-fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.ffx-snow {
+  position: absolute; top: -10px; background: #fff; border-radius: 50%; opacity: 0.9;
+  animation-name: snow-fall; animation-timing-function: linear; animation-iteration-count: infinite;
+}
+@keyframes snow-fall { from { transform: translateY(0) translateX(0); } to { transform: translateY(360px) translateX(16px); } }
+.ffx-rain {
+  position: absolute; top: -16px; width: 1.5px; height: 15px; background: rgba(190,215,235,0.6);
+  animation-name: rain-fall; animation-timing-function: linear; animation-iteration-count: infinite;
+}
+@keyframes rain-fall { from { transform: translateY(0); } to { transform: translateY(360px); } }
+.ffx-leaf {
+  position: absolute; top: -10px; width: 7px; height: 7px; background: #c1602f; border-radius: 0 50% 50% 50%;
+  animation-name: leaf-fall; animation-timing-function: ease-in-out; animation-iteration-count: infinite;
+}
+@keyframes leaf-fall {
+  0%   { transform: translateY(0) rotate(0deg); }
+  50%  { transform: translateY(180px) translateX(18px) rotate(180deg); }
+  100% { transform: translateY(360px) translateX(-6px) rotate(360deg); }
+}
+.forest-scene {
+  position: absolute; inset: 0; z-index: 1; display: flex; flex-wrap: wrap; align-content: flex-end; align-items: flex-end;
+  justify-content: center; gap: 3px; padding: 36px 10px 10px; overflow-y: auto;
+}
+.forest-tree-slot { display: flex; align-items: flex-end; justify-content: center; animation: treeShuffleIn 0.4s cubic-bezier(.34,1.4,.64,1) both; }
 .forest-tree-slot svg { display: block; }
+@keyframes treeShuffleIn { from { opacity: 0; } to { opacity: 1; } }
 .forest-empty { width: 100%; text-align: center; padding: 26px 10px; color: rgba(234,230,217,0.45); font-size: 0.82rem; }
 
 /* Tree Shop */
 .shop-balance-row { text-align: center; font-size: 0.86rem; color: var(--accent-red); font-weight: 700; margin-bottom: 12px; }
-.shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.shop-grid { display: block; }
+.shop-grid-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.shop-section-title {
+  font-family: var(--font-body); font-size: 0.74rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-secondary); margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border);
+}
+.shop-section-title:first-child { margin-top: 0; }
+.shop-section-title.rare { color: var(--accent-gold); border-color: var(--border-bright, var(--border)); }
 .shop-card {
   background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 14px;
   padding: 10px 6px 8px; text-align: center; cursor: pointer; transition: all 0.15s; position: relative;
@@ -1133,12 +1238,18 @@ select {
 .shop-card:active { transform: scale(0.95); }
 .shop-card.selected { border-color: var(--accent-purple); box-shadow: 0 0 0 2px rgba(136,179,148,0.35); }
 .shop-card.locked { opacity: 0.62; }
+.shop-card.rare-card { border-color: rgba(229,192,123,0.4); background: linear-gradient(160deg, var(--bg-elevated), rgba(229,192,123,0.1)); }
+.shop-card.rare-card.selected { border-color: var(--accent-gold); box-shadow: 0 0 0 2px rgba(229,192,123,0.4); }
 .shop-card svg { width: 44px; height: 56px; display: block; margin: 0 auto 6px; }
 .shop-card .sc-name { font-size: 0.66rem; font-weight: 700; color: var(--text-secondary); line-height: 1.2; min-height: 2.2em; display: flex; align-items: center; justify-content: center; }
 .shop-card .sc-cost { font-size: 0.68rem; color: var(--accent-gold); font-weight: 700; margin-top: 3px; }
 .shop-card .sc-badge {
   position: absolute; top: 4px; right: 4px; font-size: 0.6rem; background: var(--accent-purple); color: #10241a;
   border-radius: 8px; padding: 1px 6px; font-weight: 800;
+}
+.shop-card .sc-rare-badge {
+  position: absolute; top: 4px; left: 4px; font-size: 0.54rem; background: var(--accent-gold); color: #2a1f0a;
+  border-radius: 8px; padding: 1px 5px; font-weight: 800; letter-spacing: 0.4px;
 }
 .tree-confirm-preview { width: 76px; height: 96px; margin: 0 auto 10px; display: block; }
 .tree-confirm-text { text-align: center; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 4px; line-height: 1.5; }
@@ -2307,6 +2418,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <div class="forest-hud-row">
         <div class="forest-hud-item">🌲 <span id="forest-hud-trees">0</span></div>
         <div class="forest-hud-item">🍎 <span id="forest-hud-apples">0</span></div>
+        <button class="forest-hud-shop-btn" onclick="recalcForestTotals()" title="Recalculate totals from history">🔁</button>
         <button class="forest-hud-shop-btn" onclick="openTreeShop()" title="Tree Shop">🏠</button>
       </div>
       <div class="forest-phase" id="forest-phase">SET YOUR TIME</div>
@@ -2341,21 +2453,25 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     <div class="section-title" style="margin-bottom:10px">My Study Stats</div>
     <div class="timer-stats-row">
       <div class="stat-card"><div class="stat-val" id="timer-daily-time">0h</div><div class="stat-lbl">TODAY</div></div>
+      <div class="stat-card"><div class="stat-val" id="timer-weekly-time">0h</div><div class="stat-lbl">WEEK</div></div>
       <div class="stat-card"><div class="stat-val" id="timer-monthly-time">0h</div><div class="stat-lbl">MONTH</div></div>
-      <div class="stat-card"><div class="stat-val" id="timer-yearly-time">0h</div><div class="stat-lbl">YEAR</div></div>
     </div>
     <div class="stats-row" style="margin-bottom:14px">
-      <div class="stat-card"><div class="stat-val" id="timer-total-diamonds">0</div><div class="stat-lbl">💎 TOTAL</div></div>
-      <div class="stat-card"><div class="stat-val" id="timer-total-time">0h</div><div class="stat-lbl">ALL TIME</div></div>
+      <div class="stat-card"><div class="stat-val" id="timer-yearly-time">0h</div><div class="stat-lbl">YEAR</div></div>
+      <div class="stat-card"><div class="stat-val" id="timer-total-time">0h</div><div class="stat-lbl">OVERALL</div></div>
       <div class="stat-card"><div class="stat-val" id="timer-sessions">0</div><div class="stat-lbl">SESSIONS</div></div>
     </div>
-    <div class="section-title" style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">🌲 Forest <span class="count-pill" id="timer-forest-count-pill">0 trees</span></div>
-    <div class="forest-scene-wrap">
+    <div class="section-title" style="margin-bottom:8px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;justify-content:space-between">🌲 Forest <span style="display:flex;align-items:center;gap:8px"><span class="count-pill" id="timer-forest-count-pill">0 trees</span><button class="forest-reshuffle-btn" onclick="reshuffleForest()" title="Rearrange planted trees">🔀 Shuffle</button></span></div>
+    <div class="forest-scene-wrap sky-night" id="forest-scene-wrap">
       <svg class="forest-hills" viewBox="0 0 400 140" preserveAspectRatio="none">
-        <path d="M0,90 Q100,50 200,80 T400,70 V140 H0 Z" fill="#182720"/>
-        <path d="M0,110 Q120,80 220,105 T400,95 V140 H0 Z" fill="#1f3327"/>
+        <path class="fh-1" d="M0,90 Q100,50 200,80 T400,70 V140 H0 Z"/>
+        <path class="fh-2" d="M0,110 Q120,80 220,105 T400,95 V140 H0 Z"/>
       </svg>
+      <div class="forest-sun-layer" id="forest-sun"></div>
+      <div class="forest-clouds" id="forest-clouds"></div>
+      <div class="forest-birds" id="forest-birds"></div>
       <div class="forest-fireflies" id="timer-fireflies"></div>
+      <div class="forest-season-fx" id="forest-season-fx"></div>
       <div class="forest-scene" id="timer-forest-scene"></div>
     </div>
     <div class="section-title" style="margin-bottom:8px">History</div>
@@ -2494,12 +2610,13 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       </div>
     </div>
     <div class="fs-phase" id="fs-phase">SET YOUR TIME</div>
-    <div class="fs-ring" id="fs-ring">
-      <div class="fs-ring-inner">
-        <div class="fs-time" id="fs-display">00:00</div>
-        <div class="fs-extra" id="fs-extra" style="display:none"></div>
-      </div>
-    </div>
+   <div class="fs-ring" id="fs-ring">
+  <div class="fs-ring-inner">
+    <svg class="fs-dial-tree-stage" id="fs-dial-tree" viewBox="0 0 120 160"></svg>
+    <div class="fs-time" id="fs-display">00:00</div>
+    <div class="fs-extra" id="fs-extra" style="display:none"></div>
+  </div>
+</div>
     <div class="fs-subject" id="fs-subject">No subject</div>
     <div class="fs-btn-row">
       <button class="fs-btn fs-btn-pause"   id="fs-pause-btn"   onclick="fsPause()">⏸ Pause</button>
@@ -2816,7 +2933,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <div style="text-align:center;padding:12px;background:var(--bg-deep);border-radius:10px;border:1px solid var(--border-bright)">
     <div style="font-size: 0.71rem;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Crafted with 🍵 by</div>
     <div style="font-size:1.05rem;font-weight:800;color:var(--accent-gold);letter-spacing:1px">Bikr@m</div>
-    <div style="font-size: 0.69rem;color:var(--text-muted);margin-top:3px">v2.0 · Made for scholars, by a scholar</div>
+    <div style="font-size: 0.69rem;color:var(--text-muted);margin-top:3px">v3.0 · Made for scholars, by a scholar</div>
   </div>
 </div>
     </div>
@@ -3583,8 +3700,7 @@ function startHomeCountdownMulti() {
     return;
   }
 
-  const minDays = upcoming[0]._days;
-  flashExams = upcoming.filter(ex => ex._days === minDays);
+ flashExams = upcoming;
   flashIndex = 0;
   document.getElementById('home-countdown').style.display = 'flex';
 
@@ -5434,13 +5550,23 @@ let timerSubjects = JSON.parse(localStorage.getItem('dq_subjects') || '["Math","
 // untouched — only the presentation (and this new spendable apple currency) is new.
 // ═══════════════════════════════════════════
 const TREE_SPECIES = [
-  {id:'pine',   name:'Garden Pine',       cost:0,  shapeType:'round',  palette:['#3d5640','#5d7d5f','#9cc2a3']},
-  {id:'sakura', name:'Sakura Blossom',    cost:8,  shapeType:'round',  palette:['#6b3f47','#c98a9c','#f3c9d6']},
-  {id:'ginkgo', name:'Golden Ginkgo',     cost:12, shapeType:'wide',   palette:['#7a5f28','#c9a34e','#f0d98a']},
-  {id:'maple',  name:'Autumn Maple',      cost:15, shapeType:'tall',   palette:['#6e2f1d','#c1602f','#e8985a']},
-  {id:'bamboo', name:'Ancient Bamboo',    cost:20, shapeType:'bamboo', palette:['#3f5a30','#7fa35e','#c3d98f']},
-  {id:'willow', name:'Moonlit Willow',    cost:25, shapeType:'willow', palette:['#26424a','#4f7d82','#a8cdd0']},
-  {id:'torii',  name:'Sacred Torii Pine', cost:35, shapeType:'round',  palette:['#1c2820','#3d5940','#6f9270'], accent:'torii'}
+  // ── Ordinary (10) — Garden Pine unlocked by default, the rest 50–100 🍎 ──
+  {id:'pine',   name:'Garden Pine',      tier:'ordinary', cost:0,   shapeType:'round',  palette:['#3d5640','#5d7d5f','#9cc2a3']},
+  {id:'sakura', name:'Sakura Blossom',   tier:'ordinary', cost:50,  shapeType:'round',  palette:['#6b3f47','#c98a9c','#f3c9d6']},
+  {id:'ginkgo', name:'Golden Ginkgo',    tier:'ordinary', cost:58,  shapeType:'wide',   palette:['#7a5f28','#c9a34e','#f0d98a']},
+  {id:'maple',  name:'Autumn Maple',     tier:'ordinary', cost:65,  shapeType:'tall',   palette:['#6e2f1d','#c1602f','#e8985a']},
+  {id:'bamboo', name:'Ancient Bamboo',   tier:'ordinary', cost:72,  shapeType:'bamboo', palette:['#3f5a30','#7fa35e','#c3d98f']},
+  {id:'willow', name:'Moonlit Willow',   tier:'ordinary', cost:78,  shapeType:'willow', palette:['#26424a','#4f7d82','#a8cdd0']},
+  {id:'birch',  name:'Silver Birch',     tier:'ordinary', cost:84,  shapeType:'tall',   palette:['#4a6b3d','#7fa35c','#c9e0a0']},
+  {id:'oak',    name:'Emerald Oak',      tier:'ordinary', cost:90,  shapeType:'wide',   palette:['#2d4a2e','#4f7a4a','#8fb87a']},
+  {id:'plum',   name:'Plum Blossom',     tier:'ordinary', cost:96,  shapeType:'round',  palette:['#4a2e42','#a3567a','#e8a8c4']},
+  {id:'frost',  name:'Frostleaf Bamboo', tier:'ordinary', cost:100, shapeType:'bamboo', palette:['#3a5560','#6f95a0','#c8e5ec']},
+  // ── Rare (5) — all locked, 150–500 🍎, each with its own special visual flourish ──
+  {id:'torii',     name:'Sacred Torii Pine', tier:'rare', cost:150, shapeType:'round',  palette:['#1c2820','#3d5940','#6f9270'], accent:'torii'},
+  {id:'celestial', name:'Celestial Blossom', tier:'rare', cost:220, shapeType:'round',  palette:['#2a2550','#5b4e9e','#c9b8f0'], accent:'sparkle'},
+  {id:'phoenix',   name:'Phoenix Maple',     tier:'rare', cost:300, shapeType:'tall',   palette:['#5a1f18','#c1432a','#f2984a'], accent:'ember'},
+  {id:'ethereal',  name:'Ethereal Willow',   tier:'rare', cost:380, shapeType:'willow', palette:['#1f3a45','#4a7d8a','#d8f0f5'], accent:'glow'},
+  {id:'bodhi',     name:'Golden Bodhi Tree', tier:'rare', cost:500, shapeType:'wide',   palette:['#4a3510','#9c7a2a','#f0d878'], accent:'lantern'}
 ];
 let unlockedTreeSpeciesSet = new Set(['pine']);
 let selectedTreeSpecies = 'pine';
@@ -5461,16 +5587,42 @@ function mulberry32(seed) {
 }
 
 // Ghibli-style tree SVG — clustered painterly foliage blobs, plus dedicated
-// bamboo/willow silhouettes and an optional torii accent for the rare species.
+// bamboo/willow silhouettes and an optional rare-species accent (torii/sparkle/ember/glow/lantern).
+function treeAccentBack(species) {
+  if(species.accent !== 'glow') return '';
+  const [, , light] = species.palette;
+  return `<ellipse cx="60" cy="58" rx="42" ry="32" fill="${light}" opacity="0.22" class="tree-glow"/>`;
+}
+function treeAccentFront(species) {
+  switch(species.accent) {
+    case 'torii': return `
+      <path d="M42,118 L42,132 M78,118 L78,132" stroke="#a6342a" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M38,116 L82,116" stroke="#a6342a" stroke-width="4" stroke-linecap="round"/>
+      <path d="M40,121 L80,121" stroke="#a6342a" stroke-width="2.2" stroke-linecap="round"/>`;
+    case 'sparkle': return `
+      <circle cx="38" cy="48" r="2" fill="#fff6d8" class="tree-sparkle"/>
+      <circle cx="82" cy="42" r="1.6" fill="#fff6d8" class="tree-sparkle" style="animation-delay:0.6s"/>
+      <circle cx="60" cy="28" r="1.8" fill="#fff6d8" class="tree-sparkle" style="animation-delay:1.2s"/>
+      <circle cx="70" cy="60" r="1.4" fill="#fff6d8" class="tree-sparkle" style="animation-delay:0.3s"/>`;
+    case 'ember': return `
+      <circle cx="46" cy="56" r="2.2" fill="#ff9d52" class="tree-ember"/>
+      <circle cx="66" cy="44" r="1.8" fill="#ffb066" class="tree-ember" style="animation-delay:0.5s"/>
+      <circle cx="74" cy="64" r="2" fill="#ff8040" class="tree-ember" style="animation-delay:1s"/>`;
+    case 'lantern': return `
+      <line x1="44" y1="70" x2="44" y2="80" stroke="#8a6a2a" stroke-width="1"/>
+      <rect x="40" y="80" width="8" height="10" rx="3" fill="#e8b64a" class="tree-lantern"/>
+      <line x1="78" y1="66" x2="78" y2="76" stroke="#8a6a2a" stroke-width="1"/>
+      <rect x="74" y="76" width="8" height="10" rx="3" fill="#e8b64a" class="tree-lantern" style="animation-delay:0.4s"/>`;
+    default: return '';
+  }
+}
 function treeSVGMarkup(species, idPrefix) {
   const [dark, mid, light] = species.palette;
-  const toriiBit = species.accent === 'torii' ? `
-    <path d="M42,118 L42,132 M78,118 L78,132" stroke="#a6342a" stroke-width="3.4" stroke-linecap="round"/>
-    <path d="M38,116 L82,116" stroke="#a6342a" stroke-width="4" stroke-linecap="round"/>
-    <path d="M40,121 L80,121" stroke="#a6342a" stroke-width="2.2" stroke-linecap="round"/>` : '';
+  const accentBack = treeAccentBack(species);
+  const toriiBit = treeAccentFront(species);
 
   if(species.shapeType === 'bamboo') {
-    return `<g>${[46,60,74].map((x,i) => `
+    return `${accentBack}<g>${[46,60,74].map((x,i) => `
         <rect x="${x-3}" y="${58+i*6}" width="6" height="${96-i*6}" rx="3" fill="${i===1?mid:dark}"/>
         <rect x="${x-4}" y="${70+i*6}" width="8" height="2.4" fill="#26361f"/>
         <rect x="${x-4}" y="${92+i*6}" width="8" height="2.4" fill="#26361f"/>
@@ -5481,6 +5633,7 @@ function treeSVGMarkup(species, idPrefix) {
   }
   if(species.shapeType === 'willow') {
     return `
+    ${accentBack}
     <defs><filter id="${idPrefix}-soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.2"/></filter></defs>
     <path d="M56,120 C54,100 55,80 58,60 L62,60 C65,80 66,100 64,120 Z" fill="#5a4030"/>
     <g filter="url(#${idPrefix}-soft)"><ellipse cx="60" cy="56" rx="26" ry="16" fill="${dark}"/></g>
@@ -5495,6 +5648,7 @@ function treeSVGMarkup(species, idPrefix) {
   };
   const blobs = blobsByShape[species.shapeType] || blobsByShape.round;
   return `
+  ${accentBack}
   <defs><filter id="${idPrefix}-soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.4"/></filter></defs>
   <g filter="url(#${idPrefix}-soft)">${blobs}</g>
   <g opacity="0.9">${blobs}</g>
@@ -5506,22 +5660,32 @@ function treeSVGMarkup(species, idPrefix) {
 
 // Dial tree: growth staged via layered opacity/scale, species-aware, with
 // distinct bamboo/willow mature-stage silhouettes and apples appearing during overtime.
+let lastDialTreeKey = '';
 function renderDialTree(pctOfSet, extraDiamonds) {
   const svg = document.getElementById('dial-tree');
-  if(!svg) return;
+  const fsSvg = document.getElementById('fs-dial-tree');
+  if(!svg && !fsSvg) return;
   const species = getSpecies(selectedTreeSpecies);
   const stage = pctOfSet < 0.12 ? 0 : pctOfSet < 0.4 ? 1 : pctOfSet < 0.75 ? 2 : 3;
+  const appleCount = Math.min(6, Math.round(extraDiamonds / 0.5));
+  // Skip rebuilding the (fairly involved) SVG markup unless something that actually
+  // affects the drawing changed — avoids needless DOM churn on every 1s tick.
+  const key = species.id + '|' + stage + '|' + appleCount + '|' + (stage < 3 ? Math.round(pctOfSet * 100) : '');
+  const needsInit = (svg && !svg.dataset.rendered) || (fsSvg && !fsSvg.dataset.rendered);
+  if(key === lastDialTreeKey && !needsInit) return;
+  lastDialTreeKey = key;
+
   const trunkScale = Math.max(0.16, Math.min(1, pctOfSet));
   const [dark, mid, light] = species.palette;
-  const appleCount = Math.min(6, Math.round(extraDiamonds / 0.5));
   const applePositions = [[42,52],[78,50],[60,38],[50,66],[72,68],[60,58]];
   const apples = applePositions.slice(0, appleCount).map(([x,y]) =>
     `<circle cx="${x}" cy="${y}" r="4" fill="var(--accent-red)" stroke="#3a1c16" stroke-width="0.6" class="apple-pop"/>`
   ).join('');
 
+  let markup;
   if(species.shapeType === 'bamboo') {
     const stalks = [[52,0],[60,1],[68,2]].slice(0, stage+1);
-    svg.innerHTML = `
+    markup = `
       <g style="transform-origin:60px 140px; transform:scaleY(${trunkScale}); transition: transform 0.6s ease-out">
         ${stalks.map(([x], i) => `
           <rect x="${x-3}" y="${40+i*8}" width="6" height="${100-i*8}" rx="3" fill="${i===1?mid:dark}"/>
@@ -5534,7 +5698,7 @@ function renderDialTree(pctOfSet, extraDiamonds) {
         ${stage>=3 ? apples : ''}
       </g>`;
   } else if(species.shapeType === 'willow' && stage >= 3) {
-    svg.innerHTML = `
+    markup = `
       <g style="transform-origin:60px 140px; transform:scaleY(${trunkScale}); transition: transform 0.6s ease-out">
         <path d="M57,140 C55,118 56,98 58,78 L62,78 C65,98 66,118 64,140 Z" fill="#5a4030"/>
       </g>
@@ -5545,7 +5709,7 @@ function renderDialTree(pctOfSet, extraDiamonds) {
         ${apples}
       </g>`;
   } else {
-    svg.innerHTML = `
+    markup = `
       <g class="tree-trunk-grp" style="transform-origin:60px 140px; transform:scaleY(${trunkScale}); transition: transform 0.6s ease-out">
         <path d="M57,140 C55,120 56,105 58,90 L62,90 C64,105 65,120 63,140 Z" fill="#6b4a35"/>
         ${stage >= 2 ? '<path d="M57,140 Q50,144 46,152" stroke="#4a3324" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M63,140 Q70,144 74,152" stroke="#4a3324" stroke-width="2.6" fill="none" stroke-linecap="round"/>' : ''}
@@ -5568,6 +5732,8 @@ function renderDialTree(pctOfSet, extraDiamonds) {
       ${stage === 0 ? `<ellipse cx="60" cy="150" rx="6" ry="2" fill="#000" opacity="0.15"/><path d="M59,150 L61,150 L60,138 Z" fill="${mid}"/><path d="M58,144 q-4,-3 -2,-7" stroke="${mid}" stroke-width="2" fill="none" stroke-linecap="round"/>` : ''}
     `;
   }
+  if(svg) { svg.innerHTML = markup; svg.dataset.rendered = '1'; }
+  if(fsSvg) { fsSvg.innerHTML = markup; fsSvg.dataset.rendered = '1'; }
 }
 
 // Pulls unlocked species / selected species / totals from currentUserData (with
@@ -5585,8 +5751,47 @@ function syncForestState() {
 function updateForestHUD() {
   const t = document.getElementById('forest-hud-trees');
   const a = document.getElementById('forest-hud-apples');
-  if(t) t.textContent = totalTreesPlanted;
-  if(a) a.textContent = (Math.round(totalApples*10)/10);
+  const treesVal = Math.round(Number(totalTreesPlanted) || 0);
+  const applesVal = Math.round((Number(totalApples) || 0) * 10) / 10;
+  if(t) t.textContent = treesVal;
+  if(a) a.textContent = applesVal;
+}
+
+// Recomputes totalTreesPlanted / totalApples from actual session history (see
+// calcDiamonds fix below) and overwrites the possibly-inflated stored totals.
+// Apples correctly subtract whatever has already been spent unlocking species,
+// so a purchase is never "refunded" by running this.
+async function recalcForestTotals() {
+  if(!currentUser) return;
+  try {
+    toast('🔁 Recalculating your totals…');
+    const snap = await db.collection('timerLogs').where('uid', '==', currentUser.uid).get();
+    let trees = 0, earnedApples = 0;
+    snap.docs.forEach(doc => {
+      const l = doc.data();
+      const setSecs = (l.setMins || 60) * 60;
+      trees += Math.ceil((l.setMins || 60) / 30);
+      const extraSecs = Math.max(0, (l.seconds || 0) - setSecs);
+      const extraMins = extraSecs / 60;
+      earnedApples += extraMins > 0 ? Math.ceil(extraMins / 30) * 0.5 : 0;
+    });
+    const spentApples = (currentUserData?.unlockedTreeSpecies || ['pine'])
+      .filter(id => id !== 'pine')
+      .reduce((s, id) => s + (getSpecies(id).cost || 0), 0);
+    const apples = Math.max(0, earnedApples - spentApples);
+    await db.collection('users').doc(currentUser.uid).update({
+      totalTreesPlanted: trees,
+      totalApples: apples
+    });
+    totalTreesPlanted = trees;
+    totalApples = apples;
+    updateForestHUD();
+    playSFX('success');
+    toast('✅ Totals fixed! 🌲 ' + trees + ' 🍎 ' + (Math.round(apples * 10) / 10));
+  } catch(err) {
+    playSFX('error');
+    toast('❌ Recalculate failed: ' + err.message);
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -5608,19 +5813,36 @@ function renderTreeShop() {
   if(!grid) return;
   const bal = document.getElementById('shop-apple-balance');
   if(bal) bal.textContent = (Math.round(totalApples*10)/10);
-  const species = shopFilter === 'owned' ? TREE_SPECIES.filter(s => unlockedTreeSpeciesSet.has(s.id)) : TREE_SPECIES;
-  grid.innerHTML = species.map(sp => {
+
+  function cardHTML(sp) {
     const unlocked = unlockedTreeSpeciesSet.has(sp.id);
     const selected = selectedTreeSpecies === sp.id;
     const canAfford = totalApples >= sp.cost;
     const statusLine = unlocked ? (selected ? 'Selected' : 'Tap to select') : ('🍎 ' + sp.cost + (canAfford ? '' : ' 🔒'));
-    return `<div class="shop-card ${unlocked ? '' : 'locked'} ${selected ? 'selected' : ''}" onclick="unlockOrSelectTree('${sp.id}')">
+    return `<div class="shop-card ${sp.tier === 'rare' ? 'rare-card' : ''} ${unlocked ? '' : 'locked'} ${selected ? 'selected' : ''}" onclick="unlockOrSelectTree('${sp.id}')">
       ${selected ? '<div class="sc-badge">✓</div>' : ''}
+      ${sp.tier === 'rare' ? '<div class="sc-rare-badge">★ RARE</div>' : ''}
       <svg viewBox="0 0 120 160">${treeSVGMarkup(sp, 'shop-' + sp.id)}</svg>
       <div class="sc-name">${sp.name}</div>
       <div class="sc-cost">${statusLine}</div>
     </div>`;
-  }).join('');
+  }
+
+  if(shopFilter === 'owned') {
+    const species = TREE_SPECIES.filter(s => unlockedTreeSpeciesSet.has(s.id));
+    grid.innerHTML = species.length
+      ? `<div class="shop-grid-cards">${species.map(cardHTML).join('')}</div>`
+      : `<div class="forest-empty">No trees unlocked yet</div>`;
+    return;
+  }
+  const ordinary = TREE_SPECIES.filter(s => s.tier !== 'rare');
+  const rare = TREE_SPECIES.filter(s => s.tier === 'rare');
+  grid.innerHTML = `
+    <div class="shop-section-title">🌱 Ordinary</div>
+    <div class="shop-grid-cards">${ordinary.map(cardHTML).join('')}</div>
+    <div class="shop-section-title rare">💎 Rare</div>
+    <div class="shop-grid-cards">${rare.map(cardHTML).join('')}</div>
+  `;
 }
 function unlockOrSelectTree(id) {
   if(unlockedTreeSpeciesSet.has(id)) {
@@ -5750,7 +5972,7 @@ function renderDial(val) {
   )`;
   if(handle) {
     const rad = angle * Math.PI / 180;
-    const r = 72; // sits mid-band between the ring's outer edge and the inset hole
+    const r = 102; // sits mid-band between the ring's outer edge and the inset hole (ring is 220px, inset 16px)
     const x = r * Math.sin(rad), y = -r * Math.cos(rad);
     handle.style.display = '';
     handle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
@@ -5826,9 +6048,131 @@ function initTimerFireflies() {
 }
 initTimerFireflies();
 
+// ═══════════════════════════════════════════
+// FOREST SKY — background automatically follows real device time + month
+//   Day    07:01–12:00 → light blue sky, sun, clouds, birds
+//   Sunset 12:01–17:00 → warm orange/yellow sky, low sun, birds
+//   Night  17:01–03:00 → unchanged dark-green sky + fireflies (as before)
+//   Dawn   03:01–07:00 → soft sunrise sky, birds
+//   Winter Dec–Feb → snowfall · Summer Mar–Jun → clear bright ·
+//   Monsoon Jul–Sep → rain · Autumn Oct–Nov → falling leaves
+// ═══════════════════════════════════════════
+function getForestTimePhase(d) {
+  const mins = d.getHours() * 60 + d.getMinutes();
+  if(mins >= 421 && mins <= 720) return 'day';     // 07:01–12:00
+  if(mins >= 721 && mins <= 1020) return 'sunset'; // 12:01–17:00
+  if(mins >= 181 && mins <= 420) return 'dawn';    // 03:01–07:00
+  return 'night';                                  // 17:01–03:00
+}
+function getForestSeason(d) {
+  const m = d.getMonth() + 1; // 1-12
+  if(m === 12 || m <= 2) return 'winter';
+  if(m >= 3 && m <= 6) return 'summer';
+  if(m >= 7 && m <= 9) return 'monsoon';
+  return 'autumn'; // Oct, Nov
+}
+let forestSkyState = { phase: null, season: null };
+function renderForestSky() {
+  const wrap = document.getElementById('forest-scene-wrap');
+  if(!wrap) return;
+  const now = new Date();
+  const phase = getForestTimePhase(now);
+  const season = getForestSeason(now);
+  if(phase !== forestSkyState.phase) {
+    wrap.classList.remove('sky-day', 'sky-sunset', 'sky-night', 'sky-dawn');
+    wrap.classList.add('sky-' + phase);
+    renderForestSun(phase);
+    renderForestClouds(phase);
+    renderForestBirds(phase);
+    const ff = document.getElementById('timer-fireflies');
+    if(ff) ff.style.display = (phase === 'night') ? '' : 'none';
+    forestSkyState.phase = phase;
+  }
+  if(season !== forestSkyState.season) {
+    renderForestSeasonFX(season);
+    forestSkyState.season = season;
+  }
+}
+function renderForestSun(phase) {
+  const el = document.getElementById('forest-sun');
+  if(!el) return;
+  if(phase === 'day') el.innerHTML = '<div class="fsun fsun-day"></div>';
+  else if(phase === 'sunset') el.innerHTML = '<div class="fsun fsun-sunset"></div>';
+  else if(phase === 'dawn') el.innerHTML = '<div class="fsun fsun-dawn"></div>';
+  else el.innerHTML = '<div class="fmoon"></div>';
+}
+function renderForestClouds(phase) {
+  const el = document.getElementById('forest-clouds');
+  if(!el) return;
+  if(phase === 'night') { el.innerHTML = ''; return; }
+  const warm = phase !== 'day';
+  const presets = [
+    { top:'14%', dur:'52s', delay:'0s' },
+    { top:'28%', dur:'68s', delay:'-22s' },
+    { top:'9%',  dur:'84s', delay:'-46s' }
+  ];
+  el.innerHTML = presets.map(p =>
+    `<div class="fcloud${warm ? ' fcloud-warm' : ''}" style="top:${p.top};left:-14%;animation-duration:${p.dur};animation-delay:${p.delay}"></div>`
+  ).join('');
+}
+function renderForestBirds(phase) {
+  const el = document.getElementById('forest-birds');
+  if(!el) return;
+  if(phase === 'night') { el.innerHTML = ''; return; }
+  const color = phase === 'day' ? '#3a3a3a' : (phase === 'sunset' ? '#4a2f28' : '#3a3f38');
+  const presets = [
+    { top:'16%', dur:'15s', delay:'0s' },
+    { top:'26%', dur:'19s', delay:'-6s' },
+    { top:'11%', dur:'23s', delay:'-13s' }
+  ];
+  el.innerHTML = presets.map(p =>
+    `<svg class="fbird" viewBox="0 0 24 12" style="top:${p.top};animation-duration:${p.dur};animation-delay:${p.delay}"><path d="M0,9 Q6,1 12,7 Q18,1 24,9" stroke="${color}" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`
+  ).join('');
+}
+function renderForestSeasonFX(season) {
+  const el = document.getElementById('forest-season-fx');
+  if(!el) return;
+  if(season === 'winter') {
+    let h = '';
+    for(let i = 0; i < 18; i++) {
+      const left = Math.round(Math.random() * 100);
+      const dur = (6 + Math.random() * 6).toFixed(1);
+      const delay = (Math.random() * 10).toFixed(1);
+      const size = (2 + Math.random() * 3).toFixed(1);
+      h += `<span class="ffx-snow" style="left:${left}%;width:${size}px;height:${size}px;animation-duration:${dur}s;animation-delay:-${delay}s"></span>`;
+    }
+    el.innerHTML = h;
+  } else if(season === 'monsoon') {
+    let h = '';
+    for(let i = 0; i < 16; i++) {
+      const left = Math.round(Math.random() * 100);
+      const dur = (0.6 + Math.random() * 0.5).toFixed(2);
+      const delay = (Math.random() * 1).toFixed(2);
+      h += `<span class="ffx-rain" style="left:${left}%;animation-duration:${dur}s;animation-delay:-${delay}s"></span>`;
+    }
+    el.innerHTML = h;
+  } else if(season === 'autumn') {
+    let h = '';
+    for(let i = 0; i < 10; i++) {
+      const left = Math.round(Math.random() * 100);
+      const dur = (7 + Math.random() * 5).toFixed(1);
+      const delay = (Math.random() * 10).toFixed(1);
+      h += `<span class="ffx-leaf" style="left:${left}%;animation-duration:${dur}s;animation-delay:-${delay}s"></span>`;
+    }
+    el.innerHTML = h;
+  } else {
+    el.innerHTML = ''; // summer — clear bright sky, no extra particles
+  }
+}
+renderForestSky();
+setInterval(renderForestSky, 60 * 1000);
+
 function calcDiamonds(elapsedSecs, setMins) {
-  const setDiamonds = Math.ceil(setMins / 15);
   const setTotalSecs = setMins * 60;
+  // Trees are only ever awarded for FULLY completing the time you set — see
+  // forestStop() for the all-or-nothing gate. This just computes what a
+  // completed session of this length is worth (also powers the live preview).
+  const setDiamonds = Math.ceil(setMins / 30);
   const extraSecs = Math.max(0, elapsedSecs - setTotalSecs);
   const extraMins = extraSecs / 60;
   const extraDiamonds = extraMins > 0 ? Math.ceil(extraMins / 30) * 0.5 : 0;
@@ -5919,6 +6263,14 @@ function forestStart() {
 
 async function forestStop() {
   if(!forestRunning) return;
+  const setTotalSecs = forestSetMins * 60;
+  const completed = forestElapsed >= setTotalSecs;
+
+  if(!completed) {
+    const proceed = confirm('⚠️ তুমি এখনো তোমার set করা সময় শেষ করনি!\nএখন থামলে কোনো tree/apple পাবে না, উল্টো তোমার total থেকে 2🌲 কমে যাবে।\nসত্যিই থামতে চাও?');
+    if(!proceed) return; // cancelled — keep the timer running
+  }
+
   clearInterval(forestInterval);
   clearInterval(forestAlertInterval);
   forestRunning = false;
@@ -5926,12 +6278,32 @@ async function forestStop() {
   document.getElementById('forest-start-btn').style.display = '';
   document.getElementById('forest-stop-btn').style.display = 'none';
   document.getElementById('slider-val-display').style.display = '';
-  if(forestElapsed < 60) {
-    toast('Session too short — minimum 1 minute needed');
+
+  if(!completed) {
+    // ── Quit before finishing: no reward, and a 2-tree penalty (never below 0). ──
+    try {
+      const penalty = Math.min(2, Math.round(Number(totalTreesPlanted) || 0));
+      if(penalty > 0) {
+        await db.collection('users').doc(currentUser.uid).update({
+          totalTreesPlanted: firebase.firestore.FieldValue.increment(-penalty)
+        });
+        totalTreesPlanted = Math.max(0, totalTreesPlanted - penalty);
+        updateForestHUD();
+      }
+      playSFX('error');
+      toast(penalty > 0 ? ('😔 Session incomplete — 🌲 -' + penalty) : '😔 Session incomplete — no reward this time');
+    } catch(err) {
+      playSFX('error');
+      toast('❌ ' + err.message);
+    }
     forestElapsed = 0;
     updateForestDisplay();
+    localStorage.removeItem('vm_timer_start');
+    localStorage.removeItem('vm_timer_setmins');
     return;
   }
+
+  // ── Completed! Full reward — same save flow as before. ──
   const {setDiamonds, extraDiamonds, total} = calcDiamonds(forestElapsed, forestSetMins);
   const hours = forestElapsed / 3600;
   const today = getLocalDateString();
@@ -6006,23 +6378,25 @@ async function loadTimerStats() {
   const today = getLocalDateString();
   const month = today.slice(0, 7);
   const year = today.slice(0, 4);
-  const snap = await db.collection('timerLogs').where('uid', '==', currentUser.uid).limit(500).get();
+  const {mon} = getCurrentWeekRange();
+  const weekStart = mon.toLocaleDateString('sv-SE');
+  const snap = await db.collection('timerLogs').where('uid', '==', currentUser.uid).limit(5000).get();
   const logs = snap.docs.map(d => d.data());
   const dailySecs = logs.filter(l => l.date === today).reduce((s, l) => s + l.seconds, 0);
+  const weeklySecs = logs.filter(l => l.date >= weekStart && l.date <= today).reduce((s, l) => s + l.seconds, 0);
   const monthlySecs = logs.filter(l => l.month === month).reduce((s, l) => s + l.seconds, 0);
   const yearlySecs = logs.filter(l => l.year === year).reduce((s, l) => s + l.seconds, 0);
   const totalSecs = logs.reduce((s, l) => s + l.seconds, 0);
-  const totalDiamonds = logs.reduce((s, l) => s + (l.diamonds || 0), 0);
   function fmtH(sec) { return (sec / 3600).toFixed(1) + 'h'; }
-  const ids = ['timer-daily-time', 'timer-monthly-time', 'timer-yearly-time'];
+  const ids = ['timer-daily-time', 'timer-weekly-time', 'timer-monthly-time', 'timer-yearly-time'];
   ids.forEach((id, i) => {
     const el = document.getElementById(id);
-    if(el) el.textContent = fmtH([dailySecs, monthlySecs, yearlySecs][i]);
+    if(el) el.textContent = fmtH([dailySecs, weeklySecs, monthlySecs, yearlySecs][i]);
   });
   const ttEl = document.getElementById('timer-total-time');
   if(ttEl) ttEl.textContent = fmtH(totalSecs);
-  const tdEl = document.getElementById('timer-total-diamonds');
-  if(tdEl) tdEl.textContent = totalDiamonds.toFixed(1);
+  // SESSIONS: only ever counts fully-completed sessions — an early stop/quit
+  // is never saved as a timerLog (see forestStop()), so logs.length is exact.
   const tsEl = document.getElementById('timer-sessions');
   if(tsEl) tsEl.textContent = logs.length;
   timerLogsCache = logs;
@@ -6067,7 +6441,7 @@ function timerHistoryEmptyRow(colspan, text) {
 // so historical sessions still render correctly in the Forest and History.
 function logTrees(l) {
   if(l.trees !== undefined) return l.trees;
-  return Math.ceil((l.setMins || 60) / 15);
+  return Math.ceil((l.setMins || 60) / 30);
 }
 function logApples(l) {
   if(l.apples !== undefined) return l.apples;
@@ -6080,11 +6454,110 @@ function treeSizeFor(n) {
   if(n <= 120) return 18;
   return 13;
 }
+// ── Forest reshuffle: re-lays out the planted trees in a fresh pattern each
+// time the 🔀 button is tapped — same trees, different arrangement/jitter. ──
+let lastForestMatchingLogs = null;
+let forestPattern = 'natural';
+let forestShuffleSeed = 1;
+
+function layoutGrid(n) {
+  const cols = Math.max(1, Math.ceil(Math.sqrt(n * 1.3)));
+  const rows = Math.ceil(n / cols);
+  const positions = [];
+  for(let i = 0; i < n; i++) {
+    const col = i % cols, row = Math.floor(i / cols);
+    positions.push({ x: (col + 0.5) / cols * 84 + 8, y: 18 + (row + 0.5) / rows * 74 });
+  }
+  return positions;
+}
+function layoutCircle(n) {
+  const positions = [];
+  let idx = 0, ring = 0;
+  const cx = 50, cy = 56;
+  while(idx < n) {
+    const capacity = ring === 0 ? 1 : ring * 6;
+    const ringRadius = ring * 15;
+    for(let k = 0; k < capacity && idx < n; k++, idx++) {
+      const angle = (k / capacity) * Math.PI * 2 + ring * 0.4;
+      const x = cx + ringRadius * Math.cos(angle) * 0.9;
+      const y = cy + ringRadius * Math.sin(angle) * 0.75;
+      positions.push({ x: Math.max(4, Math.min(96, x)), y: Math.max(16, Math.min(94, y)) });
+    }
+    ring++;
+  }
+  return positions;
+}
+function layoutWave(n) {
+  const cols = Math.max(1, Math.ceil(Math.sqrt(n * 1.5)));
+  const rows = Math.ceil(n / cols);
+  const positions = [];
+  for(let i = 0; i < n; i++) {
+    const col = i % cols, row = Math.floor(i / cols);
+    const wobble = Math.sin(col * 0.9 + row * 0.5) * 6;
+    const x = (col + 0.5) / cols * 84 + 8;
+    const y = 20 + (row + 0.5) / rows * 68 + wobble;
+    positions.push({ x, y: Math.max(16, Math.min(94, y)) });
+  }
+  return positions;
+}
+
+// Distributes n points evenly (by arc-length) along a polyline given as
+// [[x,y], ...] percentage vertices. Pass closed=true to auto-close the loop
+// back to the first vertex (for plain outline shapes like square/hexagon);
+// pass closed=false when the vertex list already closes itself (letters).
+function pointsAlongPolyline(vertices, n, closed) {
+  const verts = closed ? vertices.concat([vertices[0]]) : vertices;
+  const segLens = [];
+  let total = 0;
+  for(let i = 0; i < verts.length - 1; i++) {
+    const dx = verts[i+1][0] - verts[i][0], dy = verts[i+1][1] - verts[i][1];
+    const len = Math.sqrt(dx*dx + dy*dy) || 0.0001;
+    segLens.push(len);
+    total += len;
+  }
+  const positions = [];
+  for(let i = 0; i < n; i++) {
+    const target = (i / n) * total;
+    let acc = 0, segIdx = 0;
+    while(segIdx < segLens.length - 1 && acc + segLens[segIdx] < target) { acc += segLens[segIdx]; segIdx++; }
+    const segStart = verts[segIdx], segEnd = verts[segIdx+1];
+    const t = Math.max(0, Math.min(1, (target - acc) / segLens[segIdx]));
+    positions.push({ x: segStart[0] + (segEnd[0] - segStart[0]) * t, y: segStart[1] + (segEnd[1] - segStart[1]) * t });
+  }
+  return positions;
+}
+function layoutSquare(n) {
+  return pointsAlongPolyline([[18,20],[82,20],[82,90],[18,90]], n, true);
+}
+function layoutTriangle(n) {
+  return pointsAlongPolyline([[50,17],[85,90],[15,90]], n, true);
+}
+function layoutHexagon(n) {
+  const cx = 50, cy = 55, rx = 36, ry = 32, verts = [];
+  for(let a = 0; a < 6; a++) {
+    const ang = Math.PI / 180 * (60 * a - 90);
+    verts.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]);
+  }
+  return pointsAlongPolyline(verts, n, true);
+}
+function layoutLetterB(n) {
+  const verts = [
+    [25,90],[25,20],[52,20],[66,26],[66,42],[52,50],[25,50],
+    [58,50],[74,60],[74,78],[58,90],[25,90]
+  ];
+  return pointsAlongPolyline(verts, n, false);
+}
+function layoutLetterP(n) {
+  const verts = [[28,90],[28,20],[55,20],[70,28],[70,46],[55,54],[28,54],[28,90]];
+  return pointsAlongPolyline(verts, n, false);
+}
+
 function renderTimerForestScene(matchingLogs) {
+  lastForestMatchingLogs = matchingLogs;
   const scene = document.getElementById('timer-forest-scene');
   const pill = document.getElementById('timer-forest-count-pill');
   if(!scene) return;
-  const units = [];
+  let units = [];
   matchingLogs.forEach(l => {
     const n = Math.round(logTrees(l));
     for(let i = 0; i < n; i++) units.push(l.speciesId || 'pine');
@@ -6092,15 +6565,39 @@ function renderTimerForestScene(matchingLogs) {
   const treeCount = units.length;
   if(pill) pill.textContent = treeCount + (treeCount===1 ? ' tree' : ' trees');
   if(!treeCount) { scene.innerHTML = '<div class="forest-empty">🌱 No trees planted yet for this period</div>'; return; }
+
+  const rnd = mulberry32(treeCount * 7919 + 13 + forestShuffleSeed);
+
+  if(forestPattern !== 'natural') {
+    units = units.slice();
+    for(let i = units.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [units[i], units[j]] = [units[j], units[i]];
+    }
+  }
+
   const size = treeSizeFor(treeCount);
-  const rnd = mulberry32(treeCount * 7919 + 13);
+  let positions = null;
+  if(forestPattern === 'grid') positions = layoutGrid(treeCount);
+  else if(forestPattern === 'circle') positions = layoutCircle(treeCount);
+  else if(forestPattern === 'wave') positions = layoutWave(treeCount);
+  else if(forestPattern === 'square') positions = layoutSquare(treeCount);
+  else if(forestPattern === 'triangle') positions = layoutTriangle(treeCount);
+  else if(forestPattern === 'hexagon') positions = layoutHexagon(treeCount);
+  else if(forestPattern === 'letterB') positions = layoutLetterB(treeCount);
+  else if(forestPattern === 'letterP') positions = layoutLetterP(treeCount);
+
   let html = '';
   units.forEach((speciesId, i) => {
     const species = getSpecies(speciesId);
     const rot = (rnd()*14 - 7).toFixed(1);
     const dy = (rnd()*6 - 3).toFixed(1);
     const scaleJ = (0.9 + rnd()*0.22).toFixed(2);
-    html += `<div class="forest-tree-slot" style="width:${size+10}px;height:${size*1.35+8}px">
+    const w = size + 10, h = size * 1.35 + 8;
+    const posStyle = positions
+      ? `position:absolute;left:calc(${positions[i].x}% - ${(w/2).toFixed(1)}px);top:calc(${positions[i].y}% - ${(h/2).toFixed(1)}px);animation-delay:${(i*0.012).toFixed(3)}s;`
+      : '';
+    html += `<div class="forest-tree-slot" style="width:${w}px;height:${h}px;${posStyle}">
       <svg viewBox="0 0 120 160" width="${size}" height="${size*1.35}"
            style="transform: rotate(${rot}deg) translateY(${dy}px) scale(${scaleJ}); transform-origin:60px 145px">
         ${treeSVGMarkup(species, 'tf' + i)}
@@ -6108,6 +6605,17 @@ function renderTimerForestScene(matchingLogs) {
     </div>`;
   });
   scene.innerHTML = html;
+}
+
+function reshuffleForest() {
+  if(!lastForestMatchingLogs || !lastForestMatchingLogs.length) { toast('🌱 Plant some trees first!'); return; }
+  const patterns = ['natural', 'grid', 'circle', 'wave', 'square', 'triangle', 'hexagon', 'letterB', 'letterP'];
+  let next = forestPattern;
+  while(next === forestPattern) next = patterns[Math.floor(Math.random() * patterns.length)];
+  forestPattern = next;
+  forestShuffleSeed = Math.floor(Math.random() * 1e9) + 1;
+  renderTimerForestScene(lastForestMatchingLogs);
+  playSFX('click');
 }
 
 function renderTimerHistory() {
@@ -6747,7 +7255,7 @@ function switchTab(tab) {
   }
   if(tab === 'home') { renderHomeTasks(); updateHomeGoal(); refreshWeeklyChallenge(); }
   if(tab === 'rewards') setTimeout(renderGuildStore, 50);
-  if(tab === 'timer') { renderTimerSubjects(); loadTimerStats(); }
+  if(tab === 'timer') { renderTimerSubjects(); loadTimerStats(); updateForestHUD(); renderForestSky(); }
   if(tab === 'courses') refreshCoursesList();
   if(tab === 'exams') refreshExamsList();
 }
@@ -7906,9 +8414,16 @@ function fsUpdateDisplay() {
   const stopBtn = document.getElementById('fs-stop-btn');
   if(stopBtn) { stopBtn.textContent = forestRunning ? '⏹ Stop' : '▶ Start'; stopBtn.className = forestRunning ? 'fs-btn fs-btn-stop' : 'fs-btn fs-btn-resume'; }
 
-  const {setDiamonds, extraDiamonds, total} = calcDiamonds(elapsed, forestSetMins);
+ const {setDiamonds, extraDiamonds, total} = calcDiamonds(elapsed, forestSetMins);
+  renderDialTree(forestRunning ? elapsed / setTotalSecs : 0, forestRunning ? extraDiamonds : 0);
   const dmd = document.getElementById('fs-diamonds');
-  if(dmd) dmd.textContent = forestRunning && isOvertime ? `💎 ${setDiamonds} + ${extraDiamonds.toFixed(1)} extra = ${total.toFixed(1)}` : `💎 ${setDiamonds} diamonds on completion`;
+  if(dmd) {
+    if(forestRunning && isOvertime) {
+      dmd.textContent = '🌲 ' + setDiamonds + (extraDiamonds ? ' + 🍎 ' + extraDiamonds.toFixed(1) : '');
+    } else {
+      dmd.textContent = '🌲 ' + setDiamonds + ' tree' + (setDiamonds===1?'':'s') + ' on completion';
+    }
+  }
 }
 
 function fsPause() {
