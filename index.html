@@ -5809,12 +5809,12 @@ async function recalcForestTotals() {
       const extraMins = extraSecs / 60;
 earnedApples += calcExtraApples(extraMins);
     });
-    const spentApples = (currentUserData?.unlockedTreeSpecies || ['pine'])
-      .filter(id => id !== 'pine')
-      .reduce((s, id) => s + (getSpecies(id).cost || 0), 0);
-    const apples = Math.max(0, earnedApples - spentApples);
+    const treesPenalized = Number(currentUserData?.totalTreesPenalized) || 0;
+    const applesSpent = Number(currentUserData?.totalApplesSpent) || 0;
+    const finalTrees = Math.max(0, trees - treesPenalized);
+    const apples = Math.max(0, earnedApples - applesSpent);
     await db.collection('users').doc(currentUser.uid).update({
-      totalTreesPlanted: trees,
+      totalTreesPlanted: finalTrees,
       totalApples: apples
     });
     totalTreesPlanted = trees;
@@ -5908,10 +5908,11 @@ async function confirmTreePurchase() {
   if(totalApples < sp.cost) { toast('Not enough apples yet'); return; }
   try {
     await db.collection('users').doc(currentUser.uid).update({
-      totalApples: firebase.firestore.FieldValue.increment(-sp.cost),
-      unlockedTreeSpecies: firebase.firestore.FieldValue.arrayUnion(id),
-      selectedTreeSpecies: id
-    });
+  totalApples: firebase.firestore.FieldValue.increment(-sp.cost),
+  totalApplesSpent: firebase.firestore.FieldValue.increment(sp.cost),
+  unlockedTreeSpecies: firebase.firestore.FieldValue.arrayUnion(id),
+  selectedTreeSpecies: id
+});
     totalApples -= sp.cost;
     unlockedTreeSpeciesSet.add(id);
     selectedTreeSpecies = id;
@@ -6326,7 +6327,8 @@ async function forestStop() {
       const penalty = Math.min(2, Math.round(Number(totalTreesPlanted) || 0));
       if(penalty > 0) {
         await db.collection('users').doc(currentUser.uid).update({
-          totalTreesPlanted: firebase.firestore.FieldValue.increment(-penalty)
+  totalTreesPlanted: firebase.firestore.FieldValue.increment(-penalty),
+  totalTreesPenalized: firebase.firestore.FieldValue.increment(penalty)
         });
         totalTreesPlanted = Math.max(0, totalTreesPlanted - penalty);
         updateForestHUD();
