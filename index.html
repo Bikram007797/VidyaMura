@@ -5574,6 +5574,7 @@ let forestElapsed = 0;
 let forestSetMins = 60; 
 let forestSetSecs = 0; 
 let forestAlertPlayed = false; 
+let forestOvertimeRepeatsPlayed = 0;
 let timerSelectedSubject = null; 
 let timerSubjects = JSON.parse(localStorage.getItem('dq_subjects') || '["Math","Science","History","English"]');
 
@@ -5940,37 +5941,7 @@ async function selectTreeSpecies(id) {
   }
 }
 
-function playAlert() {
-  // Both the alert and the BGM play at full volume, so the alert used to get
-  // buried under the music. Duck (pause) whatever's currently playing for the
-  // duration of the alert, then resume it right after — same behavior for the
-  // audio-file BGMs and the Web Audio "Tune".
-  const duckedBgmKey = (currentTimerSound && TIMER_BGM_FILES[currentTimerSound]) ? currentTimerSound : null;
-  const duckedBgmAudio = duckedBgmKey ? timerBgmAudioCache[duckedBgmKey] : null;
-  const wasBgmPlaying = !!(duckedBgmAudio && !duckedBgmAudio.paused);
-  const wasTunePlaying = currentTimerSound === 'tune' && !!fsTuneGain;
-  const tuneOriginalGain = wasTunePlaying ? fsTuneGain.gain.value : null;
 
-  if(wasBgmPlaying) { try { duckedBgmAudio.pause(); } catch(e) {} }
-  if(wasTunePlaying) { try { fsTuneGain.gain.value = 0; } catch(e) {} }
-
-  try {
-    const a = new Audio('audio/Timer Alert.mp3');
-    a.volume = 1.0;
-    a.play().catch(() => {});
-    setTimeout(() => {
-      try { a.pause(); a.currentTime = 0; } catch(e) {}
-      // Only resume if that sound is still the active selection and not muted —
-      // the user may have switched or turned off sound during the alert.
-      if(wasBgmPlaying && currentTimerSound === duckedBgmKey && !fsMuted) {
-        try { duckedBgmAudio.play().catch(() => {}); } catch(e) {}
-      }
-      if(wasTunePlaying && currentTimerSound === 'tune' && !fsMuted && fsTuneGain) {
-        try { fsTuneGain.gain.value = tuneOriginalGain; } catch(e) {}
-      }
-    }, 5000);
-  } catch(e) {}
-}
 
 // ═══════════════════════════════════════════
 // CIRCULAR DRAG-DIAL for "set your time" (Forest-app style)
@@ -6283,22 +6254,20 @@ function forestStart() {
   forestSetSecs = forestSetMins * 60;
   forestRunning = true;
   forestAlertPlayed = false;
+  forestOvertimeRepeatsPlayed = 0;
   document.getElementById('forest-start-btn').style.display = 'none';
   document.getElementById('forest-stop-btn').style.display = '';
   document.getElementById('forest-dial-handle').style.display = 'none';
   document.getElementById('slider-val-display').style.display = 'none';
+  requestAlertNotifyPermission();
+  startKeepAlive();
   startCurrentTimerSound();
+  scheduleUpcomingAlerts();
   forestInterval = setInterval(() => {
     forestElapsed++;
     updateForestDisplay();
     if(typeof fsOpen !== 'undefined' && fsOpen && !fsPaused) fsPlayTick();
-    if(forestElapsed === forestSetSecs && !forestAlertPlayed) {
-      playAlert();
-      forestAlertPlayed = true;
-      forestAlertInterval = setInterval(playAlert, 30 * 60 * 1000);
-    }
   }, 1000);
-  // Store start time for background re-sync
   localStorage.setItem('vm_timer_start', Date.now().toString());
   localStorage.setItem('vm_timer_setmins', forestSetMins.toString());
 }
@@ -6317,6 +6286,8 @@ async function forestStop() {
   clearInterval(forestAlertInterval);
   forestRunning = false;
   stopAllTimerSounds();
+  clearScheduledAlerts();
+stopKeepAlive();
   document.getElementById('forest-start-btn').style.display = '';
   document.getElementById('forest-stop-btn').style.display = 'none';
   document.getElementById('slider-val-display').style.display = '';
@@ -8158,7 +8129,167 @@ const TIMER_BGM_FILES = {
   bgm4: 'audio/Timer bgm 4.mp3',
   bgm5: 'audio/Timer bgm 5.mp3'
 };
-const timerBgmAudioCache = {};
+
+// ═══════════════════════════════════════════════════════════
+// RELIABLE BACKGROUND AUDIO
+// Main alert + all overtime repeat-alerts are scheduled AHEAD OF TIME on the
+// browser's audio-rendering clock (AudioBufferSourceNode.start(when)) right
+// when the session starts — not decided later by setInterval. This clock
+// keeps running even when the JS main thread is throttled (screen locked),
+// which is how music/podcast apps keep playing in the background. A silent
+// "keep-alive" loop stays active the whole session so the OS treats the tab
+// as doing real media playback and doesn't fully suspend it.
+// ═══════════════════════════════════════════════════════════
+let schedCtx = null;
+function getSchedCtx() {
+  if(!schedCtx || schedCtx.state === 'closed') {
+    schedCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if(schedCtx.state === 'suspended') schedCtx.resume().catch(() => {});
+  return schedCtx;
+}
+
+const audioBufferCache = {};
+function loadBuffer(url) {
+  if(!audioBufferCache[url]) {
+    audioBufferCache[url] = fetch(url)
+      .then(r => r.arrayBuffer())
+      .then(ab => getSchedCtx().decodeAudioData(ab));
+  }
+  return audioBufferCache[url];
+}
+
+let keepAliveSource = null;
+function startKeepAlive() {
+  const ctx = getSchedCtx();
+  stopKeepAlive();
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+  keepAliveSource = ctx.createBufferSource();
+  keepAliveSource.buffer = buf;
+  keepAliveSource.loop = true;
+  const g = ctx.createGain();
+  g.gain.value = 0.0001;
+  keepAliveSource.connect(g).connect(ctx.destination);
+  keepAliveSource.start();
+}
+function stopKeepAlive() {
+  try { if(keepAliveSource) { keepAliveSource.stop(); keepAliveSource.disconnect(); } } catch(e) {}
+  keepAliveSource = null;
+}
+
+// BGM — looped through Web Audio (not a plain <audio> tag) so its volume can
+// be automated (ducked) at the exact same audio-clock instant as each alert.
+let bgmSource = null, bgmGain = null;
+async function startSchedBgm(key) {
+  stopSchedBgm();
+  if(!TIMER_BGM_FILES[key]) return;
+  try {
+    const ctx = getSchedCtx();
+    const buf = await loadBuffer(TIMER_BGM_FILES[key]);
+    if(currentTimerSound !== key || !forestRunning) return;
+    bgmSource = ctx.createBufferSource();
+    bgmSource.buffer = buf;
+    bgmSource.loop = true;
+    bgmGain = ctx.createGain();
+    bgmGain.gain.value = fsMuted ? 0 : 1.0;
+    bgmSource.connect(bgmGain).connect(ctx.destination);
+    bgmSource.start();
+  } catch(e) {}
+}
+function stopSchedBgm() {
+  try { if(bgmSource) { bgmSource.stop(); bgmSource.disconnect(); } } catch(e) {}
+  bgmSource = null;
+  try { if(bgmGain) bgmGain.disconnect(); } catch(e) {}
+  bgmGain = null;
+}
+
+let scheduledAlerts = [];
+function clearScheduledAlerts() {
+  scheduledAlerts.forEach(src => { try { src.stop(); } catch(e) {} });
+  scheduledAlerts = [];
+}
+
+// Schedules the completion alert (if not played yet) plus up to 24 further
+// 30-min overtime repeats (12 hours — plenty), all at once, right now.
+async function scheduleUpcomingAlerts() {
+  clearScheduledAlerts();
+  const ctx = getSchedCtx();
+  let buf;
+  try { buf = await loadBuffer('audio/Timer Alert.mp3'); } catch(e) { return; }
+  if(!forestRunning || fsPaused) return;
+
+  const REPEAT_SECS = 30 * 60;
+  const MAX_REPEATS = 24;
+  const alreadyPlayed = forestAlertPlayed;
+  const repeatsSoFar = forestOvertimeRepeatsPlayed;
+
+  let firstDelay;
+  if(!alreadyPlayed) {
+    firstDelay = Math.max(0, forestSetSecs - forestElapsed);
+  } else {
+    const overtimeSoFar = forestElapsed - forestSetSecs;
+    firstDelay = Math.max(0, (repeatsSoFar + 1) * REPEAT_SECS - overtimeSoFar);
+  }
+
+  const startAt = ctx.currentTime + firstDelay;
+  for(let i = 0; i <= MAX_REPEATS; i++) {
+    const t = startAt + i * REPEAT_SECS;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(t);
+    scheduledAlerts.push(src);
+
+    if(bgmGain) {
+      const dip = 0.15, dur = buf.duration || 3;
+      bgmGain.gain.setValueAtTime(bgmGain.gain.value, Math.max(ctx.currentTime, t - dip));
+      bgmGain.gain.linearRampToValueAtTime(0, t);
+      bgmGain.gain.setValueAtTime(0, t + dur);
+      bgmGain.gain.linearRampToValueAtTime(fsMuted ? 0 : 1.0, t + dur + 0.3);
+    }
+
+    const isMainAlert = (!alreadyPlayed && i === 0);
+    const msUntil = Math.max(0, (t - ctx.currentTime) * 1000);
+    setTimeout(() => {
+      if(!forestRunning) return;
+      forestAlertPlayed = true;
+      if(!isMainAlert) forestOvertimeRepeatsPlayed = (alreadyPlayed ? repeatsSoFar + i + 1 : i);
+      showAlertNotification();
+      toast(isMainAlert ? '⏰ Time\'s up! Keep going for bonus apples 🍎' : '⏰ Overtime check-in');
+    }, msUntil);
+  }
+}
+
+function requestAlertNotifyPermission() {
+  if('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission().catch(() => {});
+  }
+}
+function showAlertNotification() {
+  try {
+    if('Notification' in window && Notification.permission === 'granted') {
+      new Notification('⏰ VidyaMura Timer', { body: 'তোমার timer সময় হয়ে গেছে!' });
+    }
+  } catch(e) {}
+}
+
+// Ambience only (tune + BGM). Does NOT touch scheduled alerts/keep-alive —
+// those are torn down explicitly only on real pause/stop (see below), so
+// muting or switching sound never cancels the pending completion alert.
+function stopAllTimerSounds() {
+  fsStopTune();
+  stopSchedBgm();
+}
+
+function startCurrentTimerSound() {
+  if(fsMuted || !currentTimerSound) return;
+  if(currentTimerSound === 'tune') {
+    fsStartTune();
+  } else if(currentTimerSound !== 'tick' && TIMER_BGM_FILES[currentTimerSound]) {
+    startSchedBgm(currentTimerSound);
+  }
+}
+
 
 // Audio context for tick/tune sounds (Web Audio API — no file needed)
 let fsAudioCtx = null;
@@ -8256,39 +8387,6 @@ function fsStartTune() {
 
 function fsStopTune() {
   try { if(fsTuneGain) fsTuneGain.gain.value = 0; } catch(e) {}
-}
-
-function getTimerBgmAudio(key) {
-  if(!timerBgmAudioCache[key]) {
-    const a = new Audio(TIMER_BGM_FILES[key]);
-    a.loop = true;
-    a.volume = 1.0;
-    a.preload = 'auto';
-    timerBgmAudioCache[key] = a;
-  }
-  return timerBgmAudioCache[key];
-}
-
-// Stops every possible timer sound source — used before switching or on Stop.
-function stopAllTimerSounds() {
-  fsStopTune();
-  Object.values(timerBgmAudioCache).forEach(a => {
-    try { a.pause(); } catch(e) {}
-  });
-}
-
-// Actually starts whatever `currentTimerSound` currently points to.
-function startCurrentTimerSound() {
-  if(fsMuted || !currentTimerSound) return;
-  if(currentTimerSound === 'tune') {
-    fsStartTune();
-  } else if(currentTimerSound !== 'tick' && TIMER_BGM_FILES[currentTimerSound]) {
-    const a = getTimerBgmAudio(currentTimerSound);
-    try { a.currentTime = 0; } catch(e) {}
-    a.volume = 1.0;
-    a.play().catch(() => {});
-  }
-  // 'tick' needs no continuous start — it's fired once per second by fsPlayTick()
 }
 
 const TIMER_SOUND_LABELS = {
@@ -8477,17 +8575,17 @@ function fsPause() {
     forestInterval = setInterval(() => {
       forestElapsed++;
       updateForestDisplay();
-      if(forestElapsed === forestSetSecs && !forestAlertPlayed) {
-        playAlert(); forestAlertPlayed = true;
-        forestAlertInterval = setInterval(playAlert, 30*60*1000);
-      }
     }, 1000);
     startCurrentTimerSound();
+    startKeepAlive();
+    scheduleUpcomingAlerts();
   } else {
     // Pause
     fsPaused = true;
     clearInterval(forestInterval);
     stopAllTimerSounds();
+    clearScheduledAlerts();
+    stopKeepAlive();
   }
   fsUpdateDisplay();
 }
@@ -8497,6 +8595,8 @@ function fsRestart() {
   forestElapsed = 0; forestAlertPlayed = false; fsPaused = false;
   forestRunning = false;
   stopAllTimerSounds();
+  clearScheduledAlerts();
+stopKeepAlive();
   updateForestDisplay();
   fsUpdateDisplay();
   setTimeout(() => { forestStart(); }, 100);
@@ -8523,6 +8623,12 @@ document.addEventListener('visibilitychange', () => {
     if(startTs) {
       const elapsed = Math.floor((Date.now() - startTs) / 1000);
       if(elapsed > forestElapsed) { forestElapsed = elapsed; updateForestDisplay(); }
+    }
+    if(forestElapsed >= forestSetSecs && !forestAlertPlayed) {
+      forestAlertPlayed = true;
+      try { new Audio('audio/Timer Alert.mp3').play().catch(() => {}); } catch(e) {}
+      showAlertNotification();
+      scheduleUpcomingAlerts();
     }
   }
 });
