@@ -1058,7 +1058,7 @@ select {
   border-radius: 20px; padding: 22px 18px 18px; margin-bottom: 16px; text-align: center;
 }
 .forest-ring {
-  width: 220px; height: 220px; border-radius: 50%; margin: 0 auto 14px;
+width: min(280px, 75vw); height: min(280px, 75vw); border-radius: 50%; margin: 0 auto 14px;
   background: conic-gradient(var(--accent-purple) 0%, var(--bg-elevated) 0%);
   display: flex; align-items: center; justify-content: center;
   position: relative; transition: background 0.5s;
@@ -5999,7 +5999,8 @@ function renderDial(val) {
   )`;
   if(handle) {
     const rad = angle * Math.PI / 180;
-    const r = 102; // sits mid-band between the ring's outer edge and the inset hole (ring is 220px, inset 16px)
+    const rect = ring.getBoundingClientRect();
+const r = (rect.width / 2) * 0.927; // sits mid-band between the ring's outer edge and the inset hole (ring is 220px, inset 16px)
     const x = r * Math.sin(rad), y = -r * Math.cos(rad);
     handle.style.display = '';
     handle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
@@ -6084,6 +6085,7 @@ function forestDialPointerDown(e) {
   dialCenterTapCandidate = false;
   e.preventDefault();
   dialDragging = true;
+   ring.style.transition = 'none';
   const ring = document.getElementById('forest-ring');
   if(ring && ring.setPointerCapture) { try { ring.setPointerCapture(e.pointerId); } catch(err) {} }
   setDialValue(valueFromAngle(angleFromPointerEvent(e)));
@@ -6101,6 +6103,7 @@ function forestDialPointerUp(e) {
     return;
   }
   dialDragging = false;
+   ring.style.transition = '';
 }
 
 // ── Fullscreen dial: same drag-to-set-time + center-tap-opens-shop behavior ──
@@ -6113,6 +6116,7 @@ function fsDialPointerDown(e) {
   dialCenterTapCandidate = false;
   e.preventDefault();
   dialDragging = true;
+   ring.style.transition = 'none';
   const ring = document.getElementById('fs-ring');
   if(ring && ring.setPointerCapture) { try { ring.setPointerCapture(e.pointerId); } catch(err) {} }
   setDialValue(valueFromAngle(angleFromPointerEvent(e, 'fs-ring')));
@@ -6130,6 +6134,7 @@ function fsDialPointerUp(e) {
     return;
   }
   dialDragging = false;
+   ring.style.transition = '';
 }
 
 (function initForestDial() {
@@ -8483,11 +8488,11 @@ function playDialTick() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'triangle';
-    osc.frequency.value = 480 + Math.random() * 60;
-    gain.gain.setValueAtTime(0.14, ctx.currentTime);
+    osc.type = 'triangle';                              // ← wave shape: 'sine' (নরম), 'square'/'sawtooth' (কর্কশ)
+    osc.frequency.value = 480 + Math.random() * 60;      // ← pitch: কমালে গম্ভীর, বাড়ালে চিকন
+    gain.gain.setValueAtTime(0.14, ctx.currentTime);     // ← volume
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.06);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.06);  // ← duration (কমালে আরও snappy)
   } catch(e) {}
 }
 
