@@ -221,12 +221,19 @@
   display: flex; align-items: center; justify-content: center;
   position: relative; margin-bottom: 20px;
   box-shadow: 0 0 48px rgba(136,179,148,0.18); transition: background 0.6s;
+  touch-action: none;
 }
 .fs-ring::before {
   content: ''; position: absolute; inset: 13px;
   border-radius: 50%; background: var(--bg-deep);
 }
 .fs-ring-inner { position: absolute; inset: 13px; z-index: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 8%; }
+.fs-dial-handle {
+  position: absolute; top: 50%; left: 50%; width: 22px; height: 22px;
+  border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-purple));
+  border: 2px solid var(--bg-deep); box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  z-index: 3; pointer-events: none; display: none;
+}
 .fs-dial-tree-stage { width: 54%; height: 68%; max-width: 150px; max-height: 190px; }
 .fs-time {
   font-family: var(--font-head);
@@ -546,7 +553,7 @@ body {
 ═══════════════════════════════════════ */
 .modal-overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.78); z-index: 200;
+  background: rgba(0,0,0,0.78); z-index: 950;
   align-items: flex-end; justify-content: center;
 }
 .modal-overlay.open { display: flex; animation: overlayIn 0.2s ease; }
@@ -2454,7 +2461,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     <div class="section-title" style="margin-bottom:8px">Subject Tag</div>
     <div class="timer-subject-chips" id="timer-subject-chips"></div>
     <div class="timer-add-subject">
-      <input type="text" id="timer-new-subject" placeholder="Add new subject..." style="flex:1;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:10px 14px;font-size: 0.9rem;outline:none">
+      <input type="text" id="timer-new-subject" placeholder="Add your own subject..." style="flex:1;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:10px 14px;font-size: 0.9rem;outline:none">
       <button class="btn-add" onclick="timerAddSubject()">+ Add</button>
     </div>
     <div class="divider"></div>
@@ -2624,6 +2631,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
     <div class="fs-time" id="fs-display">00:00</div>
     <div class="fs-extra" id="fs-extra" style="display:none"></div>
   </div>
+  <div class="fs-dial-handle" id="fs-dial-handle"></div>
 </div>
     <div class="fs-subject" id="fs-subject">No subject</div>
     <div class="fs-btn-row">
@@ -5576,7 +5584,9 @@ let forestSetSecs = 0;
 let forestAlertPlayed = false; 
 let forestOvertimeRepeatsPlayed = 0;
 let timerSelectedSubject = null; 
-let timerSubjects = JSON.parse(localStorage.getItem('dq_subjects') || '["Math","Science","History","English"]');
+const BASE_TIMER_SUBJECTS = ['GS','Quant','Reasoning','English','CA','Mock Test','Practice','Revision','Study'];
+let customTimerSubjects = []; // user-added subjects, synced from currentUserData.customSubjects
+let timerSubjects = [...BASE_TIMER_SUBJECTS];
 
 // ═══════════════════════════════════════════
 // FOREST MODE — tree species catalog + unlock/selection state.
@@ -5585,17 +5595,17 @@ let timerSubjects = JSON.parse(localStorage.getItem('dq_subjects') || '["Math","
 // untouched — only the presentation (and this new spendable apple currency) is new.
 // ═══════════════════════════════════════════
 const TREE_SPECIES = [
-  // ── Ordinary (10) — Garden Pine unlocked by default, the rest 50–100 🍎 ──
+  // ── Ordinary (10) — Garden Pine + Sakura Blossom unlocked by default, rest 40–90 🍎 ──
   {id:'pine',   name:'Garden Pine',      tier:'ordinary', cost:0,   shapeType:'round',  palette:['#3d5640','#5d7d5f','#9cc2a3']},
-  {id:'sakura', name:'Sakura Blossom',   tier:'ordinary', cost:50,  shapeType:'round',  palette:['#6b3f47','#c98a9c','#f3c9d6']},
-  {id:'ginkgo', name:'Golden Ginkgo',    tier:'ordinary', cost:58,  shapeType:'wide',   palette:['#7a5f28','#c9a34e','#f0d98a']},
-  {id:'maple',  name:'Autumn Maple',     tier:'ordinary', cost:65,  shapeType:'tall',   palette:['#6e2f1d','#c1602f','#e8985a']},
-  {id:'bamboo', name:'Ancient Bamboo',   tier:'ordinary', cost:72,  shapeType:'bamboo', palette:['#3f5a30','#7fa35e','#c3d98f']},
-  {id:'willow', name:'Moonlit Willow',   tier:'ordinary', cost:78,  shapeType:'willow', palette:['#26424a','#4f7d82','#a8cdd0']},
-  {id:'birch',  name:'Silver Birch',     tier:'ordinary', cost:84,  shapeType:'tall',   palette:['#4a6b3d','#7fa35c','#c9e0a0']},
-  {id:'oak',    name:'Emerald Oak',      tier:'ordinary', cost:90,  shapeType:'wide',   palette:['#2d4a2e','#4f7a4a','#8fb87a']},
-  {id:'plum',   name:'Plum Blossom',     tier:'ordinary', cost:96,  shapeType:'round',  palette:['#4a2e42','#a3567a','#e8a8c4']},
-  {id:'frost',  name:'Frostleaf Bamboo', tier:'ordinary', cost:100, shapeType:'bamboo', palette:['#3a5560','#6f95a0','#c8e5ec']},
+  {id:'sakura', name:'Sakura Blossom',   tier:'ordinary', cost:40,  shapeType:'round',  palette:['#6b3f47','#c98a9c','#f3c9d6']},
+  {id:'ginkgo', name:'Golden Ginkgo',    tier:'ordinary', cost:48,  shapeType:'wide',   palette:['#7a5f28','#c9a34e','#f0d98a']},
+  {id:'maple',  name:'Autumn Maple',     tier:'ordinary', cost:55,  shapeType:'tall',   palette:['#6e2f1d','#c1602f','#e8985a']},
+  {id:'bamboo', name:'Ancient Bamboo',   tier:'ordinary', cost:62,  shapeType:'bamboo', palette:['#3f5a30','#7fa35e','#c3d98f']},
+  {id:'willow', name:'Moonlit Willow',   tier:'ordinary', cost:68,  shapeType:'willow', palette:['#26424a','#4f7d82','#a8cdd0']},
+  {id:'birch',  name:'Silver Birch',     tier:'ordinary', cost:74,  shapeType:'tall',   palette:['#4a6b3d','#7fa35c','#c9e0a0']},
+  {id:'oak',    name:'Emerald Oak',      tier:'ordinary', cost:80,  shapeType:'wide',   palette:['#2d4a2e','#4f7a4a','#8fb87a']},
+  {id:'plum',   name:'Plum Blossom',     tier:'ordinary', cost:86,  shapeType:'round',  palette:['#4a2e42','#a3567a','#e8a8c4']},
+  {id:'frost',  name:'Frostleaf Bamboo', tier:'ordinary', cost:90,  shapeType:'bamboo', palette:['#3a5560','#6f95a0','#c8e5ec']},
   // ── Rare (5) — all locked, 150–500 🍎, each with its own special visual flourish ──
   {id:'torii',     name:'Sacred Torii Pine', tier:'rare', cost:150, shapeType:'round',  palette:['#1c2820','#3d5940','#6f9270'], accent:'torii'},
   {id:'celestial', name:'Celestial Blossom', tier:'rare', cost:220, shapeType:'round',  palette:['#2a2550','#5b4e9e','#c9b8f0'], accent:'sparkle'},
@@ -5603,7 +5613,7 @@ const TREE_SPECIES = [
   {id:'ethereal',  name:'Ethereal Willow',   tier:'rare', cost:380, shapeType:'willow', palette:['#1f3a45','#4a7d8a','#d8f0f5'], accent:'glow'},
   {id:'bodhi',     name:'Golden Bodhi Tree', tier:'rare', cost:500, shapeType:'wide',   palette:['#4a3510','#9c7a2a','#f0d878'], accent:'lantern'}
 ];
-let unlockedTreeSpeciesSet = new Set(['pine']);
+let unlockedTreeSpeciesSet = new Set(['pine','sakura']);
 let selectedTreeSpecies = 'pine';
 let totalApples = 0;
 let totalTreesPlanted = 0;
@@ -5776,9 +5786,20 @@ function renderDialTree(pctOfSet, extraDiamonds) {
 function syncForestState() {
   if(!currentUserData) return;
   unlockedTreeSpeciesSet = new Set(currentUserData.unlockedTreeSpecies || ['pine']);
+  // One-time backfill: everyone now gets Sakura Blossom free by default (previously pine-only).
+  // Accounts created before this change stored just ['pine'], so top it up once here.
+  if(currentUser && !unlockedTreeSpeciesSet.has('sakura')) {
+    unlockedTreeSpeciesSet.add('sakura');
+    db.collection('users').doc(currentUser.uid).update({
+      unlockedTreeSpecies: firebase.firestore.FieldValue.arrayUnion('sakura')
+    }).catch(() => {});
+  }
   selectedTreeSpecies = currentUserData.selectedTreeSpecies || 'pine';
   totalApples = currentUserData.totalApples || 0;
   totalTreesPlanted = currentUserData.totalTreesPlanted || 0;
+  customTimerSubjects = currentUserData.customSubjects || [];
+  timerSubjects = BASE_TIMER_SUBJECTS.concat(customTimerSubjects);
+  renderTimerSubjects();
   updateForestHUD();
   if(!forestRunning) renderDialTree(0, 0);
   if(document.getElementById('tree-shop-modal')?.classList.contains('open')) renderTreeShop();
@@ -5818,11 +5839,11 @@ earnedApples += calcExtraApples(extraMins);
       totalTreesPlanted: finalTrees,
       totalApples: apples
     });
-    totalTreesPlanted = trees;
+    totalTreesPlanted = finalTrees;
     totalApples = apples;
     updateForestHUD();
     playSFX('success');
-    toast('✅ Totals fixed! 🌲 ' + trees + ' 🍎 ' + (Math.round(apples * 10) / 10));
+    toast('✅ Totals fixed! 🌲 ' + finalTrees + ' 🍎 ' + (Math.round(apples * 10) / 10));
   } catch(err) {
     playSFX('error');
     toast('❌ Recalculate failed: ' + err.message);
@@ -5985,17 +6006,42 @@ function renderDial(val) {
   }
 }
 
+// Same as renderDial() but for the fullscreen ring, which is a responsive size
+// (min(270px, 70vw)) rather than the home ring's fixed 220px — so the handle's
+// radius is computed from the ring's actual rendered size instead of a constant.
+function renderFsDial(val) {
+  const ring = document.getElementById('fs-ring');
+  const handle = document.getElementById('fs-dial-handle');
+  if(!ring) return;
+  const angle = dialAngleForValue(val);
+  ring.style.background = `conic-gradient(
+    var(--bg-deep) 0deg, var(--bg-deep) ${DIAL_START_DEG}deg,
+    var(--accent-purple) ${DIAL_START_DEG}deg, var(--accent-purple) ${angle}deg,
+    var(--bg-elevated) ${angle}deg, var(--bg-elevated) ${DIAL_END_DEG}deg,
+    var(--bg-deep) ${DIAL_END_DEG}deg, var(--bg-deep) 360deg
+  )`;
+  if(handle) {
+    const rad = angle * Math.PI / 180;
+    const rect = ring.getBoundingClientRect();
+    const r = (rect.width / 2) * 0.927; // same mid-band ratio as the home dial (102/110)
+    const x = r * Math.sin(rad), y = -r * Math.cos(rad);
+    handle.style.display = '';
+    handle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+  }
+}
+
 function setDialValue(val) {
   if(val !== forestSetMins) playDialTick();
   forestSetMins = val;
   const display = document.getElementById('slider-val-display');
   if(display) display.textContent = val + ' minutes';
-  if(!forestRunning) renderDial(val);
+  if(!forestRunning) { renderDial(val); if(fsOpen) renderFsDial(val); }
   updateForestDisplay();
+  if(fsOpen) fsUpdateDisplay();
 }
 
-function angleFromPointerEvent(e) {
-  const ring = document.getElementById('forest-ring');
+function angleFromPointerEvent(e, ringId) {
+  const ring = document.getElementById(ringId || 'forest-ring');
   const rect = ring.getBoundingClientRect();
   const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
   const dx = e.clientX - cx, dy = e.clientY - cy;
@@ -6003,6 +6049,17 @@ function angleFromPointerEvent(e) {
   if(angle < 0) angle += 360;
   return angle;
 }
+
+// Distance (px) from the pointer to the ring's center — used to detect a tap on
+// the tree-growing centerpiece (as opposed to a drag on the ring track itself).
+function distanceFromRingCenter(e, ringId) {
+  const ring = document.getElementById(ringId);
+  const rect = ring.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+  const dx = e.clientX - cx, dy = e.clientY - cy;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+const DIAL_CENTER_TAP_RADIUS = 55; // px — tapping this central zone opens the Tree Shop instead of dragging
 
 function valueFromAngle(angle) {
   let val;
@@ -6013,8 +6070,15 @@ function valueFromAngle(angle) {
   return Math.max(DIAL_MIN, Math.min(DIAL_MAX, val));
 }
 
+let dialCenterTapCandidate = false;
+
 function forestDialPointerDown(e) {
   if(forestRunning) return;
+  if(distanceFromRingCenter(e, 'forest-ring') <= DIAL_CENTER_TAP_RADIUS) {
+    dialCenterTapCandidate = true;
+    return; // don't start a drag — resolved as a tap-vs-drag on pointerup
+  }
+  dialCenterTapCandidate = false;
   e.preventDefault();
   dialDragging = true;
   const ring = document.getElementById('forest-ring');
@@ -6025,9 +6089,46 @@ function forestDialPointerMove(e) {
   if(!dialDragging) return;
   setDialValue(valueFromAngle(angleFromPointerEvent(e)));
 }
-function forestDialPointerUp() {
+function forestDialPointerUp(e) {
+  if(dialCenterTapCandidate) {
+    dialCenterTapCandidate = false;
+    if(!dialDragging && !forestRunning && e && distanceFromRingCenter(e, 'forest-ring') <= DIAL_CENTER_TAP_RADIUS + 15) {
+      openTreeShop();
+    }
+    return;
+  }
   dialDragging = false;
 }
+
+// ── Fullscreen dial: same drag-to-set-time + center-tap-opens-shop behavior ──
+function fsDialPointerDown(e) {
+  if(forestRunning) return;
+  if(distanceFromRingCenter(e, 'fs-ring') <= DIAL_CENTER_TAP_RADIUS) {
+    dialCenterTapCandidate = true;
+    return;
+  }
+  dialCenterTapCandidate = false;
+  e.preventDefault();
+  dialDragging = true;
+  const ring = document.getElementById('fs-ring');
+  if(ring && ring.setPointerCapture) { try { ring.setPointerCapture(e.pointerId); } catch(err) {} }
+  setDialValue(valueFromAngle(angleFromPointerEvent(e, 'fs-ring')));
+}
+function fsDialPointerMove(e) {
+  if(!dialDragging) return;
+  setDialValue(valueFromAngle(angleFromPointerEvent(e, 'fs-ring')));
+}
+function fsDialPointerUp(e) {
+  if(dialCenterTapCandidate) {
+    dialCenterTapCandidate = false;
+    if(!dialDragging && !forestRunning && e && distanceFromRingCenter(e, 'fs-ring') <= DIAL_CENTER_TAP_RADIUS + 15) {
+      openTreeShop();
+    }
+    return;
+  }
+  dialDragging = false;
+}
+
 (function initForestDial() {
   const ring = document.getElementById('forest-ring');
   if(!ring) return;
@@ -6037,6 +6138,14 @@ function forestDialPointerUp() {
   ring.addEventListener('pointercancel', forestDialPointerUp);
   renderDial(forestSetMins);
   renderDialTree(0, 0);
+})();
+(function initFsDial() {
+  const ring = document.getElementById('fs-ring');
+  if(!ring) return;
+  ring.addEventListener('pointerdown', fsDialPointerDown);
+  ring.addEventListener('pointermove', fsDialPointerMove);
+  ring.addEventListener('pointerup', fsDialPointerUp);
+  ring.addEventListener('pointercancel', fsDialPointerUp);
 })();
 
 function initTimerFireflies() {
@@ -6382,12 +6491,15 @@ function timerAddSubject() {
   const inp = document.getElementById('timer-new-subject');
   const val = inp.value.trim();
   if(!val) return;
-  if(!timerSubjects.includes(val)) {
-    timerSubjects.push(val);
-    localStorage.setItem('dq_subjects', JSON.stringify(timerSubjects));
-  }
-  inp.value = '';
+  if(!currentUser) return toast('Please log in first');
+  if(timerSubjects.includes(val)) { inp.value = ''; return toast('That subject already exists'); }
+  customTimerSubjects.push(val);
+  timerSubjects = BASE_TIMER_SUBJECTS.concat(customTimerSubjects);
   renderTimerSubjects();
+  inp.value = '';
+  db.collection('users').doc(currentUser.uid).update({
+    customSubjects: firebase.firestore.FieldValue.arrayUnion(val)
+  }).catch(() => toast('Could not save the new subject — try again'));
 }
 
 async function loadTimerStats() {
