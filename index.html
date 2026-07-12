@@ -595,7 +595,7 @@ body {
 
 /* Course-style modal */
 .cmodal-overlay {
-  display: none; position: fixed; inset: 0; z-index: 200;
+  display: none; position: fixed; inset: 0; z-index: 960;
   background: rgba(0,0,0,0.78); backdrop-filter: blur(4px);
   align-items: flex-end; justify-content: center;
 }
@@ -6050,16 +6050,19 @@ function angleFromPointerEvent(e, ringId) {
   return angle;
 }
 
-// Distance (px) from the pointer to the ring's center — used to detect a tap on
-// the tree-growing centerpiece (as opposed to a drag on the ring track itself).
-function distanceFromRingCenter(e, ringId) {
-  const ring = document.getElementById(ringId);
-  const rect = ring.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-  const dx = e.clientX - cx, dy = e.clientY - cy;
-  return Math.sqrt(dx * dx + dy * dy);
+// Whether a pointer event lands on/near the tree artwork itself (the actual
+// visual centerpiece users tap) rather than an assumed geometric ring-center —
+// the tree SVG is CSS-shifted off-center (translate(-50%,-58%) on the home
+// ring; flex/justify-content:flex-end on the fullscreen ring), so checking
+// against its real rendered rect is what makes this reliable on touch too.
+function isPointOnTreeArt(e, svgId) {
+  const svg = document.getElementById(svgId);
+  if(!svg) return false;
+  const rect = svg.getBoundingClientRect();
+  const pad = 24; // generous touch-friendly margin around the artwork
+  return e.clientX >= rect.left - pad && e.clientX <= rect.right + pad &&
+         e.clientY >= rect.top - pad && e.clientY <= rect.bottom + pad;
 }
-const DIAL_CENTER_TAP_RADIUS = 55; // px — tapping this central zone opens the Tree Shop instead of dragging
 
 function valueFromAngle(angle) {
   let val;
@@ -6074,7 +6077,7 @@ let dialCenterTapCandidate = false;
 
 function forestDialPointerDown(e) {
   if(forestRunning) return;
-  if(distanceFromRingCenter(e, 'forest-ring') <= DIAL_CENTER_TAP_RADIUS) {
+  if(isPointOnTreeArt(e, 'dial-tree')) {
     dialCenterTapCandidate = true;
     return; // don't start a drag — resolved as a tap-vs-drag on pointerup
   }
@@ -6092,7 +6095,7 @@ function forestDialPointerMove(e) {
 function forestDialPointerUp(e) {
   if(dialCenterTapCandidate) {
     dialCenterTapCandidate = false;
-    if(!dialDragging && !forestRunning && e && distanceFromRingCenter(e, 'forest-ring') <= DIAL_CENTER_TAP_RADIUS + 15) {
+    if(!dialDragging && !forestRunning && e && isPointOnTreeArt(e, 'dial-tree')) {
       openTreeShop();
     }
     return;
@@ -6103,7 +6106,7 @@ function forestDialPointerUp(e) {
 // ── Fullscreen dial: same drag-to-set-time + center-tap-opens-shop behavior ──
 function fsDialPointerDown(e) {
   if(forestRunning) return;
-  if(distanceFromRingCenter(e, 'fs-ring') <= DIAL_CENTER_TAP_RADIUS) {
+  if(isPointOnTreeArt(e, 'fs-dial-tree')) {
     dialCenterTapCandidate = true;
     return;
   }
@@ -6121,7 +6124,7 @@ function fsDialPointerMove(e) {
 function fsDialPointerUp(e) {
   if(dialCenterTapCandidate) {
     dialCenterTapCandidate = false;
-    if(!dialDragging && !forestRunning && e && distanceFromRingCenter(e, 'fs-ring') <= DIAL_CENTER_TAP_RADIUS + 15) {
+    if(!dialDragging && !forestRunning && e && isPointOnTreeArt(e, 'fs-dial-tree')) {
       openTreeShop();
     }
     return;
