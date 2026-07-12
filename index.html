@@ -6260,9 +6260,11 @@ function forestStart() {
   document.getElementById('forest-dial-handle').style.display = 'none';
   document.getElementById('slider-val-display').style.display = 'none';
   requestAlertNotifyPermission();
+  ensurePushSubscribed();
   startKeepAlive();
   startCurrentTimerSound();
   scheduleUpcomingAlerts();
+  scheduleServerAlarm(Date.now() + forestSetSecs * 1000, forestSetMins);
   forestInterval = setInterval(() => {
     forestElapsed++;
     updateForestDisplay();
@@ -6288,6 +6290,7 @@ async function forestStop() {
   stopAllTimerSounds();
   clearScheduledAlerts();
 stopKeepAlive();
+  cancelServerAlarm();
   document.getElementById('forest-start-btn').style.display = '';
   document.getElementById('forest-stop-btn').style.display = 'none';
   document.getElementById('slider-val-display').style.display = '';
@@ -8131,6 +8134,60 @@ const TIMER_BGM_FILES = {
 };
 
 // ═══════════════════════════════════════════════════════════
+// SERVER-SIDE TIMER ALARM (Web Push via Cloudflare Worker)
+// Guarantees the "time's up" alert reaches the user even if the phone
+// screen is off / app is fully backgrounded and the local Web Audio
+// scheduling above never gets a chance to run. This is a BACKUP layer,
+// not a replacement — the local scheduled alert above still fires
+// instantly whenever the tab is alive.
+// ═══════════════════════════════════════════════════════════
+const VAPID_PUBLIC_KEY = 'BM1Fuq6r1PDGCm85bEk6DzhlFxl9J4cKQ73crkJdxWxB-y95O2Nsp9X5amznhIVUKMsSuVOJvHH1R-ms_D07v0Y';
+const ALARM_WORKER_URL = 'https://vidyamura-timer-alarm.bikram-dev.workers.dev';
+
+function base64urlToUint8Array(base64url) {
+  const padded = base64url + '='.repeat((4 - (base64url.length % 4)) % 4);
+  const binary = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+async function ensurePushSubscribed() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !currentUser) return;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: base64urlToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    await fetch(`${ALARM_WORKER_URL}/subscribe?uid=${currentUser.uid}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subscription: sub.toJSON() })
+    });
+  } catch(e) { console.warn('ensurePushSubscribed failed:', e); }
+}
+
+function scheduleServerAlarm(finishAt, minutes) {
+  if (!currentUser) return;
+  fetch(`${ALARM_WORKER_URL}/schedule?uid=${currentUser.uid}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ finishAt, minutes })
+  }).catch(() => {});
+}
+
+function cancelServerAlarm() {
+  if (!currentUser) return;
+  fetch(`${ALARM_WORKER_URL}/cancel?uid=${currentUser.uid}`, { method: 'POST' }).catch(() => {});
+}
+
+// ═══════════════════════════════════════════════════════════
 // RELIABLE BACKGROUND AUDIO
 // Main alert + all overtime repeat-alerts are scheduled AHEAD OF TIME on the
 // browser's audio-rendering clock (AudioBufferSourceNode.start(when)) right
@@ -8579,6 +8636,7 @@ function fsPause() {
     startCurrentTimerSound();
     startKeepAlive();
     scheduleUpcomingAlerts();
+    scheduleServerAlarm(Date.now() + (forestSetSecs - forestElapsed) * 1000, forestSetMins);
   } else {
     // Pause
     fsPaused = true;
@@ -8586,6 +8644,7 @@ function fsPause() {
     stopAllTimerSounds();
     clearScheduledAlerts();
     stopKeepAlive();
+    cancelServerAlarm();
   }
   fsUpdateDisplay();
 }
@@ -8597,6 +8656,7 @@ function fsRestart() {
   stopAllTimerSounds();
   clearScheduledAlerts();
 stopKeepAlive();
+  cancelServerAlarm();
   updateForestDisplay();
   fsUpdateDisplay();
   setTimeout(() => { forestStart(); }, 100);
