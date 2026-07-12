@@ -15,6 +15,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// ── Web Push: timer alarm delivered via Cloudflare Worker ──
 self.addEventListener('push', (event) => {
   if (!event.data) return;
   const data = event.data.json();
