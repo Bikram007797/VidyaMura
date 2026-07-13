@@ -1058,7 +1058,7 @@ select {
   border-radius: 20px; padding: 22px 18px 18px; margin-bottom: 16px; text-align: center;
 }
 .forest-ring {
-width: min(280px, 75vw); height: min(280px, 75vw); border-radius: 50%; margin: 0 auto 14px;
+  width: 220px; height: 220px; border-radius: 50%; margin: 0 auto 14px;
   background: conic-gradient(var(--accent-purple) 0%, var(--bg-elevated) 0%);
   display: flex; align-items: center; justify-content: center;
   position: relative; transition: background 0.5s;
@@ -1267,8 +1267,9 @@ width: min(280px, 75vw); height: min(280px, 75vw); border-radius: 50%; margin: 0
 .tree-confirm-text { text-align: center; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 4px; line-height: 1.5; }
 .tree-confirm-sub { text-align: center; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; }
 .forest-btn-row { display: flex; gap: 10px; justify-content: center; }
-.forest-btn { padding: 13px 36px; border-radius: 12px; border: none; font-size: 0.96rem; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: var(--font-head); }
-.forest-btn:active { transform: scale(0.96); }
+.forest-btn { padding: 13px 36px; border-radius: 12px; border: none; font-size: 0.96rem; font-weight: 700; cursor: pointer; transition: transform 0.12s ease, opacity 0.2s ease; font-family: var(--font-head); }
+.forest-btn:active { transform: scale(0.94); }
+.forest-btn.btn-busy, .fs-btn.btn-busy { opacity: 0.55; pointer-events: none; }
 .forest-btn-start { background: var(--accent-green); color: #fff; }
 .forest-btn-stop  { background: var(--accent-red);   color: #fff; }
 .timer-subject-tag {
@@ -5578,6 +5579,11 @@ function playSFX(name) {
 let forestInterval = null; 
 let forestAlertInterval = null; 
 let forestRunning = false; 
+// Set true for the duration of any async save (Stop's Firestore write, etc.)
+// so a second, impatient tap on Stop/Start/Pause/Restart during that window
+// can't race the first call — this is what was turning a second "Stop" tap
+// into an accidental "Restart" when the save was slow.
+let forestBusy = false;
 let forestElapsed = 0; 
 let forestSetMins = 60; 
 let forestSetSecs = 0; 
@@ -5999,8 +6005,7 @@ function renderDial(val) {
   )`;
   if(handle) {
     const rad = angle * Math.PI / 180;
-    const rect = ring.getBoundingClientRect();
-const r = (rect.width / 2) * 0.927; // sits mid-band between the ring's outer edge and the inset hole (ring is 220px, inset 16px)
+    const r = 102; // sits mid-band between the ring's outer edge and the inset hole (ring is 220px, inset 16px)
     const x = r * Math.sin(rad), y = -r * Math.cos(rad);
     handle.style.display = '';
     handle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
@@ -6085,7 +6090,6 @@ function forestDialPointerDown(e) {
   dialCenterTapCandidate = false;
   e.preventDefault();
   dialDragging = true;
-   ring.style.transition = 'none';
   const ring = document.getElementById('forest-ring');
   if(ring && ring.setPointerCapture) { try { ring.setPointerCapture(e.pointerId); } catch(err) {} }
   setDialValue(valueFromAngle(angleFromPointerEvent(e)));
@@ -6103,7 +6107,6 @@ function forestDialPointerUp(e) {
     return;
   }
   dialDragging = false;
-   ring.style.transition = '';
 }
 
 // ── Fullscreen dial: same drag-to-set-time + center-tap-opens-shop behavior ──
@@ -6116,7 +6119,6 @@ function fsDialPointerDown(e) {
   dialCenterTapCandidate = false;
   e.preventDefault();
   dialDragging = true;
-   ring.style.transition = 'none';
   const ring = document.getElementById('fs-ring');
   if(ring && ring.setPointerCapture) { try { ring.setPointerCapture(e.pointerId); } catch(err) {} }
   setDialValue(valueFromAngle(angleFromPointerEvent(e, 'fs-ring')));
@@ -6134,7 +6136,6 @@ function fsDialPointerUp(e) {
     return;
   }
   dialDragging = false;
-   ring.style.transition = '';
 }
 
 (function initForestDial() {
@@ -6364,7 +6365,23 @@ function updateForestDisplay() {
   if(typeof fsOpen !== 'undefined' && fsOpen) fsUpdateDisplay();
 }
 
+function setStopButtonBusy(busy) {
+  ['forest-stop-btn', 'fs-stop-btn'].forEach(id => {
+    const b = document.getElementById(id);
+    if(!b) return;
+    if(busy) {
+      if(!b.dataset.origLabel) b.dataset.origLabel = b.innerHTML;
+      b.innerHTML = '⏳ Saving...';
+      b.classList.add('btn-busy');
+    } else {
+      if(b.dataset.origLabel) b.innerHTML = b.dataset.origLabel;
+      b.classList.remove('btn-busy');
+    }
+  });
+}
+
 function forestStart() {
+  if(forestBusy || forestRunning) return;
   if(!currentUser) return toast('Please login first!');
   if(!timerSelectedSubject) return toast('Select a subject first!');
   forestElapsed = 0;
@@ -6392,7 +6409,7 @@ function forestStart() {
 }
 
 async function forestStop() {
-  if(!forestRunning) return;
+  if(!forestRunning || forestBusy) return;
   const setTotalSecs = forestSetMins * 60;
   const completed = forestElapsed >= setTotalSecs;
 
@@ -6401,84 +6418,114 @@ async function forestStop() {
     if(!proceed) return; // cancelled — keep the timer running
   }
 
-  clearInterval(forestInterval);
-  clearInterval(forestAlertInterval);
-  forestRunning = false;
-  stopAllTimerSounds();
-  clearScheduledAlerts();
-stopKeepAlive();
-  cancelServerAlarm();
-  document.getElementById('forest-start-btn').style.display = '';
-  document.getElementById('forest-stop-btn').style.display = 'none';
-  document.getElementById('slider-val-display').style.display = '';
+  forestBusy = true;
+  setStopButtonBusy(true);
+  try {
+    clearInterval(forestInterval);
+    clearInterval(forestAlertInterval);
+    forestRunning = false;
+    stopAllTimerSounds();
+    clearScheduledAlerts();
+    stopKeepAlive();
+    cancelServerAlarm();
+    document.getElementById('forest-start-btn').style.display = '';
+    document.getElementById('forest-stop-btn').style.display = 'none';
+    document.getElementById('slider-val-display').style.display = '';
 
-  if(!completed) {
-    // ── Quit before finishing: no reward, and a 2-tree penalty (never below 0). ──
-    try {
-      const penalty = Math.min(2, Math.round(Number(totalTreesPlanted) || 0));
-      if(penalty > 0) {
-        await db.collection('users').doc(currentUser.uid).update({
-  totalTreesPlanted: firebase.firestore.FieldValue.increment(-penalty),
-  totalTreesPenalized: firebase.firestore.FieldValue.increment(penalty)
+    if(!completed) {
+      // ── Quit before finishing: no reward, and a 2-tree penalty (never below 0). ──
+      // Still logged to timerLogs (completed:false + penalty) so History and the
+      // Forest scene both show it, instead of it vanishing with no record.
+      const today = getLocalDateString();
+      const month = today.slice(0, 7);
+      const year = today.slice(0, 4);
+      try {
+        const penalty = Math.min(2, Math.round(Number(totalTreesPlanted) || 0));
+        if(penalty > 0) {
+          await db.collection('users').doc(currentUser.uid).update({
+            totalTreesPlanted: firebase.firestore.FieldValue.increment(-penalty),
+            totalTreesPenalized: firebase.firestore.FieldValue.increment(penalty)
+          });
+          totalTreesPlanted = Math.max(0, totalTreesPlanted - penalty);
+          updateForestHUD();
+        }
+        await db.collection('timerLogs').add({
+          uid: currentUser.uid,
+          subject: timerSelectedSubject || 'General',
+          seconds: forestElapsed,
+          setMins: forestSetMins,
+          diamonds: 0,
+          trees: 0,
+          apples: 0,
+          completed: false,
+          penalty,
+          speciesId: selectedTreeSpecies,
+          date: today,
+          month,
+          year,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        totalTreesPlanted = Math.max(0, totalTreesPlanted - penalty);
-        updateForestHUD();
+        playSFX('error');
+        toast(penalty > 0 ? ('😔 Session incomplete — 🌲 -' + penalty) : '😔 Session incomplete — no reward this time');
+      } catch(err) {
+        playSFX('error');
+        toast('❌ ' + err.message);
       }
-      playSFX('error');
-      toast(penalty > 0 ? ('😔 Session incomplete — 🌲 -' + penalty) : '😔 Session incomplete — no reward this time');
+      forestElapsed = 0;
+      updateForestDisplay();
+      loadTimerStats();
+      localStorage.removeItem('vm_timer_start');
+      localStorage.removeItem('vm_timer_setmins');
+      return;
+    }
+
+    // ── Completed! Full reward — same save flow as before. ──
+    const {setDiamonds, extraDiamonds, total} = calcDiamonds(forestElapsed, forestSetMins);
+    const hours = forestElapsed / 3600;
+    const today = getLocalDateString();
+    const month = today.slice(0, 7);
+    const year = today.slice(0, 4);
+    try {
+      await db.collection('timerLogs').add({
+        uid: currentUser.uid,
+        subject: timerSelectedSubject || 'General',
+        seconds: forestElapsed,
+        setMins: forestSetMins,
+        diamonds: parseFloat(total.toFixed(1)),
+        trees: setDiamonds,
+        apples: extraDiamonds,
+        completed: true,
+        speciesId: selectedTreeSpecies,
+        date: today,
+        month,
+        year,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await db.collection('users').doc(currentUser.uid).update({
+        totalDiamonds: firebase.firestore.FieldValue.increment(parseFloat(total.toFixed(1))),
+        totalStudyHours: firebase.firestore.FieldValue.increment(hours),
+        totalApples: firebase.firestore.FieldValue.increment(extraDiamonds),
+        totalTreesPlanted: firebase.firestore.FieldValue.increment(setDiamonds)
+      });
+      totalApples += extraDiamonds;
+      totalTreesPlanted += setDiamonds;
+      updateForestHUD();
+      playSFX('success');
+      playTreeChime();
+      toast('✅ Session saved! 🌲 +' + setDiamonds + (extraDiamonds ? ' 🍎 +' + extraDiamonds.toFixed(1) : '') + ' · ⏱ ' + (hours * 60).toFixed(0) + ' min');
     } catch(err) {
-      playSFX('error');
-      toast('❌ ' + err.message);
+     playSFX('error');
+      toast('❌ Save failed: ' + err.message);
     }
     forestElapsed = 0;
     updateForestDisplay();
+    loadTimerStats();
     localStorage.removeItem('vm_timer_start');
     localStorage.removeItem('vm_timer_setmins');
-    return;
+  } finally {
+    forestBusy = false;
+    setStopButtonBusy(false);
   }
-
-  // ── Completed! Full reward — same save flow as before. ──
-  const {setDiamonds, extraDiamonds, total} = calcDiamonds(forestElapsed, forestSetMins);
-  const hours = forestElapsed / 3600;
-  const today = getLocalDateString();
-  const month = today.slice(0, 7);
-  const year = today.slice(0, 4);
-  try {
-    await db.collection('timerLogs').add({
-      uid: currentUser.uid,
-      subject: timerSelectedSubject || 'General',
-      seconds: forestElapsed,
-      setMins: forestSetMins,
-      diamonds: parseFloat(total.toFixed(1)),
-      trees: setDiamonds,
-      apples: extraDiamonds,
-      speciesId: selectedTreeSpecies,
-      date: today,
-      month,
-      year,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    await db.collection('users').doc(currentUser.uid).update({
-      totalDiamonds: firebase.firestore.FieldValue.increment(parseFloat(total.toFixed(1))),
-      totalStudyHours: firebase.firestore.FieldValue.increment(hours),
-      totalApples: firebase.firestore.FieldValue.increment(extraDiamonds),
-      totalTreesPlanted: firebase.firestore.FieldValue.increment(setDiamonds)
-    });
-    totalApples += extraDiamonds;
-    totalTreesPlanted += setDiamonds;
-    updateForestHUD();
-    playSFX('success');
-    playTreeChime();
-    toast('✅ Session saved! 🌲 +' + setDiamonds + (extraDiamonds ? ' 🍎 +' + extraDiamonds.toFixed(1) : '') + ' · ⏱ ' + (hours * 60).toFixed(0) + ' min');
-  } catch(err) {
-   playSFX('error');
-    toast('❌ Save failed: ' + err.message);
-  }
-  forestElapsed = 0;
-  updateForestDisplay();
-  loadTimerStats();
-  localStorage.removeItem('vm_timer_start');
-  localStorage.removeItem('vm_timer_setmins');
 }
 
 function renderTimerSubjects() {
@@ -6532,10 +6579,11 @@ async function loadTimerStats() {
   });
   const ttEl = document.getElementById('timer-total-time');
   if(ttEl) ttEl.textContent = fmtH(totalSecs);
-  // SESSIONS: only ever counts fully-completed sessions — an early stop/quit
-  // is never saved as a timerLog (see forestStop()), so logs.length is exact.
+  // SESSIONS: only counts fully-completed sessions. Incomplete/quit sessions
+  // are now also logged (as of the penalty-history fix) but tagged
+  // completed:false, so they're excluded here to keep this count meaningful.
   const tsEl = document.getElementById('timer-sessions');
-  if(tsEl) tsEl.textContent = logs.length;
+  if(tsEl) tsEl.textContent = logs.filter(l => l.completed !== false).length;
   timerLogsCache = logs;
   renderTimerHistory();
 }
@@ -6695,12 +6743,15 @@ function renderTimerForestScene(matchingLogs) {
   const pill = document.getElementById('timer-forest-count-pill');
   if(!scene) return;
   let units = [];
+  let penaltyTotal = 0;
   matchingLogs.forEach(l => {
+    if(l.completed === false) { penaltyTotal += Math.round(Number(l.penalty) || 0); return; }
     const n = Math.round(logTrees(l));
     for(let i = 0; i < n; i++) units.push(l.speciesId || 'pine');
   });
+  if(penaltyTotal > 0) units = units.slice(0, Math.max(0, units.length - penaltyTotal));
   const treeCount = units.length;
-  if(pill) pill.textContent = treeCount + (treeCount===1 ? ' tree' : ' trees');
+  if(pill) pill.textContent = treeCount + (treeCount===1 ? ' tree' : ' trees') + (penaltyTotal ? ` (🌲-${penaltyTotal} penalty)` : '');
   if(!treeCount) { scene.innerHTML = '<div class="forest-empty">🌱 No trees planted yet for this period</div>'; return; }
 
   const rnd = mulberry32(treeCount * 7919 + 13 + forestShuffleSeed);
@@ -6755,6 +6806,21 @@ function reshuffleForest() {
   playSFX('click');
 }
 
+function timerLogRewardCell(l) {
+  if(l.completed === false) {
+    return l.penalty
+      ? `<span style="color:var(--accent-red)">❌ Quit early (-${l.penalty}🌲)</span>`
+      : '<span style="color:var(--text-secondary)">❌ Quit early</span>';
+  }
+  const trees = logTrees(l), apples = logApples(l);
+  return '🌲' + trees + (apples ? ' 🍎' + apples.toFixed(1) : '');
+}
+function aggregateRewardCell(d) {
+  let s = '🌲' + d.trees + (d.apples ? ' 🍎' + d.apples.toFixed(1) : '');
+  if(d.penalty) s += ` <span style="color:var(--accent-red)">(-${d.penalty}🌲 penalty)</span>`;
+  return s;
+}
+
 function renderTimerHistory() {
   const head = document.getElementById('timer-history-head');
   const body = document.getElementById('timer-history-body');
@@ -6772,8 +6838,7 @@ function renderTimerHistory() {
     if(!rows.length) { body.innerHTML = timerHistoryEmptyRow(4, 'No sessions today yet'); return; }
     body.innerHTML = rows.map(l => {
       const ms = timerLogStartMs(l);
-      const trees = logTrees(l), apples = logApples(l);
-      return `<tr><td>📚 ${l.subject || 'General'}</td><td>${fmtFullDate(ms)} · ${fmtTime12(ms)}</td><td>${fmtMins(l.seconds)}</td><td>🌲${trees}${apples ? ' 🍎' + apples.toFixed(1) : ''}</td></tr>`;
+      return `<tr><td>📚 ${l.subject || 'General'}</td><td>${fmtFullDate(ms)} · ${fmtTime12(ms)}</td><td>${fmtMins(l.seconds)}</td><td>${timerLogRewardCell(l)}</td></tr>`;
     }).join('');
 
   } else if(timerHistoryFilter === 'week') {
@@ -6783,17 +6848,18 @@ function renderTimerHistory() {
     renderTimerForestScene(matchingLogs);
     const byDate = {};
     matchingLogs.forEach(l => {
-      if(!byDate[l.date]) byDate[l.date] = {seconds: 0, trees: 0, apples: 0};
+      if(!byDate[l.date]) byDate[l.date] = {seconds: 0, trees: 0, apples: 0, penalty: 0};
       byDate[l.date].seconds += l.seconds || 0;
       byDate[l.date].trees += logTrees(l);
       byDate[l.date].apples += logApples(l);
+      byDate[l.date].penalty += Math.round(Number(l.penalty) || 0);
     });
     const keys = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
     head.innerHTML = '<th>Date</th><th>Total Time</th><th>🌲/🍎</th>';
     if(!keys.length) { body.innerHTML = timerHistoryEmptyRow(3, 'No sessions this week yet'); return; }
     body.innerHTML = keys.map(k => {
       const d = byDate[k];
-      return `<tr><td>${fmtFullDate(new Date(k + 'T00:00:00').getTime())}</td><td>${fmtMins(d.seconds)}</td><td>🌲${d.trees}${d.apples ? ' 🍎' + d.apples.toFixed(1) : ''}</td></tr>`;
+      return `<tr><td>${fmtFullDate(new Date(k + 'T00:00:00').getTime())}</td><td>${fmtMins(d.seconds)}</td><td>${aggregateRewardCell(d)}</td></tr>`;
     }).join('');
 
   } else if(timerHistoryFilter === 'month') {
@@ -6812,17 +6878,18 @@ function renderTimerHistory() {
     renderTimerForestScene(matchingLogs);
     const byDate = {};
     matchingLogs.forEach(l => {
-      if(!byDate[l.date]) byDate[l.date] = {seconds: 0, trees: 0, apples: 0};
+      if(!byDate[l.date]) byDate[l.date] = {seconds: 0, trees: 0, apples: 0, penalty: 0};
       byDate[l.date].seconds += l.seconds || 0;
       byDate[l.date].trees += logTrees(l);
       byDate[l.date].apples += logApples(l);
+      byDate[l.date].penalty += Math.round(Number(l.penalty) || 0);
     });
     const keys = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
     head.innerHTML = '<th>Date</th><th>Total Time</th><th>🌲/🍎</th>';
     if(!keys.length) { body.innerHTML = timerHistoryEmptyRow(3, 'No sessions this month'); return; }
     body.innerHTML = keys.map(k => {
       const d = byDate[k];
-      return `<tr><td>${fmtFullDate(new Date(k + 'T00:00:00').getTime())}</td><td>${fmtMins(d.seconds)}</td><td>🌲${d.trees}${d.apples ? ' 🍎' + d.apples.toFixed(1) : ''}</td></tr>`;
+      return `<tr><td>${fmtFullDate(new Date(k + 'T00:00:00').getTime())}</td><td>${fmtMins(d.seconds)}</td><td>${aggregateRewardCell(d)}</td></tr>`;
     }).join('');
 
   } else if(timerHistoryFilter === 'year') {
@@ -6841,17 +6908,18 @@ function renderTimerHistory() {
     renderTimerForestScene(matchingLogs);
     const byMonth = {};
     matchingLogs.forEach(l => {
-      if(!byMonth[l.month]) byMonth[l.month] = {seconds: 0, trees: 0, apples: 0};
+      if(!byMonth[l.month]) byMonth[l.month] = {seconds: 0, trees: 0, apples: 0, penalty: 0};
       byMonth[l.month].seconds += l.seconds || 0;
       byMonth[l.month].trees += logTrees(l);
       byMonth[l.month].apples += logApples(l);
+      byMonth[l.month].penalty += Math.round(Number(l.penalty) || 0);
     });
     const keys = Object.keys(byMonth).sort((a, b) => b.localeCompare(a));
     head.innerHTML = '<th>Month</th><th>Total Time</th><th>🌲/🍎</th>';
     if(!keys.length) { body.innerHTML = timerHistoryEmptyRow(3, 'No sessions this year'); return; }
     body.innerHTML = keys.map(k => {
       const d = byMonth[k];
-      return `<tr><td>${getMonthLabel(k)}</td><td>${fmtMins(d.seconds)}</td><td>🌲${d.trees}${d.apples ? ' 🍎' + d.apples.toFixed(1) : ''}</td></tr>`;
+      return `<tr><td>${getMonthLabel(k)}</td><td>${fmtMins(d.seconds)}</td><td>${aggregateRewardCell(d)}</td></tr>`;
     }).join('');
   }
 }
@@ -8381,9 +8449,12 @@ function stopSchedBgm() {
 }
 
 let scheduledAlerts = [];
+let scheduledAlertTimeouts = [];
 function clearScheduledAlerts() {
   scheduledAlerts.forEach(src => { try { src.stop(); } catch(e) {} });
   scheduledAlerts = [];
+  scheduledAlertTimeouts.forEach(id => clearTimeout(id));
+  scheduledAlertTimeouts = [];
 }
 
 // Schedules the completion alert (if not played yet) plus up to 24 further
@@ -8427,13 +8498,14 @@ async function scheduleUpcomingAlerts() {
 
     const isMainAlert = (!alreadyPlayed && i === 0);
     const msUntil = Math.max(0, (t - ctx.currentTime) * 1000);
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       if(!forestRunning) return;
       forestAlertPlayed = true;
       if(!isMainAlert) forestOvertimeRepeatsPlayed = (alreadyPlayed ? repeatsSoFar + i + 1 : i);
       showAlertNotification();
       toast(isMainAlert ? '⏰ Time\'s up! Keep going for bonus apples 🍎' : '⏰ Overtime check-in');
     }, msUntil);
+    scheduledAlertTimeouts.push(timeoutId);
   }
 }
 
@@ -8488,11 +8560,11 @@ function playDialTick() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'triangle';                              // ← wave shape: 'sine' (নরম), 'square'/'sawtooth' (কর্কশ)
-    osc.frequency.value = 480 + Math.random() * 60;      // ← pitch: কমালে গম্ভীর, বাড়ালে চিকন
-    gain.gain.setValueAtTime(0.14, ctx.currentTime);     // ← volume
+    osc.type = 'triangle';
+    osc.frequency.value = 480 + Math.random() * 60;
+    gain.gain.setValueAtTime(0.14, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.06);  // ← duration (কমালে আরও snappy)
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.06);
   } catch(e) {}
 }
 
@@ -8745,7 +8817,7 @@ function fsUpdateDisplay() {
 }
 
 function fsPause() {
-  if(!forestRunning) return;
+  if(!forestRunning || forestBusy) return;
   if(fsPaused) {
     // Resume
     fsPaused = false;
@@ -8770,6 +8842,7 @@ function fsPause() {
 }
 
 function fsRestart() {
+  if(forestBusy) return;
   clearInterval(forestInterval); clearInterval(forestAlertInterval);
   forestElapsed = 0; forestAlertPlayed = false; fsPaused = false;
   forestRunning = false;
@@ -8783,6 +8856,7 @@ stopKeepAlive();
 }
 
 async function fsStop() {
+  if(forestBusy) return;
   if(!forestRunning) {
     // Not running — start from fullscreen
     if(!timerSelectedSubject) { toast('Select a subject first!'); return; }
