@@ -1321,7 +1321,7 @@ select {
 .arena-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan)); }
 .arena-pct-lbl { font-size: 0.76rem; color: var(--accent-gold); width: 36px; text-align: right; font-weight: 600; }
 .arena-extra-stats {
-  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px;
   margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
 }
 .arena-mini-stat { text-align: center; }
@@ -2526,7 +2526,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
         <button class="btn-primary" style="padding:8px" onclick="saveName()">Save</button>
       </div>
       <div class="profile-level" id="prof-level">LEVEL 1 · NAVA SHISHYA</div>
-      <div style="font-size: 0.84rem;color:var(--accent-gold);margin-top:4px" id="prof-pts-diamonds">✨ 0 pts · 💎 0</div>
+      <div style="font-size: 0.84rem;color:var(--accent-gold);margin-top:4px" id="prof-pts-diamonds">✨ 0 pts · 🌲 0</div>
       <div class="xp-bar-wrap">
         <div class="xp-label"><span id="xp-current">0 pts</span><span id="xp-next">Next: 100 pts</span></div>
         <div class="progress-bar"><div class="progress-fill" id="xp-bar" style="width:0%"></div></div>
@@ -2640,7 +2640,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <button class="fs-btn fs-btn-restart" id="fs-restart-btn" onclick="fsRestart()">↺ Restart</button>
       <button class="fs-btn fs-btn-stop"    id="fs-stop-btn"    onclick="fsStop()">⏹ Stop</button>
     </div>
-    <div class="fs-diamonds" id="fs-diamonds">💎 0 diamonds</div>
+    <div class="fs-diamonds" id="fs-diamonds">🌲 0 trees on completion</div>
   </div>
 
   <!-- FAB -->
@@ -3256,22 +3256,6 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
 </div>
 
 <div class="toast" id="toast"></div>
-
-<div class="claim-popup-overlay" id="claim-popup" onclick="closeClaimPopup()">
-  <div class="claim-card" onclick="event.stopPropagation()">
-    <div style="font-size:3.5rem; margin-bottom:10px" id="claim-icon">🏆</div>
-    <div style="font-family:var(--font-head); font-size:1.2rem; color:var(--accent-gold); margin-bottom:8px">Achievement Unlocked!</div>
-    <div style="font-size:1rem; font-weight:700; margin-bottom:6px; color:var(--text-primary)" id="claim-name">Name</div>
-    <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:20px" id="claim-desc">Desc</div>
-    <button class="btn-primary" onclick="closeClaimPopup()">Awesome!</button>
-  </div>
-</div>
-
-<div class="journal-input-field">
-    <label>Productivity Score (<span id="score-val" style="color:var(--accent-gold)">5</span>/10)</label>
-    <input type="range" class="productivity-slider" id="journal-score" min="1" max="10" value="5" 
-           oninput="document.getElementById('score-val').textContent = this.value">
-</div>
 
 <!-- FIREBASE COMPAT -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
@@ -5092,6 +5076,8 @@ ${u.bio ? `<div class="arena-user-bio">${u.bio}</div>` : ''}
         <div class="arena-extra-stats">
           <div class="arena-mini-stat"><div class="arena-mini-val">${u.totalDone || 0}</div><div class="arena-mini-lbl">Total Done</div></div>
           <div class="arena-mini-stat"><div class="arena-mini-val">${(u.totalHours || 0).toFixed(1)}h</div><div class="arena-mini-lbl">Task Time</div></div>
+          <div class="arena-mini-stat"><div class="arena-mini-val">${(u.totalStudyHours || 0).toFixed(1)}h</div><div class="arena-mini-lbl">Focus Time</div></div>
+          <div class="arena-mini-stat"><div class="arena-mini-val">🌲 ${Math.round(u.totalTreesPlanted || 0)}</div><div class="arena-mini-lbl">Total Trees</div></div>
           <div class="arena-mini-stat"><div class="arena-mini-val">${u.xp || 0}</div><div class="arena-mini-lbl">Points</div></div>
           <div class="arena-mini-stat"><div class="arena-mini-val">Lv.${lv.level}</div><div class="arena-mini-lbl">🌱 Journey Level</div></div>
           <div class="arena-mini-stat"><div class="arena-mini-val">${power.toFixed(1)}</div><div class="arena-mini-lbl">🍃 Prana</div></div>
@@ -5831,11 +5817,9 @@ async function recalcForestTotals() {
     let trees = 0, earnedApples = 0;
     snap.docs.forEach(doc => {
       const l = doc.data();
-      const setSecs = (l.setMins || 60) * 60;
-      trees += Math.ceil((l.setMins || 60) / 30);
-      const extraSecs = Math.max(0, (l.seconds || 0) - setSecs);
-      const extraMins = extraSecs / 60;
-earnedApples += calcExtraApples(extraMins);
+      if(l.completed === false) return; // quit-early sessions earn nothing — only the separate penalty counter applies to those
+      trees += logTrees(l);
+      earnedApples += logApples(l);
     });
     const treesPenalized = Number(currentUserData?.totalTreesPenalized) || 0;
     const applesSpent = Number(currentUserData?.totalApplesSpent) || 0;
@@ -7118,7 +7102,7 @@ function updateProfile() {
   const lvEl = document.getElementById('prof-level');
   if(lvEl) lvEl.textContent = `LEVEL ${lv.level} · ${lv.name.toUpperCase()}`;
   const pdEl = document.getElementById('prof-pts-diamonds');
-  if(pdEl) pdEl.textContent = `✨ ${xp} pts · 💎 ${(currentUserData.totalDiamonds || 0).toFixed(1)}`;
+  if(pdEl) pdEl.textContent = `✨ ${xp} pts · 🌲 ${Math.round(Number(currentUserData.totalTreesPlanted) || 0)}`;
   
   const nextLv = GUILD_LEVELS.find(l => l.level === lv.level + 1);
   const prevMin = lv.min;
@@ -7229,13 +7213,13 @@ const ACHIEVEMENT_GROUPS = [
       {v:25000, icon:'🧙', name:'Legendary Sage', desc:'Earn 25,000 pts'},
       {v:50000, icon:'🐲', name:'Eternal Vidya', desc:'Earn 50,000 pts'}
     ]},
-  { cat:'Diamonds', color:'var(--accent-cyan)', metric:d=>d.totalDiamonds||0,
+  { cat:'🌲 Trees Planted', color:'var(--accent-cyan)', metric:d=>d.totalTreesPlanted||0,
     tiers:[
-      {v:10, icon:'🔹', name:'Gem Finder', desc:'Collect 10 diamonds'},
-      {v:50, icon:'💠', name:'Treasure Hunter', desc:'Collect 50 diamonds'},
-      {v:200, icon:'💎', name:'Diamond Vault', desc:'Collect 200 diamonds'},
-      {v:500, icon:'🪩', name:'Crystal Keeper', desc:'Collect 500 diamonds'},
-      {v:1000, icon:'👑', name:'Diamond Dragon', desc:'Collect 1,000 diamonds'}
+      {v:10, icon:'🌱', name:'First Sprout', desc:'Plant 10 trees'},
+      {v:50, icon:'🌿', name:'Grove Keeper', desc:'Plant 50 trees'},
+      {v:150, icon:'🌳', name:'Forest Warden', desc:'Plant 150 trees'},
+      {v:300, icon:'🎋', name:'Ancient Woods', desc:'Plant 300 trees'},
+      {v:500, icon:'🏯', name:'Eternal Forest', desc:'Plant 500 trees'}
     ]},
   { cat:'🌱 Journey Level', color:'var(--accent-purple-bright)', metric:d=>d._level||1,
     tiers:[
@@ -7616,7 +7600,8 @@ async function loadDrawerAnalytics() {
   const totalDone = currentUserData?.totalDone || 0;
   const totalHours = currentUserData?.totalHours || 0;
   const totalStudyHours = currentUserData?.totalStudyHours || 0;
-  const totalDiamonds = currentUserData?.totalDiamonds || 0;
+  const totalTreesPlantedStat = currentUserData?.totalTreesPlanted || 0;
+  const totalApplesStat = currentUserData?.totalApples || 0;
   const streak = currentUserData?.streak || 0;
   const overallTasksCount = allTasks.length;
   const overallTimeCount = allTasks.reduce((sum, t) => sum + (parseFloat(t.hours) || 0), 0);
@@ -7633,8 +7618,9 @@ async function loadDrawerAnalytics() {
     <div class="da-stat-card"><div class="da-stat-val">${totalDone}</div><div class="da-stat-lbl">Completed Tasks</div></div>
     <div class="da-stat-card"><div class="da-stat-val">${totalHours.toFixed(1)}h</div><div class="da-stat-lbl">Spent Time</div></div>
     <div class="da-stat-card"><div class="da-stat-val">${xp}</div><div class="da-stat-lbl">Total Points</div></div>
-    <div class="da-stat-card"><div class="da-stat-val">${totalStudyHours.toFixed(1)}h</div><div class="da-stat-lbl">Timer Time</div></div>
-    <div class="da-stat-card"><div class="da-stat-val">💎 ${totalDiamonds.toFixed(1)}</div><div class="da-stat-lbl">Total Diamonds</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">${totalStudyHours.toFixed(1)}h</div><div class="da-stat-lbl">Total Focus Time</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">🌲 ${Math.round(totalTreesPlantedStat)}</div><div class="da-stat-lbl">Total Trees</div></div>
+    <div class="da-stat-card"><div class="da-stat-val">🍎 ${totalApplesStat.toFixed(1)}</div><div class="da-stat-lbl">Total Apples</div></div>
     <div class="da-stat-card"><div class="da-stat-val">🔥 ${streak}</div><div class="da-stat-lbl">Day Streak</div></div>
     <div class="da-stat-card"><div class="da-stat-val">Lv.${daLv.level}</div><div class="da-stat-sub">${daLv.name}</div><div class="da-stat-lbl">Journey Level</div></div>
     <div class="da-stat-card"><div class="da-stat-val">${'⭐'.repeat(daRank.stars)}</div><div class="da-stat-sub">${daRank.name}</div><div class="da-stat-lbl">Current Rank</div></div>
