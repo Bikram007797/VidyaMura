@@ -5795,6 +5795,7 @@ function syncForestState() {
   updateForestHUD();
   if(!forestRunning) renderDialTree(0, 0);
   if(document.getElementById('tree-shop-modal')?.classList.contains('open')) renderTreeShop();
+  autoHealAllTotals();
 }
 function updateForestHUD() {
   const t = document.getElementById('forest-hud-trees');
@@ -5814,21 +5815,23 @@ async function recalcForestTotals() {
   try {
     toast('🔁 Recalculating your totals…');
     const snap = await db.collection('timerLogs').where('uid', '==', currentUser.uid).get();
-    let trees = 0, earnedApples = 0;
-    snap.docs.forEach(doc => {
-      const l = doc.data();
-      if(l.completed === false) return; // quit-early sessions earn nothing — only the separate penalty counter applies to those
-      trees += logTrees(l);
-      earnedApples += logApples(l);
-    });
+   let trees = 0, earnedApples = 0, totalSeconds = 0;
+snap.docs.forEach(doc => {
+  const l = doc.data();
+  totalSeconds += l.seconds || 0; // Timer/Zendo "Overall" এর মতোই — completed/incomplete সব log ধরে
+  if(l.completed === false) return;
+  trees += logTrees(l);
+  earnedApples += logApples(l);
+});
     const treesPenalized = Number(currentUserData?.totalTreesPenalized) || 0;
     const applesSpent = Number(currentUserData?.totalApplesSpent) || 0;
     const finalTrees = Math.max(0, trees - treesPenalized);
     const apples = Math.max(0, earnedApples - applesSpent);
     await db.collection('users').doc(currentUser.uid).update({
-      totalTreesPlanted: finalTrees,
-      totalApples: apples
-    });
+  totalTreesPlanted: finalTrees,
+  totalApples: apples,
+  totalStudyHours: totalSeconds / 3600
+});
     totalTreesPlanted = finalTrees;
     totalApples = apples;
     updateForestHUD();
@@ -5836,6 +5839,8 @@ async function recalcForestTotals() {
     toast('✅ Totals fixed! 🌲 ' + finalTrees + ' 🍎 ' + (Math.round(apples * 10) / 10));
   } catch(err) {
     playSFX('error');
+    cachedTotalFocusHours = totalSeconds / 3600;
+cachedTotalFocusHoursAt = Date.now();
     toast('❌ Recalculate failed: ' + err.message);
   }
 }
@@ -6541,6 +6546,64 @@ function timerAddSubject() {
   }).catch(() => toast('Could not save the new subject — try again'));
 }
 
+// একমাত্র সঠিক উৎস — Timer/Zendo এর "Overall" ঠিক যেভাবে বের হয় (সব timerLogs
+// এর seconds যোগ করে), সেভাবেই সব জায়গায় "Total Focus Time" দেখানো হবে।
+let cachedTotalFocusHours = null;
+let cachedTotalFocusHoursAt = 0;
+async function getTotalFocusHours(forceRefresh) {
+  if(!currentUser) return 0;
+  const fresh = cachedTotalFocusHours !== null && (Date.now() - cachedTotalFocusHoursAt) < 30000;
+  if(!forceRefresh && fresh) return cachedTotalFocusHours;
+  const snap = await db.collection('timerLogs').where('uid', '==', currentUser.uid).limit(5000).get();
+  const totalSecs = snap.docs.reduce((s, d) => s + (d.data().seconds || 0), 0);
+  cachedTotalFocusHours = totalSecs / 3600;
+  cachedTotalFocusHoursAt = Date.now();
+  return cachedTotalFocusHours;
+}
+
+// অ্যাপ খোলার সাথে সাথে (প্রতি session-এ একবার), নিজের tree/apple/focus-hours
+// টোটাল Timer/Zendo Overall-এর হিসাবের সাথে মিলিয়ে নেয় — মিল না থাকলেই
+// (এবং শুধু তখনই) নিঃশব্দে ঠিক করে দেয়। কোনো manual চাপ লাগে না।
+let totalsAutoHealed = false;
+async function autoHealAllTotals() {
+  if(totalsAutoHealed || !currentUser) return;
+  totalsAutoHealed = true; // প্রতি app-load এ একবারই চেষ্টা করবে
+  try {
+    const snap = await db.collection('timerLogs').where('uid', '==', currentUser.uid).limit(5000).get();
+    let trees = 0, earnedApples = 0, totalSeconds = 0;
+    snap.docs.forEach(doc => {
+      const l = doc.data();
+      totalSeconds += l.seconds || 0;
+      if(l.completed === false) return;
+      trees += logTrees(l);
+      earnedApples += logApples(l);
+    });
+    const treesPenalized = Number(currentUserData?.totalTreesPenalized) || 0;
+    const applesSpent = Number(currentUserData?.totalApplesSpent) || 0;
+    const finalTrees = Math.max(0, trees - treesPenalized);
+    const apples = Math.max(0, earnedApples - applesSpent);
+    const hours = totalSeconds / 3600;
+
+    const storedTrees = Math.round(Number(currentUserData?.totalTreesPlanted) || 0);
+    const storedApples = Number(currentUserData?.totalApples) || 0;
+    const storedHours = Number(currentUserData?.totalStudyHours) || 0;
+
+    const driftFound = (finalTrees !== storedTrees) || (Math.abs(apples - storedApples) > 0.05) || (Math.abs(hours - storedHours) > 0.05);
+    if(!driftFound) return; // আগে থেকেই ঠিক আছে, কিছু লেখার দরকার নেই
+
+    await db.collection('users').doc(currentUser.uid).update({
+      totalTreesPlanted: finalTrees,
+      totalApples: apples,
+      totalStudyHours: hours
+    });
+    totalTreesPlanted = finalTrees;
+    totalApples = apples;
+    updateForestHUD();
+    cachedTotalFocusHours = hours;
+    cachedTotalFocusHoursAt = Date.now();
+  } catch(e) { /* best-effort, silently ignore */ }
+}
+
 async function loadTimerStats() {
   if(!currentUser) return;
   const today = getLocalDateString();
@@ -6555,6 +6618,8 @@ async function loadTimerStats() {
   const monthlySecs = logs.filter(l => l.month === month).reduce((s, l) => s + l.seconds, 0);
   const yearlySecs = logs.filter(l => l.year === year).reduce((s, l) => s + l.seconds, 0);
   const totalSecs = logs.reduce((s, l) => s + l.seconds, 0);
+  cachedTotalFocusHours = totalSecs / 3600;
+cachedTotalFocusHoursAt = Date.now();
   function fmtH(sec) { return (sec / 3600).toFixed(1) + 'h'; }
   const ids = ['timer-daily-time', 'timer-weekly-time', 'timer-monthly-time', 'timer-yearly-time'];
   ids.forEach((id, i) => {
@@ -7067,7 +7132,7 @@ function renderHomeGreeting() {
 // ═══════════════════════════════════════════
 // PROFILE STATS SUMMARY
 // ═══════════════════════════════════════════
-function updateProfile() {
+async function updateProfile() {
   if(!currentUserData) return;
   const xp = currentUserData.xp || 0;
   const lv = getGuildLevel(xp);
@@ -7136,7 +7201,7 @@ if(pRankStarsEl) pRankStarsEl.textContent = '⭐'.repeat(rank.stars);
   if(pRewEl) pRewEl.textContent = totalPurchased;
   
   const ttEl = document.getElementById('pstat-timer-time');
-  if(ttEl) ttEl.textContent = (currentUserData.totalStudyHours || 0).toFixed(1) + 'h';
+ if(ttEl) ttEl.textContent = (await getTotalFocusHours()).toFixed(1) + 'h';
   
   const pBlossomEl = document.getElementById('pstat-blossom-best');
   if(pBlossomEl) pBlossomEl.textContent = currentUserData.blossomMatchBest || 0;
@@ -7192,7 +7257,7 @@ const ACHIEVEMENT_GROUPS = [
       {v:1000, icon:'🧘', name:'Thousand Hour Monk', desc:'1,000 hours of task time'},
       {v:2000, icon:'🐉', name:'Two Thousand Hour Master', desc:'2,000 hours of task time'}
     ]},
-  { cat:'Focus Timer', color:'var(--accent-orange)', metric:d=>d.totalStudyHours||0,
+ { cat:'Focus Timer', color:'var(--accent-orange)', metric:d=>d._totalFocusHours||0,
     tiers:[
       {v:10, icon:'⌛', name:'First Focus', desc:'10 hours on the focus timer'},
       {v:50, icon:'🌬️', name:'Deep Breath', desc:'50 hours on the focus timer'},
@@ -7334,7 +7399,8 @@ async function renderAchievements(data) {
   const rank = getGuildRankNew(power, xp);
   const counts = await getNotesJournalCounts();
 
-  const enriched = { ...data, _level: lv.level, _power: power, _rankStars: rank.stars, _notesCount: counts.notes, _journalCount: counts.journal, _accountDays: daysSinceTs(data.createdAt) };
+ const focusHours = await getTotalFocusHours();
+const enriched = { ...data, _level: lv.level, _power: power, _rankStars: rank.stars, _notesCount: counts.notes, _journalCount: counts.journal, _accountDays: daysSinceTs(data.createdAt), _totalFocusHours: focusHours };
   
   const achievements = buildAchievementsList(enriched);
   const claimed = data.claimedAchievements || []; 
@@ -7599,7 +7665,7 @@ async function loadDrawerAnalytics() {
   const xp = currentUserData?.xp || 0;
   const totalDone = currentUserData?.totalDone || 0;
   const totalHours = currentUserData?.totalHours || 0;
-  const totalStudyHours = currentUserData?.totalStudyHours || 0;
+  const totalStudyHours = await getTotalFocusHours();
   const totalTreesPlantedStat = currentUserData?.totalTreesPlanted || 0;
   const totalApplesStat = currentUserData?.totalApples || 0;
   const streak = currentUserData?.streak || 0;
