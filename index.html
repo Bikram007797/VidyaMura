@@ -220,8 +220,11 @@
   background: conic-gradient(var(--accent-purple) 0%, var(--bg-elevated) 0%);
   display: flex; align-items: center; justify-content: center;
   position: relative; margin-bottom: 20px;
-  box-shadow: 0 0 48px rgba(136,179,148,0.18); transition: background 0.6s;
+  box-shadow: 0 0 40px color-mix(in srgb, var(--accent-purple) 24%, transparent),
+              0 0 0 1px color-mix(in srgb, #fff 6%, transparent) inset;
+  transition: background 0.6s;
   touch-action: none;
+  animation: dialGlowPulse 4.5s ease-in-out infinite;
 }
 .fs-ring::before {
   content: ''; position: absolute; inset: 13px;
@@ -231,8 +234,10 @@
 .fs-dial-handle {
   position: absolute; top: 50%; left: 50%; width: 22px; height: 22px;
   border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-purple));
-  border: 2px solid var(--bg-deep); box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  border: 2px solid var(--bg-deep);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 14px color-mix(in srgb, var(--accent-gold) 55%, transparent);
   z-index: 3; pointer-events: none; display: none;
+  transition: box-shadow 0.15s ease;
 }
 .fs-dial-tree-stage { width: 54%; height: 68%; max-width: 150px; max-height: 190px; }
 .fs-time {
@@ -1062,6 +1067,13 @@ select {
   background: conic-gradient(var(--accent-purple) 0%, var(--bg-elevated) 0%);
   display: flex; align-items: center; justify-content: center;
   position: relative; transition: background 0.5s;
+  box-shadow: 0 0 34px color-mix(in srgb, var(--accent-purple) 26%, transparent),
+              0 0 0 1px color-mix(in srgb, #fff 6%, transparent) inset;
+  animation: dialGlowPulse 4.5s ease-in-out infinite;
+}
+@keyframes dialGlowPulse {
+  0%, 100% { box-shadow: 0 0 34px color-mix(in srgb, var(--accent-purple) 20%, transparent), 0 0 0 1px color-mix(in srgb, #fff 6%, transparent) inset; }
+  50%      { box-shadow: 0 0 48px color-mix(in srgb, var(--accent-purple) 36%, transparent), 0 0 0 1px color-mix(in srgb, #fff 9%, transparent) inset; }
 }
 .forest-ring::before {
   content: ''; position: absolute; inset: 16px;
@@ -1085,8 +1097,10 @@ select {
 .forest-dial-handle {
   position: absolute; top: 50%; left: 50%; width: 24px; height: 24px;
   border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-purple));
-  border: 2px solid var(--bg-card); box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 14px color-mix(in srgb, var(--accent-gold) 55%, transparent);
   z-index: 3; pointer-events: none;
+  transition: box-shadow 0.15s ease;
 }
 .slider-val { text-align: center; font-family: var(--font-head); font-size: 1.1rem; color: var(--accent-gold); font-weight: 700; margin-bottom: 12px; }
 
@@ -2634,7 +2648,12 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   </div>
   <div class="fs-dial-handle" id="fs-dial-handle"></div>
 </div>
-    <div class="fs-subject" id="fs-subject">No subject</div>
+    <div class="fs-sound-dropdown" id="fs-subject-dropdown" style="max-width:220px;margin:0 auto">
+      <button class="fs-sound-trigger" id="fs-subject-trigger" onclick="toggleFsSubjectDropdown(event)">
+        <span class="fs-sound-trigger-label" id="fs-subject">No subject</span><span class="fs-sound-caret">▾</span>
+      </button>
+      <div class="fs-sound-menu" id="fs-subject-menu" onclick="event.stopPropagation()"></div>
+    </div>
     <div class="fs-btn-row">
       <button class="fs-btn fs-btn-pause"   id="fs-pause-btn"   onclick="fsPause()">⏸ Pause</button>
       <button class="fs-btn fs-btn-restart" id="fs-restart-btn" onclick="fsRestart()">↺ Restart</button>
@@ -5986,9 +6005,10 @@ function renderDial(val) {
   const handle = document.getElementById('forest-dial-handle');
   if(!ring) return;
   const angle = dialAngleForValue(val);
+  const midAngle = (DIAL_START_DEG + angle) / 2;
   ring.style.background = `conic-gradient(
     var(--bg-deep) 0deg, var(--bg-deep) ${DIAL_START_DEG}deg,
-    var(--accent-purple) ${DIAL_START_DEG}deg, var(--accent-purple) ${angle}deg,
+    var(--accent-gold) ${DIAL_START_DEG}deg, var(--accent-purple-bright) ${midAngle}deg, var(--accent-purple) ${angle}deg,
     var(--bg-elevated) ${angle}deg, var(--bg-elevated) ${DIAL_END_DEG}deg,
     var(--bg-deep) ${DIAL_END_DEG}deg, var(--bg-deep) 360deg
   )`;
@@ -5997,7 +6017,7 @@ function renderDial(val) {
     const r = 102; // sits mid-band between the ring's outer edge and the inset hole (ring is 220px, inset 16px)
     const x = r * Math.sin(rad), y = -r * Math.cos(rad);
     handle.style.display = '';
-    handle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+    handle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${dialDragging ? 1.3 : 1})`;
   }
 }
 
@@ -6009,9 +6029,10 @@ function renderFsDial(val) {
   const handle = document.getElementById('fs-dial-handle');
   if(!ring) return;
   const angle = dialAngleForValue(val);
+  const midAngle = (DIAL_START_DEG + angle) / 2;
   ring.style.background = `conic-gradient(
     var(--bg-deep) 0deg, var(--bg-deep) ${DIAL_START_DEG}deg,
-    var(--accent-purple) ${DIAL_START_DEG}deg, var(--accent-purple) ${angle}deg,
+    var(--accent-gold) ${DIAL_START_DEG}deg, var(--accent-purple-bright) ${midAngle}deg, var(--accent-purple) ${angle}deg,
     var(--bg-elevated) ${angle}deg, var(--bg-elevated) ${DIAL_END_DEG}deg,
     var(--bg-deep) ${DIAL_END_DEG}deg, var(--bg-deep) 360deg
   )`;
@@ -6021,7 +6042,7 @@ function renderFsDial(val) {
     const r = (rect.width / 2) * 0.927; // same mid-band ratio as the home dial (102/110)
     const x = r * Math.sin(rad), y = -r * Math.cos(rad);
     handle.style.display = '';
-    handle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+    handle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${dialDragging ? 1.3 : 1})`;
   }
 }
 
@@ -6045,20 +6066,6 @@ function angleFromPointerEvent(e, ringId) {
   return angle;
 }
 
-// Whether a pointer event lands on/near the tree artwork itself (the actual
-// visual centerpiece users tap) rather than an assumed geometric ring-center —
-// the tree SVG is CSS-shifted off-center (translate(-50%,-58%) on the home
-// ring; flex/justify-content:flex-end on the fullscreen ring), so checking
-// against its real rendered rect is what makes this reliable on touch too.
-function isPointOnTreeArt(e, svgId) {
-  const svg = document.getElementById(svgId);
-  if(!svg) return false;
-  const rect = svg.getBoundingClientRect();
-  const pad = 24; // generous touch-friendly margin around the artwork
-  return e.clientX >= rect.left - pad && e.clientX <= rect.right + pad &&
-         e.clientY >= rect.top - pad && e.clientY <= rect.bottom + pad;
-}
-
 function valueFromAngle(angle) {
   let val;
   if(angle < DIAL_START_DEG) val = DIAL_MIN;
@@ -6068,19 +6075,13 @@ function valueFromAngle(angle) {
   return Math.max(DIAL_MIN, Math.min(DIAL_MAX, val));
 }
 
-let dialCenterTapCandidate = false;
-
 function forestDialPointerDown(e) {
   if(forestRunning) return;
-  if(isPointOnTreeArt(e, 'dial-tree')) {
-    dialCenterTapCandidate = true;
-    return; // don't start a drag — resolved as a tap-vs-drag on pointerup
-  }
-  dialCenterTapCandidate = false;
   e.preventDefault();
   dialDragging = true;
   const ring = document.getElementById('forest-ring');
   if(ring && ring.setPointerCapture) { try { ring.setPointerCapture(e.pointerId); } catch(err) {} }
+  ring.style.transition = 'none';
   setDialValue(valueFromAngle(angleFromPointerEvent(e)));
 }
 function forestDialPointerMove(e) {
@@ -6088,28 +6089,19 @@ function forestDialPointerMove(e) {
   setDialValue(valueFromAngle(angleFromPointerEvent(e)));
 }
 function forestDialPointerUp(e) {
-  if(dialCenterTapCandidate) {
-    dialCenterTapCandidate = false;
-    if(!dialDragging && !forestRunning && e && isPointOnTreeArt(e, 'dial-tree')) {
-      openTreeShop();
-    }
-    return;
-  }
   dialDragging = false;
+  const ring = document.getElementById('forest-ring');
+  if(ring) ring.style.transition = '';
 }
 
-// ── Fullscreen dial: same drag-to-set-time + center-tap-opens-shop behavior ──
+// ── Fullscreen dial: same drag-to-set-time behavior ──
 function fsDialPointerDown(e) {
   if(forestRunning) return;
-  if(isPointOnTreeArt(e, 'fs-dial-tree')) {
-    dialCenterTapCandidate = true;
-    return;
-  }
-  dialCenterTapCandidate = false;
   e.preventDefault();
   dialDragging = true;
   const ring = document.getElementById('fs-ring');
   if(ring && ring.setPointerCapture) { try { ring.setPointerCapture(e.pointerId); } catch(err) {} }
+  ring.style.transition = 'none';
   setDialValue(valueFromAngle(angleFromPointerEvent(e, 'fs-ring')));
 }
 function fsDialPointerMove(e) {
@@ -6117,14 +6109,9 @@ function fsDialPointerMove(e) {
   setDialValue(valueFromAngle(angleFromPointerEvent(e, 'fs-ring')));
 }
 function fsDialPointerUp(e) {
-  if(dialCenterTapCandidate) {
-    dialCenterTapCandidate = false;
-    if(!dialDragging && !forestRunning && e && isPointOnTreeArt(e, 'fs-dial-tree')) {
-      openTreeShop();
-    }
-    return;
-  }
   dialDragging = false;
+  const ring = document.getElementById('fs-ring');
+  if(ring) ring.style.transition = '';
 }
 
 (function initForestDial() {
@@ -6388,6 +6375,7 @@ function forestStart() {
   startCurrentTimerSound();
   scheduleUpcomingAlerts();
   scheduleServerAlarm(Date.now() + forestSetSecs * 1000, forestSetMins);
+  startTimerStatusUpdates();
   forestInterval = setInterval(() => {
     forestElapsed++;
     updateForestDisplay();
@@ -6417,6 +6405,8 @@ async function forestStop() {
     clearScheduledAlerts();
     stopKeepAlive();
     cancelServerAlarm();
+    stopTimerStatusUpdates();
+    closeTimerStatusNotification();
     document.getElementById('forest-start-btn').style.display = '';
     document.getElementById('forest-stop-btn').style.display = 'none';
     document.getElementById('slider-val-display').style.display = '';
@@ -6519,8 +6509,9 @@ async function forestStop() {
 
 function renderTimerSubjects() {
   const wrap = document.getElementById('timer-subject-chips');
-  if(!wrap) return;
-  wrap.innerHTML = timerSubjects.map(s => `<div class="timer-subject-chip ${timerSelectedSubject === s ? 'selected' : ''}" onclick="timerSelectSubject('${s}')">${s}</div>`).join('');
+  if(wrap) wrap.innerHTML = timerSubjects.map(s => `<div class="timer-subject-chip ${timerSelectedSubject === s ? 'selected' : ''}" onclick="timerSelectSubject('${s}')">${s}</div>`).join('');
+  const fsMenu = document.getElementById('fs-subject-menu');
+  if(fsMenu) fsMenu.innerHTML = timerSubjects.map(s => `<button class="fs-sound-option ${timerSelectedSubject === s ? 'active' : ''}" onclick="timerSelectSubject('${s}')">📚 ${s}</button>`).join('');
 }
 
 function timerSelectSubject(s) {
@@ -6528,6 +6519,9 @@ function timerSelectSubject(s) {
   timerSelectedSubject = s;
   const el = document.getElementById('forest-subject-label');
   if(el) el.textContent = '📚 ' + s;
+  const fsEl = document.getElementById('fs-subject');
+  if(fsEl) fsEl.textContent = '📚 ' + s;
+  closeFsSubjectDropdown();
   renderTimerSubjects();
 }
 
@@ -6567,6 +6561,7 @@ async function getTotalFocusHours(forceRefresh) {
 let totalsAutoHealed = false;
 async function autoHealAllTotals() {
   if(totalsAutoHealed || !currentUser) return;
+  if(forestBusy) return; // a Stop/save is actively in flight — retry on the next snapshot instead of racing it
   totalsAutoHealed = true; // প্রতি app-load এ একবারই চেষ্টা করবে
   try {
     const snap = await db.collection('timerLogs').where('uid', '==', currentUser.uid).limit(5000).get();
@@ -8574,6 +8569,61 @@ function showAlertNotification() {
   } catch(e) {}
 }
 
+// ── Persistent notification-bar status (so checking progress doesn't need
+// unlocking the phone). Uses the SAME tag every time so each update REPLACES
+// the previous one instead of stacking — silent, no sound/vibration, just an
+// ongoing status line. Refreshed every minute while running, and immediately
+// on visibilitychange so the moment the screen wakes up it's already current.
+let timerStatusInterval = null;
+
+async function updateTimerStatusNotification() {
+  if(!forestRunning || !('serviceWorker' in navigator) || Notification.permission !== 'granted') return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const elapsedMin = Math.floor(forestElapsed / 60);
+    let title, body;
+    if(fsPaused) {
+      title = '⏸ Timer Paused';
+      body = `📚 ${timerSelectedSubject || 'General'} — ${elapsedMin} min এ pause করা আছে`;
+    } else if(forestElapsed < forestSetSecs) {
+      const remainMin = Math.ceil((forestSetSecs - forestElapsed) / 60);
+      title = '⏳ Timer চলছে';
+      body = `📚 ${timerSelectedSubject || 'General'} — ${elapsedMin} min হয়েছে, আর ${remainMin} min বাকি`;
+    } else {
+      const extraMin = Math.floor((forestElapsed - forestSetSecs) / 60);
+      title = '🌲 Overtime চলছে';
+      body = `📚 ${timerSelectedSubject || 'General'} — Set time শেষ! Extra time: ${extraMin} min`;
+    }
+    await reg.showNotification(title, {
+      body,
+      tag: 'vidyamura-timer-status',
+      silent: true,
+      requireInteraction: false
+    });
+  } catch(e) {}
+}
+
+function startTimerStatusUpdates() {
+  stopTimerStatusUpdates();
+  updateTimerStatusNotification();
+  timerStatusInterval = setInterval(updateTimerStatusNotification, 60000);
+}
+function stopTimerStatusUpdates() {
+  if(timerStatusInterval) clearInterval(timerStatusInterval);
+  timerStatusInterval = null;
+}
+async function closeTimerStatusNotification() {
+  if(!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const notifs = await reg.getNotifications({tag: 'vidyamura-timer-status'});
+    notifs.forEach(n => n.close());
+  } catch(e) {}
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && forestRunning) updateTimerStatusNotification();
+});
+
 // Ambience only (tune + BGM). Does NOT touch scheduled alerts/keep-alive —
 // those are torn down explicitly only on real pause/stop (see below), so
 // muting or switching sound never cancels the pending completion alert.
@@ -8603,20 +8653,34 @@ function getAudioCtx() {
   return fsAudioCtx;
 }
 
-// A soft "detent click" as the dial snaps to each 5-minute step while dragging —
-// distinct timbre from the Tick BGM sound (triangle wave, lower, with tiny pitch
-// variance) so it reads as a physical dial click rather than a timer tick.
+// A soft, warm "detent click" as the dial snaps to each 5-minute step while
+// dragging — a filtered sine body plus a quiet high sparkle overtone, so it
+// reads like a polished rotary-dial click rather than a plain digital beep.
 function playDialTick() {
   try {
     const ctx = getAudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'triangle';
-    osc.frequency.value = 480 + Math.random() * 60;
-    gain.gain.setValueAtTime(0.14, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.06);
+    const now = ctx.currentTime;
+
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    const filt = ctx.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.value = 1800;
+    osc1.type = 'sine';
+    osc1.frequency.value = 320 + Math.random() * 20;
+    osc1.connect(filt); filt.connect(gain1); gain1.connect(ctx.destination);
+    gain1.gain.setValueAtTime(0.16, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    osc1.start(now); osc1.stop(now + 0.08);
+
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.value = 960 + Math.random() * 40;
+    osc2.connect(gain2); gain2.connect(ctx.destination);
+    gain2.gain.setValueAtTime(0.05, now);
+    gain2.gain.exponentialRampToValueAtTime(0.0008, now + 0.035);
+    osc2.start(now); osc2.stop(now + 0.04);
   } catch(e) {}
 }
 
@@ -8731,6 +8795,21 @@ document.addEventListener('click', (e) => {
   if(dd && dd.classList.contains('open') && !dd.contains(e.target)) dd.classList.remove('open');
 });
 
+function toggleFsSubjectDropdown(e) {
+  if(e) e.stopPropagation();
+  if(forestRunning) return toast('Stop timer before changing subject');
+  const dd = document.getElementById('fs-subject-dropdown');
+  if(dd) dd.classList.toggle('open');
+}
+function closeFsSubjectDropdown() {
+  const dd = document.getElementById('fs-subject-dropdown');
+  if(dd) dd.classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  const dd = document.getElementById('fs-subject-dropdown');
+  if(dd && dd.classList.contains('open') && !dd.contains(e.target)) dd.classList.remove('open');
+});
+
 function fsToggleMute() {
   fsMuted = !fsMuted;
   const btn = document.getElementById('fs-mute-btn');
@@ -8795,6 +8874,7 @@ function openTimerFullscreen() {
   if('wakeLock' in navigator) {
     navigator.wakeLock.request('screen').catch(() => {});
   }
+  renderTimerSubjects();
   fsUpdateDisplay();
 }
 
@@ -8843,7 +8923,7 @@ function fsUpdateDisplay() {
   }
 
   const subEl = document.getElementById('fs-subject');
-  if(subEl) subEl.textContent = timerSelectedSubject || 'No subject';
+  if(subEl) subEl.textContent = timerSelectedSubject ? ('📚 ' + timerSelectedSubject) : 'No subject';
 
   const pauseBtn = document.getElementById('fs-pause-btn');
   if(pauseBtn) {
@@ -8881,6 +8961,7 @@ function fsPause() {
     startKeepAlive();
     scheduleUpcomingAlerts();
     scheduleServerAlarm(Date.now() + (forestSetSecs - forestElapsed) * 1000, forestSetMins);
+    startTimerStatusUpdates();
   } else {
     // Pause
     fsPaused = true;
@@ -8889,6 +8970,8 @@ function fsPause() {
     clearScheduledAlerts();
     stopKeepAlive();
     cancelServerAlarm();
+    stopTimerStatusUpdates();
+    updateTimerStatusNotification(); // one last update so the bar shows "Paused"
   }
   fsUpdateDisplay();
 }
@@ -8902,6 +8985,8 @@ function fsRestart() {
   clearScheduledAlerts();
 stopKeepAlive();
   cancelServerAlarm();
+  stopTimerStatusUpdates();
+  closeTimerStatusNotification();
   updateForestDisplay();
   fsUpdateDisplay();
   setTimeout(() => { forestStart(); }, 100);
