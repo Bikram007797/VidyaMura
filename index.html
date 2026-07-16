@@ -180,6 +180,7 @@
    A single trigger opens a scrollable list, so adding more BGM tracks later
    never runs into the "too many chips to scroll through" problem. */
 .fs-sound-dropdown { position: relative; flex: 1; min-width: 0; max-width: 168px; }
+.fs-subject-dropdown-wrap { position: relative; display: inline-block; }
 .fs-sound-trigger {
   width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 6px;
   background: var(--bg-elevated); border: 1px solid var(--border);
@@ -190,7 +191,7 @@
 .fs-sound-trigger.active { background: rgba(136,179,148,0.2); border-color: var(--accent-purple); color: var(--accent-purple-bright); }
 .fs-sound-trigger-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fs-sound-caret { flex-shrink: 0; font-size: 0.7rem; transition: transform 0.2s; opacity: 0.75; }
-.fs-sound-dropdown.open .fs-sound-caret { transform: rotate(180deg); }
+.fs-sound-dropdown.open .fs-sound-caret, .fs-subject-dropdown-wrap.open .fs-sound-caret { transform: rotate(180deg); }
 .fs-sound-menu {
   position: absolute; top: calc(100% + 8px); left: 0; min-width: 160px;
   background: var(--bg-elevated); border: 1px solid var(--border);
@@ -199,7 +200,7 @@
   max-height: 46vh; overflow-y: auto;
   box-shadow: 0 12px 32px rgba(0,0,0,0.45);
 }
-.fs-sound-dropdown.open .fs-sound-menu { display: flex; }
+.fs-sound-dropdown.open .fs-sound-menu, .fs-subject-dropdown-wrap.open .fs-sound-menu { display: flex; }
 .fs-sound-option {
   background: transparent; border: none; text-align: left;
   padding: 10px 12px; border-radius: 9px; font-size: 0.83rem;
@@ -2648,7 +2649,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   </div>
   <div class="fs-dial-handle" id="fs-dial-handle"></div>
 </div>
-    <div class="fs-sound-dropdown" id="fs-subject-dropdown" style="max-width:220px;margin:0 auto">
+    <div class="fs-subject-dropdown-wrap" id="fs-subject-dropdown" style="max-width:220px;margin:0 auto">
       <button class="fs-sound-trigger" id="fs-subject-trigger" onclick="toggleFsSubjectDropdown(event)">
         <span class="fs-sound-trigger-label" id="fs-subject">No subject</span><span class="fs-sound-caret">▾</span>
       </button>
