@@ -2971,7 +2971,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <div style="text-align:center;padding:12px;background:var(--bg-deep);border-radius:10px;border:1px solid var(--border-bright)">
     <div style="font-size: 0.71rem;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Crafted with 🍵 by</div>
     <div style="font-size:1.05rem;font-weight:800;color:var(--accent-gold);letter-spacing:1px">Bikr@m</div>
-    <div style="font-size: 0.69rem;color:var(--text-muted);margin-top:3px">version 4.0 · Made for scholars, by a scholar</div>
+    <div style="font-size: 0.69rem;color:var(--text-muted);margin-top:3px">Version 4.0 · Made for scholars, by a scholar</div>
   </div>
 </div>
     </div>
@@ -8805,10 +8805,10 @@ function toggleFsSubjectDropdown(e) {
   const opening = !dd.classList.contains('open');
   if(opening) {
     const rect = dd.getBoundingClientRect();
-    const menu = document.getElementById('fs-subject-menu');
-    const neededSpace = Math.min(menu ? menu.scrollHeight : 200, window.innerHeight * 0.4) + 16;
     const spaceBelow = window.innerHeight - rect.bottom;
-    dd.classList.toggle('drop-up', spaceBelow < neededSpace);
+    const spaceAbove = rect.top;
+    const minComfortable = 220; // px — a few menu rows before it'd need to scroll
+    dd.classList.toggle('drop-up', spaceBelow < minComfortable && spaceAbove > spaceBelow);
   } else {
     dd.classList.remove('drop-up');
   }
