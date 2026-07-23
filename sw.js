@@ -1,4 +1,4 @@
-// VidyaMura Service Worker
+\// VidyaMura Service Worker
 // Purpose: satisfies Chrome/Android's PWA installability requirement
 // (a registered service worker with a fetch handler + a valid manifest).
 self.addEventListener('install', (event) => {
@@ -24,7 +24,8 @@ self.addEventListener('push', (event) => {
       body: data.body || '',
       tag: data.tag,
       vibrate: [200, 100, 200],
-      requireInteraction: true
+      requireInteraction: true,
+      renotify: true
     })
   );
 });
