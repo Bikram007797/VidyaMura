@@ -2048,6 +2048,20 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   display: flex; align-items: center; gap: 10px;
   flex-wrap: wrap; font-size: 0.77rem; color: var(--text-secondary);
 }
+.tcard-timer-row { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.tcard-timer-start {
+  flex: 1; padding: 9px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.82rem;
+  font-family: var(--font-head); cursor: pointer;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-purple-bright)); color: #fff;
+}
+.tcard-timer-start:disabled { opacity: 0.4; cursor: not-allowed; }
+.tcard-timer-start:active { transform: scale(0.97); }
+.tcard-timer-countdown { flex: 1; font-family: var(--font-head); font-weight: 700; font-size: 0.86rem; color: var(--accent-gold); }
+.tcard-timer-stop {
+  padding: 8px 14px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.8rem;
+  font-family: var(--font-head); cursor: pointer; background: var(--accent-red); color: #fff;
+}
+.tcard-timer-stop:active { transform: scale(0.95); }
 
 /* ── Reusable glowing centered page title (same style as Mura Market) ── */
 .page-title-glow {
@@ -3341,6 +3355,14 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   </div>
 </div>
    <!-- TREE SHOP MODAL -->
+<div class="modal-overlay" id="feature-announce-modal">
+  <div class="modal">
+    <div class="modal-title" id="feature-announce-title">🎉 New Feature</div>
+    <div id="feature-announce-body" style="font-size:0.88rem;line-height:1.6;color:var(--text-secondary);margin-bottom:18px"></div>
+    <button class="btn-primary" style="width:100%" onclick="dismissFeatureAnnouncement()">বুঝেছি! Got it 👍</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="tree-shop-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('tree-shop-modal')">✕</button>
@@ -3614,16 +3636,21 @@ async function startListeners() {
   const u1 = db.collection('users').doc(currentUser.uid).onSnapshot(snap => {
     if (snap.exists) {
       currentUserData = snap.data();
-      updateTopBar();
-      updateProfile();
-      renderHomeGreeting();
-      initAvatarIndex();
-      updateStreak();
-      updateHomeGoal();
-      refreshWeeklyChallenge();
-      refreshCoursesList();
-      syncForestState();
-      if(currentCourseId) refreshCourseDetail();
+      // updateStreak() runs FIRST and is individually try/caught — previously it sat
+      // mid-sequence, so if any function ahead of it threw, the streak would silently
+      // stop updating (looking exactly like it "got stuck"). Every call below is now
+      // isolated the same way, so one broken function can no longer block the rest.
+      try { updateStreak(); } catch(e) { console.error('updateStreak failed:', e); }
+      try { checkFeatureAnnouncement(); } catch(e) { console.error('checkFeatureAnnouncement failed:', e); }
+      try { updateTopBar(); } catch(e) { console.error('updateTopBar failed:', e); }
+      try { updateProfile(); } catch(e) { console.error('updateProfile failed:', e); }
+      try { renderHomeGreeting(); } catch(e) { console.error('renderHomeGreeting failed:', e); }
+      try { initAvatarIndex(); } catch(e) { console.error('initAvatarIndex failed:', e); }
+      try { updateHomeGoal(); } catch(e) { console.error('updateHomeGoal failed:', e); }
+      try { refreshWeeklyChallenge(); } catch(e) { console.error('refreshWeeklyChallenge failed:', e); }
+      try { refreshCoursesList(); } catch(e) { console.error('refreshCoursesList failed:', e); }
+      try { syncForestState(); } catch(e) { console.error('syncForestState failed:', e); }
+      try { if(currentCourseId) refreshCourseDetail(); } catch(e) { console.error('refreshCourseDetail failed:', e); }
     }
   });
 
@@ -4200,12 +4227,29 @@ function renderTasks() {
       const isCurrentDone = (taskFilter==='daily') ? doneToday : hasBeenDone;
       const pts = Math.round((parseFloat(t.hours)||1)*2);
       const clickAction = isCurrentDone
-        ? `confirmUncheck('${t.id}','${t.dueDate||questDay}')`
+        ? ''
         : `toggleTask('${t.id}','${t.dueDate||questDay}')`;
       let statusHtml = '';
       if(isCurrentDone) statusHtml = '<span class="status-badge status-done">✓ Done</span>';
       else if(t.dueDate && new Date(t.dueDate)<todayDate) statusHtml = '<span class="status-badge status-due">Overdue</span>';
       else statusHtml = '<span class="status-badge status-pending">Pending</span>';
+
+      const isThisRunning = forestRunning && linkedTaskId === t.id;
+      const otherRunning = forestRunning && linkedTaskId !== t.id;
+      let timerRowHtml = '';
+      if(!isCurrentDone) {
+        if(isThisRunning) {
+          timerRowHtml = `<div class="tcard-timer-row" onclick="event.stopPropagation()">
+            <span class="tcard-timer-countdown" id="task-timer-display-${t.id}">⏳ …</span>
+            <button class="tcard-timer-stop" onclick="stopTaskLinkedTimer()">⏹ Stop</button>
+          </div>`;
+        } else {
+          timerRowHtml = `<div class="tcard-timer-row" onclick="event.stopPropagation()">
+            <button class="tcard-timer-start" ${otherRunning ? 'disabled' : ''} onclick="startTaskLinkedTimer('${t.id}')">▶ START⏰${otherRunning ? ' (busy)' : ''}</button>
+          </div>`;
+        }
+      }
+
       return `<div class="tcard ${isCurrentDone?'tcard-done':''}" onclick="openEditTask('${t.id}')">
         <div class="tcard-top">
           <div class="tcard-left">
@@ -4221,7 +4265,7 @@ function renderTasks() {
           ${(t.examIds||[]).map(eid=>{const ex=allExams.find(e=>e.id===eid);return ex?`<span style="background:rgba(58,181,200,0.12);border:1px solid var(--accent-cyan);color:var(--accent-cyan);padding:2px 8px;border-radius:20px;font-size: 0.71rem;font-weight:700">📅 ${ex.name}</span>`:''}).join('')}
           <span style="margin-left:auto">${t.dueDate?fmtDateShort(t.dueDate):'—'} · ${statusHtml}</span>
         </div>
-        
+        ${timerRowHtml}
       </div>`;
     }).join('');
   }
@@ -4448,48 +4492,29 @@ function isAssignmentDoneBy(a, uid) {
 }
 function isAssignmentDoneByMe(a) { return isAssignmentDoneBy(a, currentUser.uid); }
 
-function confirmUncheck(id, questDay) {
-  const task = allTasks.find(t => t.id === id);
-  if(!task) return;
-  if(confirm('⚠️ "' + task.name + '" uncheck করবে? XP কমে যাবে।')) {
-    toggleTask(id, questDay);
-  }
+// Marking a task done is a ONE-WAY action — no more uncheck/undo, since a
+// task can now also be auto-completed by stopping its linked Timer session,
+// and reversing that after tree/apple rewards + history already happened
+// would leave things inconsistent. Shared by the checkbox click AND by
+// forestStop()'s task-linked auto-complete.
+async function markTaskDone(id, questDay) {
+  const task = allTasks.find(t => t.id === id); if(!task) return;
+  const today = questDay || getQuestDay();
+  const key = today + '_' + currentUser.uid;
+  const done = (task.completions || []).includes(key);
+  if(done) return; // already done — nothing to undo, nothing to redo
+  const ref = db.collection('tasks').doc(id);
+  const userRef = db.collection('users').doc(currentUser.uid);
+  await ref.update({completions: firebase.firestore.FieldValue.arrayUnion(key)});
+  const pts = Math.round((parseFloat(task.hours) || 1) * 2);
+  await userRef.update({xp: firebase.firestore.FieldValue.increment(pts), totalDone: firebase.firestore.FieldValue.increment(1), totalHours: firebase.firestore.FieldValue.increment(parseFloat(task.hours) || 1)});
+  await db.collection('activityLog').add({uid: currentUser.uid, date: today, xp: pts, hours: parseFloat(task.hours) || 1, taskId: id, taskName: task.name});
+  sendNotification('task','✅',(currentUserData?.name||'Someone')+' completed a task: '+task.name);
+  toast('🎋 +' + pts + ' pts earned!');
 }
 
 async function toggleTask(id, questDay) {
-  const task = allTasks.find(t => t.id === id); if(!task) return;
-  const today = questDay || getQuestDay(); const key = today + '_' + currentUser.uid;
-  const done = (task.completions || []).includes(key);
-  const ref = db.collection('tasks').doc(id); const userRef = db.collection('users').doc(currentUser.uid);
-  if(!done) {
-    await ref.update({completions: firebase.firestore.FieldValue.arrayUnion(key)});
-    const pts = Math.round((parseFloat(task.hours) || 1) * 2);
-    await userRef.update({xp: firebase.firestore.FieldValue.increment(pts), totalDone: firebase.firestore.FieldValue.increment(1), totalHours: firebase.firestore.FieldValue.increment(parseFloat(task.hours) || 1)});
-    await db.collection('activityLog').add({uid: currentUser.uid, date: today, xp: pts, hours: parseFloat(task.hours) || 1, taskId: id, taskName: task.name});
-    sendNotification('task','✅',(currentUserData?.name||'Someone')+' completed a task: '+task.name);
-    toast('🎋 +' + pts + ' pts earned!');
- 
-  } else {
-  await ref.update({completions: firebase.firestore.FieldValue.arrayRemove(key)});
-  const pts = Math.round((parseFloat(task.hours) || 1) * 2);
-  await userRef.update({
-    xp: firebase.firestore.FieldValue.increment(-pts),
-    totalDone: firebase.firestore.FieldValue.increment(-1),
-    totalHours: firebase.firestore.FieldValue.increment(-(parseFloat(task.hours) || 1))
-  });
-
-  // activityLog থেকে সেই entry delete করো
-  try {
-    const logSnap = await db.collection('activityLog')
-      .where('uid','==',currentUser.uid)
-      .where('taskId','==',id)
-      .where('date','==',today)
-      .get();
-    logSnap.docs.forEach(d => d.ref.delete());
-  } catch(e) { console.error('activityLog delete error:', e); }
-
-  toast('Task unchecked');
-}
+  await markTaskDone(id, questDay);
 }
 
 function updateTaskStats() { if(!currentUserData) return; const el = document.getElementById('stat-streak'); if(el) el.textContent = (currentUserData.streak || 0) + '🔥'; }
@@ -5713,6 +5738,11 @@ let forestRunning = false;
 // can't race the first call — this is what was turning a second "Stop" tap
 // into an accidental "Restart" when the save was slow.
 let forestBusy = false;
+// Set when a Timer session was started directly from a Task card's "START⏰"
+// button (rather than from the Timer/Zendo tab) — lets the task card show a
+// live countdown in place of the button, and ties back so Stop/Restart from
+// ANY surface (task card, Timer tab, fullscreen) correctly resets that card.
+let linkedTaskId = null;
 let forestElapsed = 0; 
 let forestSetMins = 60; 
 let forestSetSecs = 0; 
@@ -6480,6 +6510,50 @@ function setStopButtonBusy(busy) {
   });
 }
 
+// ── Task/Dojo card-linked Timer: lets a task's own "Time Required" hours and
+// name feed straight into a real Timer session without leaving the Task tab.
+// Deliberately reuses forestStart()/forestStop() completely — every existing
+// Timer rule (server push alerts, overtime, tree/apple rewards, penalty on
+// quitting early, history logging) applies exactly as-is, since this is the
+// same session, just started from a different button.
+function startTaskLinkedTimer(taskId) {
+  if(forestBusy) return;
+  if(forestRunning) {
+    if(linkedTaskId === taskId) return;
+    return toast('একটা Timer আগে থেকেই চলছে — আগে সেটা থামাও');
+  }
+  const t = allTasks.find(x => x.id === taskId);
+  if(!t) return;
+  const hrs = parseFloat(t.hours) || 1;
+  if(!confirm(`▶ "${t.name}"-এর জন্য ${hrs}h-এর Timer শুরু করবে?`)) return;
+  timerSelectedSubject = t.name || 'General';
+  forestSetMins = Math.max(1, Math.round(hrs * 60));
+  linkedTaskId = taskId;
+  forestStart();
+  renderTasks();
+}
+
+async function stopTaskLinkedTimer() {
+  // forestStop() already confirms (with the penalty warning) when quitting a
+  // session early — only ask separately here for the "already complete,
+  // just confirming the tap wasn't accidental" case, to avoid a double-popup.
+  const alreadyComplete = forestElapsed >= forestSetSecs;
+  if(alreadyComplete && !confirm('⏹ Timer থামিয়ে এই session save করতে চাও? এই Task-টাও "Done" হয়ে যাবে।')) return;
+  await forestStop();
+  renderTasks();
+}
+
+function updateTaskLinkedTimerDisplay() {
+  if(!linkedTaskId) return;
+  const el = document.getElementById('task-timer-display-' + linkedTaskId);
+  if(!el) return; // that task's card isn't currently rendered — nothing to touch
+  if(forestElapsed < forestSetSecs) {
+    el.textContent = '⏳ ' + fmtMins(forestSetSecs - forestElapsed) + ' left';
+  } else {
+    el.textContent = '🌲 +' + fmtMins(forestElapsed - forestSetSecs) + ' extra';
+  }
+}
+
 function forestStart() {
   if(forestBusy || forestRunning) return;
   if(!currentUser) return toast('Please login first!');
@@ -6504,6 +6578,7 @@ function forestStart() {
     forestElapsed++;
     updateForestDisplay();
     if(typeof fsOpen !== 'undefined' && fsOpen && !fsPaused) fsPlayTick();
+    updateTaskLinkedTimerDisplay();
   }, 1000);
   localStorage.setItem('vm_timer_start', Date.now().toString());
   localStorage.setItem('vm_timer_setmins', forestSetMins.toString());
@@ -6515,7 +6590,8 @@ async function forestStop() {
   const completed = forestElapsed >= setTotalSecs;
 
   if(!completed) {
-    const proceed = confirm('⚠️ তুমি এখনো তোমার set করা সময় শেষ করনি!\nএখন থামলে কোনো tree/apple পাবে না, উল্টো তোমার total থেকে 2🌲 কমে যাবে।\nসত্যিই থামতে চাও?');
+    const taskNote = linkedTaskId ? '\nএই Task-টা এখনো "Done" হবে না (পুরো সময় শেষ করলেই Done ধরা হবে)।' : '';
+    const proceed = confirm('⚠️ তুমি এখনো তোমার set করা সময় শেষ করনি!\nএখন থামলে কোনো tree/apple পাবে না, উল্টো তোমার total থেকে 2🌲 কমে যাবে।' + taskNote + '\nসত্যিই থামতে চাও?');
     if(!proceed) return; // cancelled — keep the timer running
   }
 
@@ -6628,6 +6704,17 @@ async function forestStop() {
   } finally {
     forestBusy = false;
     setStopButtonBusy(false);
+    if(linkedTaskId) {
+      if(completed) {
+        const linkedTask = allTasks.find(x => x.id === linkedTaskId);
+        if(linkedTask) {
+          try { await markTaskDone(linkedTaskId, linkedTask.dueDate || getQuestDay()); }
+          catch(e) { console.error('Auto-complete linked task failed:', e); }
+        }
+      }
+      linkedTaskId = null;
+      renderTasks();
+    }
   }
 }
 
@@ -6682,6 +6769,36 @@ async function getTotalFocusHours(forceRefresh) {
 // অ্যাপ খোলার সাথে সাথে (প্রতি session-এ একবার), নিজের tree/apple/focus-hours
 // টোটাল Timer/Zendo Overall-এর হিসাবের সাথে মিলিয়ে নেয় — মিল না থাকলেই
 // (এবং শুধু তখনই) নিঃশব্দে ঠিক করে দেয়। কোনো manual চাপ লাগে না।
+// ═══════════════════════════════════════════════════════════
+// ONE-TIME FEATURE ANNOUNCEMENTS
+// To announce a NEW feature in the future: bump CURRENT_ANNOUNCEMENT_ID to a
+// new string and update the title/body below. Existing users (whose stored
+// lastSeenAnnouncement won't match the new ID) will see it once again; users
+// who already saw an older one won't see it a second time for that same ID.
+// ═══════════════════════════════════════════════════════════
+const CURRENT_ANNOUNCEMENT_ID = 'task-linked-timer-v1';
+const CURRENT_ANNOUNCEMENT = {
+  title: '🎉 নতুন Feature: Task থেকেই Timer চালু করো!',
+  body: `এখন থেকে প্রতিটা Task card-এ একটা <b>"▶ START⏰"</b> বাটন আছে।<br><br>
+    Click করলেই — সেই Task-এর "Time Required (hrs)"-টাই timer-এর set time হয়ে যাবে, আর Task-এর নাম-টাই Subject হয়ে যাবে। সাথে সাথে Timer/Zendo tab-এ না গিয়েই ওই Task page থেকেই timer শুরু হয়ে যাবে, card-এই ছোট করে countdown দেখা যাবে।<br><br>
+    বাকি সব নিয়ম আগের মতোই থাকছে — notification, overtime, tree/apple reward, penalty, history — সবকিছু। Timer/Zendo tab-এ গেলে এই session-টাও ঠিকঠাক দেখতে পাবে।`
+};
+let featureAnnouncementChecked = false;
+function checkFeatureAnnouncement() {
+  if(featureAnnouncementChecked || !currentUserData) return;
+  featureAnnouncementChecked = true;
+  if(currentUserData.lastSeenAnnouncement === CURRENT_ANNOUNCEMENT_ID) return;
+  document.getElementById('feature-announce-title').textContent = CURRENT_ANNOUNCEMENT.title;
+  document.getElementById('feature-announce-body').innerHTML = CURRENT_ANNOUNCEMENT.body;
+  openModal('feature-announce-modal');
+}
+function dismissFeatureAnnouncement() {
+  closeModal('feature-announce-modal');
+  if(currentUser) {
+    db.collection('users').doc(currentUser.uid).update({ lastSeenAnnouncement: CURRENT_ANNOUNCEMENT_ID }).catch(() => {});
+  }
+}
+
 let totalsAutoHealed = false;
 async function autoHealAllTotals() {
   if(totalsAutoHealed || !currentUser) return;
@@ -8833,7 +8950,7 @@ async function updateTimerStatusNotification() {
 function startTimerStatusUpdates() {
   stopTimerStatusUpdates();
   updateTimerStatusNotification();
-  timerStatusInterval = setInterval(updateTimerStatusNotification, 60000);
+  timerStatusInterval = setInterval(updateTimerStatusNotification, 300000); // every 5 min, not every 60s — see comment above
 }
 function stopTimerStatusUpdates() {
   if(timerStatusInterval) clearInterval(timerStatusInterval);
@@ -9201,6 +9318,7 @@ function fsPause() {
       forestElapsed++;
       updateForestDisplay();
       if(typeof fsOpen !== 'undefined' && fsOpen && !fsPaused) fsPlayTick();
+      updateTaskLinkedTimerDisplay();
     }, 1000);
     startCurrentTimerSound();
     startKeepAlive();
