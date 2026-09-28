@@ -2693,6 +2693,53 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ── 7 DAY CHALLENGE ── */
+.c7-home-card {
+  border: 1px solid transparent;
+  background-image: linear-gradient(155deg,#2b1a0c 0%,#1a150f 65%), linear-gradient(120deg,var(--accent-orange),var(--accent-gold));
+  background-origin: border-box; background-clip: padding-box, border-box;
+  box-shadow: 0 4px 18px -4px rgba(212,151,100,0.4), 0 2px 8px rgba(0,0,0,0.3);
+}
+.c7-home-card .home-goal-label { color: var(--accent-orange); }
+.c7-home-card .home-goal-edit { background: linear-gradient(120deg,var(--accent-orange),var(--accent-gold)); border: none; color: #16120a; font-weight: 700; }
+
+.c7-hero { display:flex; align-items:center; gap:16px; background:var(--bg-card); border:1px solid var(--border-bright); border-radius:var(--radius); padding:16px; margin-bottom:14px; }
+.c7-ring { --p:0; position:relative; width:92px; height:92px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background: conic-gradient(var(--accent-gold) calc(var(--p) * 1%), var(--bg-elevated) 0); }
+.c7-ring::before { content:''; position:absolute; inset:9px; border-radius:50%; background:var(--bg-card); }
+.c7-ring span { position:relative; font-family:var(--font-head); font-size:1.35rem; font-weight:700; color:var(--accent-gold); }
+.c7-day { font-size:.82rem; font-weight:700; color:var(--accent-orange); }
+.c7-sub-line { font-size:.74rem; color:var(--text-muted); margin-top:3px; }
+
+.c7-vs { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:14px; }
+.c7-vs-title { font-size:.72rem; letter-spacing:1px; font-weight:800; color:var(--text-muted); margin-bottom:12px; }
+.c7-vs-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.c7-vs-name { display:flex; justify-content:space-between; font-size:.85rem; font-weight:700; color:var(--text-primary); margin-bottom:5px; }
+.c7-vs-sub { font-size:.68rem; color:var(--text-muted); margin-top:4px; }
+.c7-vs-msg { text-align:center; font-size:.8rem; font-weight:700; color:var(--accent-gold); margin-top:2px; }
+
+.c7-head { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.c7-head b { flex:1; font-family:var(--font-head); font-size:.95rem; color:var(--accent-gold); }
+.c7-btn { background:var(--bg-elevated); border:1px solid var(--border-bright); color:var(--accent-purple-bright); border-radius:12px; padding:6px 11px; font-size:.74rem; font-weight:700; cursor:pointer; }
+.c7-btn:active { transform:scale(.94); }
+.c7-task { display:flex; align-items:flex-start; gap:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin-bottom:9px; transition:all .2s; }
+.c7-task.done { border-color:rgba(125,167,115,.5); background:linear-gradient(135deg, rgba(125,167,115,.13), var(--bg-card)); }
+.c7-check { width:38px; height:38px; flex-shrink:0; border-radius:50%; border:2px solid var(--border-bright); display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:800; color:var(--text-secondary); cursor:pointer; transition:all .2s; }
+.c7-check:active { transform:scale(.88); }
+.c7-check.on { background:var(--accent-green); border-color:var(--accent-green); color:#10241a; font-size:1.1rem; }
+.c7-mid { flex:1; min-width:0; }
+.c7-title { font-size:.88rem; font-weight:800; color:var(--text-primary); }
+.c7-task.done .c7-title { text-decoration:line-through; opacity:.7; }
+.c7-note { font-size:.75rem; color:var(--text-muted); margin-top:2px; line-height:1.4; }
+.c7-mini { display:flex; align-items:center; gap:8px; margin-top:8px; }
+.c7-mini .dq-progress-bar { flex:1; margin-top:0; }
+.c7-undo { background:var(--bg-elevated); border:1px solid var(--border); color:var(--text-secondary); border-radius:8px; padding:1px 8px; font-size:.7rem; font-weight:700; cursor:pointer; }
+.c7-chip { display:inline-block; margin-top:7px; font-size:.68rem; font-weight:700; padding:2px 9px; border-radius:10px; background:var(--bg-elevated); color:var(--text-secondary); }
+.c7-chip.ok { color:var(--accent-green); }
+.c7-edit { background:none; border:none; color:var(--text-muted); font-size:1rem; cursor:pointer; padding:2px 4px; }
+.c7-hint { text-align:center; font-size:.72rem; color:var(--text-muted); line-height:1.5; margin:12px 0 30px; }
+.c7-input { width:100%; background:var(--bg-elevated); border:1px solid var(--border); border-radius:8px; color:var(--text-primary); padding:11px 14px; font-size:.9rem; outline:none; font-family:inherit; }
+.c7-del { display:none; width:100%; margin-top:10px; padding:11px; background:none; border:1px solid var(--accent-red); color:var(--accent-red); border-radius:12px; font-weight:700; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -2791,6 +2838,16 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       </div>
       <div class="home-exam-indicator" id="home-exam-dots"></div>
     </div>
+   <div class="home-goal-card c7-home-card" id="c7-home-card" onclick="openDrawerPage('c7')">
+  <div class="home-goal-icon">🔥</div>
+  <div style="flex:1;min-width:0">
+    <div class="home-goal-label">🔥 Last 7 Days Challenge</div>
+    <div class="home-goal-text" id="c7-home-text">Tap to start your 7-day plan</div>
+    <div class="dq-progress-bar" style="margin-top:7px"><div class="dq-progress-fill" id="c7-home-fill" style="width:0%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-gold))"></div></div>
+    <div class="home-challenge-meta" id="c7-home-meta"></div>
+  </div>
+  <div class="home-goal-edit">Open</div>
+</div>
     <div class="home-goal-card" onclick="openGoalModal()">
       <div class="home-goal-icon">🎯</div>
       <div style="flex:1">
@@ -3261,6 +3318,7 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   <!-- Page Content -->
   <div style="flex:1;overflow-y:auto;padding:16px" id="drawer-page-body">
 
+<div class="drawer-tab-content" id="drawer-c7"><div id="c7-body"></div></div>
 <!-- ANALYTICS -->
     <div class="drawer-tab-content active" id="drawer-analytics">
       
@@ -3396,6 +3454,8 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
       <button class="mtg-add-graph-btn" onclick="addMockTestGraph()">+ Add Graph</button>
       
     </div> <!-- END of drawer-analytics -->
+    
+    
 
     <!-- NOTES -->
 
@@ -3992,6 +4052,24 @@ background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-deep) 100%);
   </div>
 </div>
 
+<div class="modal-overlay" id="c7-task-modal" style="z-index:1100">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('c7-task-modal')">✕</button>
+    <div class="modal-title" id="c7-modal-title">➕ Add Task</div>
+    <div class="form-group"><label>TASK NAME</label>
+      <input id="c7-in-title" class="c7-input" maxlength="60" placeholder="e.g. Math Hot Shot">
+    </div>
+    <div class="form-group"><label>DETAILS (OPTIONAL)</label>
+      <input id="c7-in-note" class="c7-input" maxlength="120" placeholder="e.g. Chapter 4–6">
+    </div>
+    <div class="form-group"><label>HOW MANY TO COMPLETE?</label>
+      <input type="number" id="c7-in-total" class="c7-input" min="1" max="50" value="1">
+      <div style="font-size:.74rem;color:var(--text-muted);margin-top:6px">1 = simple tick · 1-এর বেশি = counter (যেমন 10 ta class)</div>
+    </div>
+    <button class="btn-primary" style="width:100%;padding:12px;margin-top:6px;font-weight:700" onclick="c7SaveTask()">Save</button>
+    <button class="c7-del" id="c7-del-btn" onclick="c7DeleteTask()">🗑 Delete Task</button>
+  </div>
+</div>
 <!-- GOAL MODAL -->
 <div class="modal-overlay" id="goal-modal">
   <div class="modal goal-modal-wrap">
@@ -4356,6 +4434,7 @@ async function startListeners() {
       try { if(currentCourseId) refreshCourseDetail(); } catch(e) { console.error('refreshCourseDetail failed:', e); }
       try { updateReportCard(); } catch(e) { console.error('updateReportCard failed:', e); }
       try { renderLiveBadges(); } catch(e) { console.error('renderLiveBadges failed:', e); }
+      c7Refresh();
     }
   });
 
@@ -4374,6 +4453,7 @@ const allUsersSnap = await db.collection('users').get();
 allUsersData = allUsersSnap.docs.map(d => ({id: d.id, ...d.data()}));
 partnerData = allUsersData.find(u => u.id !== currentUser.uid) || null;
 try { renderLiveBadges(); } catch(e) { console.error('renderLiveBadges failed:', e); }
+c7Refresh();
 
 let u3 = () => {};
 if(partnerData) {
@@ -4384,6 +4464,7 @@ if(partnerData) {
       if(document.getElementById('tab-analytics').classList.contains('active')) {
         updateAnalytics();
         try { renderLiveBadges(); } catch(e) { console.error('renderLiveBadges failed:', e); }
+        c7Refresh();
       }
     }
   });
@@ -4402,6 +4483,18 @@ if(partnerData) {
     const data = snap.data();
     DB.courses = data.courses || [];
     DB.assignments = data.assignments || [];
+    if(Array.isArray(data.challenge7Tasks)) {
+      sharedC7Data = {
+        startDate: data.challenge7StartDate || getLocalDateString(),
+        tasks: data.challenge7Tasks
+      };
+      try { c7Refresh(); } catch(e) { console.error('Challenge 7 refresh failed:', e); }
+    } else {
+      // One-time migration: move the existing per-user checklist into the
+      // already-shared Dojo/Course data document. After this, all users use
+      // the same task definitions in real time.
+      c7EnsureSharedData(data);
+    }
     if(data.weeklyGoal !== undefined) {
       weeklyGoal = data.weeklyGoal;
       updateHomeGoal();
@@ -8869,6 +8962,7 @@ const drawerPageTitles = {
   journal: '📖 Journal',
   games: '🎮 Zen Games',
   settings: '⚙️ Settings',
+c7: '🔥 7 Day Challenge',
   about: '🏯 About Me'
 };
 
@@ -8899,6 +8993,7 @@ function openDrawerPage(tab) {
   if(tab === 'notes') loadNotes();
   if(tab === 'journal') loadJournal();
   if(tab === 'settings') loadSettings();
+    if(tab === 'c7') renderC7();
 }
 
 function closeDrawerPage() {
@@ -12208,6 +12303,277 @@ async function downloadCertificate() {
   }
 }
 
+// ═══════════════════════════════════════════
+// 7 DAY CHALLENGE
+// ═══════════════════════════════════════════
+const C7_DEFAULT_TASKS = [
+  {id:'d1',  title:'GS STENO CLASS',   note:'Geo, Polity, Hist, Eco, CA (Live & Recorded)', total:5},
+  {id:'d2',  title:'GS HOT SHOT',      note:'Total 4 class', total:4},
+  {id:'d3',  title:'GS SMART SHOT',    note:'Polity, Eco', total:2},
+  {id:'d4',  title:'MATH EXP PAPER',   note:'Total 10 class', total:10},
+  {id:'d5',  title:'MATH HOT SHOT',    note:'3 ti class korte hobe', total:3},
+  {id:'d6',  title:'ENGLISH',          note:'Parmar Sir er 6 ti STENO class er video', total:6},
+  {id:'d7',  title:'REASONING',        note:'Je class gulo dorkar (calendar, clock), tar Hot Shot class', total:1},
+  {id:'d8',  title:'MATH SECTIONAL',   note:'Blitz series app diye sectional mock test', total:1},
+  {id:'d9',  title:'FULL MOCK',        note:'OBT ebong RBE theke mot 7 ti mock test', total:7},
+  {id:'d10', title:'CA',               note:'Main topic gulo revise', total:1},
+  {id:'d11', title:'GK (REVISE)',      note:'Folk Dance, Festival, Music ebong onnano topic', total:1},
+  {id:'d12', title:'NITTO CLASS',      note:'Sombhob hole 2-3 ti class 2x speed e', total:3},
+  {id:'d13', title:"RANI MA'AM AWESOME QUESTION SERIES", note:'Sombhob hole CGL class er main topic gulo', total:1}
+];
+
+function c7Esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+// Shared task definitions live in sharedCourseData/main, just like the Dojo/Course
+// data. Each user's completion count is kept inside progressBy[uid], so adding,
+// editing, or deleting a challenge task changes the same checklist for everyone,
+// while progress can still remain personal.
+let sharedC7Data = null;
+
+function c7Get(u) {
+  if(sharedC7Data && Array.isArray(sharedC7Data.tasks)) {
+    const uid = u?.id || (u === currentUserData ? currentUser?.uid : null);
+    const tasks = sharedC7Data.tasks.map(t => {
+      const progressBy = (t && t.progressBy && typeof t.progressBy === 'object') ? t.progressBy : {};
+      return {...t, done: Math.max(0, Number(progressBy[uid] || 0))};
+    });
+    return {startDate: sharedC7Data.startDate || getLocalDateString(), tasks};
+  }
+  return (u && u.challenge7 && Array.isArray(u.challenge7.tasks)) ? u.challenge7 : null;
+}
+function c7Default() {
+  return { startDate: getLocalDateString(), tasks: C7_DEFAULT_TASKS.map(t => ({...t, done: 0})) };
+}
+function c7Work() {
+  return JSON.parse(JSON.stringify(c7Get(currentUserData) || c7Default()));
+}
+function c7Stats(c) {
+  let total = 0, done = 0, tasksDone = 0;
+  if(c) c.tasks.forEach(t => {
+    const tot = t.total || 1, d = Math.min(t.done || 0, tot);
+    total += tot; done += d;
+    if(d >= tot) tasksDone++;
+  });
+  return { total, done, tasksDone, count: c ? c.tasks.length : 0, pct: total ? Math.round(done / total * 100) : 0 };
+}
+function c7Day(c) {
+  const start = new Date(((c && c.startDate) || getLocalDateString()) + 'T00:00:00');
+  const today = new Date(getLocalDateString() + 'T00:00:00');
+  const day = Math.floor((today - start) / 86400000) + 1;
+  if(day > 7) return 'Challenge ended';
+  const d = Math.max(1, day), left = 7 - d;
+  return left === 0 ? 'Day 7 of 7 · Last day! 🔥' : `Day ${d} of 7 · ${left} day${left === 1 ? '' : 's'} left`;
+}
+function c7First(n) { return String(n || '').trim().split(' ')[0] || 'Player'; }
+function c7Av(u) {
+  const inner = u && u.avatarUrl ? `<img src="${c7Esc(u.avatarUrl)}" alt="avatar">` : c7Esc(((u && u.name) || '?').charAt(0).toUpperCase());
+  return `<div class="avatar-sm" style="cursor:default">${inner}</div>`;
+}
+
+// ── Save / mutate ──
+async function c7Save(c) {
+  try {
+    const oldTasks = Array.isArray(sharedC7Data?.tasks) ? sharedC7Data.tasks : [];
+    const cleanedTasks = c.tasks.map(t => {
+      const old = oldTasks.find(x => x.id === t.id);
+      const progressBy = {...(old?.progressBy || {})};
+      progressBy[currentUser.uid] = Math.max(0, Math.min(t.total || 1, Number(t.done || 0)));
+      return {
+        id: t.id || ('c' + Date.now().toString(36)),
+        title: String(t.title || '').trim(),
+        note: String(t.note || '').trim(),
+        total: Math.max(1, Math.min(50, Number(t.total) || 1)),
+        progressBy
+      };
+    });
+    const payload = {
+      challenge7StartDate: c.startDate || sharedC7Data?.startDate || getLocalDateString(),
+      challenge7Tasks: cleanedTasks,
+      challenge7UpdatedBy: currentUser.uid,
+      challenge7UpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('sharedCourseData').doc('main').set(payload, {merge:true});
+  } catch(e) { toast('❌ ' + e.message); }
+}
+function c7Commit(c) {
+  const before = c7Stats(c7Get(currentUserData)).pct;
+  currentUserData.challenge7 = c;
+  const after = c7Stats(c).pct;
+  c7Refresh();
+  c7Save(c);
+  if(after === 100 && before < 100) {
+    try { playSFX('success'); } catch(e) {}
+    toast('🏆 Challenge complete! Zabardast!');
+  }
+}
+function c7Toggle(id) {
+  const c = c7Work(), t = c.tasks.find(x => x.id === id);
+  if(!t) return;
+  t.done = (t.done || 0) >= (t.total || 1) ? 0 : (t.total || 1);
+  c7Commit(c);
+}
+function c7Bump(id, delta) {
+  const c = c7Work(), t = c.tasks.find(x => x.id === id);
+  if(!t) return;
+  t.done = Math.max(0, Math.min(t.total || 1, (t.done || 0) + delta));
+  c7Commit(c);
+}
+function c7Restart() {
+  if(!confirm('Restart the challenge?\nAll ticks reset to 0 and Day 1 starts today. Your task list stays as it is.')) return;
+  const c = c7Work();
+  c.startDate = getLocalDateString();
+  c.tasks.forEach(t => t.done = 0);
+  c7Commit(c);
+}
+
+// ── Add / edit / delete ──
+let c7EditId = null;
+function c7OpenTask(id) {
+  c7EditId = id || null;
+  const t = id ? c7Work().tasks.find(x => x.id === id) : null;
+  document.getElementById('c7-modal-title').textContent = t ? '✏️ Edit Task' : '➕ Add Task';
+  document.getElementById('c7-in-title').value = t ? t.title : '';
+  document.getElementById('c7-in-note').value = t ? (t.note || '') : '';
+  document.getElementById('c7-in-total').value = t ? (t.total || 1) : 1;
+  document.getElementById('c7-del-btn').style.display = t ? 'block' : 'none';
+  openModal('c7-task-modal');
+}
+function c7SaveTask() {
+  const title = document.getElementById('c7-in-title').value.trim();
+  if(!title) return toast('Enter a task name');
+  const note = document.getElementById('c7-in-note').value.trim();
+  const total = Math.max(1, Math.min(50, parseInt(document.getElementById('c7-in-total').value) || 1));
+  const c = c7Work();
+  if(c7EditId) {
+    const t = c.tasks.find(x => x.id === c7EditId);
+    if(t) { t.title = title; t.note = note; t.total = total; t.done = Math.min(t.done || 0, total); }
+  } else {
+    c.tasks.push({ id: 'c' + Date.now().toString(36), title, note, total, done: 0 });
+  }
+  closeModal('c7-task-modal');
+  c7Commit(c);
+}
+function c7DeleteTask() {
+  if(!c7EditId) return;
+  if(!confirm('Delete this task?')) return;
+  const c = c7Work();
+  c.tasks = c.tasks.filter(x => x.id !== c7EditId);
+  closeModal('c7-task-modal');
+  c7Commit(c);
+}
+
+// ── Rendering ──
+function renderC7HomeCard() {
+  const card = document.getElementById('c7-home-card');
+  if(!card || !currentUserData) return;
+  const mine = c7Get(currentUserData), me = c7Stats(mine);
+  const th = partnerData ? c7Stats(c7Get(partnerData)) : null;
+  document.getElementById('c7-home-text').textContent = th
+    ? `${c7First(currentUserData.name)} ${me.pct}%  ·  ${c7First(partnerData.name)} ${th.pct}%`
+    : (mine ? `${me.pct}% complete` : 'Tap to start your 7-day plan');
+  document.getElementById('c7-home-fill').style.width = me.pct + '%';
+  document.getElementById('c7-home-meta').textContent = c7Day(mine);
+}
+
+function renderC7() {
+  const body = document.getElementById('c7-body');
+  if(!body || !currentUserData) return;
+  const mine = c7Get(currentUserData) || c7Default();
+  const theirs = partnerData ? c7Get(partnerData) : null;
+  const me = c7Stats(mine), th = c7Stats(theirs);
+  const myName = currentUserData.name || 'You', thName = partnerData ? (partnerData.name || 'Partner') : '';
+
+  let vs = '';
+  if(partnerData) {
+    const lead = me.pct === th.pct ? 0 : (me.pct > th.pct ? 1 : 2);
+    const msg = lead === 0
+      ? (me.pct === 0 ? 'Start ticking — the race is on! 🏁' : 'Neck and neck! 🤝')
+      : (lead === 1 ? `You're ahead by ${me.pct - th.pct}% 💪` : `${c7Esc(c7First(thName))} is ahead by ${th.pct - me.pct}% — catch up! 🔥`);
+    const row = (u, name, s, crown, started) => `
+      <div class="c7-vs-row">
+        ${c7Av(u)}
+        <div style="flex:1;min-width:0">
+          <div class="c7-vs-name"><span>${crown ? '👑 ' : ''}${c7Esc(name)}</span><span>${started ? s.pct + '%' : 'Not started'}</span></div>
+          <div class="dq-progress-bar" style="height:8px"><div class="dq-progress-fill" style="width:${s.pct}%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-gold))"></div></div>
+          <div class="c7-vs-sub">${started ? s.tasksDone + '/' + s.count + ' tasks done' : ''}</div>
+        </div>
+      </div>`;
+    vs = `<div class="c7-vs">
+      <div class="c7-vs-title">⚔️ HEAD TO HEAD</div>
+      ${row(currentUserData, myName + ' (You)', me, lead === 1, !!c7Get(currentUserData))}
+      ${row(partnerData, thName, th, lead === 2, !!theirs)}
+      <div class="c7-vs-msg">${msg}</div>
+    </div>`;
+  }
+
+  const tasksHtml = mine.tasks.map(t => {
+    const tot = t.total || 1, d = Math.min(t.done || 0, tot), full = d >= tot;
+    const pt = theirs ? theirs.tasks.find(x => x.id === t.id) : null;
+    const ptDone = pt ? Math.min(pt.done || 0, pt.total || 1) >= (pt.total || 1) : false;
+    const chip = pt ? `<div class="c7-chip ${ptDone ? 'ok' : ''}">${c7Esc(c7First(thName))}: ${Math.min(pt.done || 0, pt.total || 1)}/${pt.total || 1}${ptDone ? ' ✓' : ''}</div>` : '';
+    const tap = tot === 1 ? `c7Toggle('${t.id}')` : `c7Bump('${t.id}',1)`;
+    const mini = tot > 1 ? `<div class="c7-mini">
+        <div class="dq-progress-bar"><div class="dq-progress-fill" style="width:${d / tot * 100}%;background:var(--accent-green)"></div></div>
+        <button class="c7-undo" onclick="c7Bump('${t.id}',-1)">−1</button>
+      </div>` : '';
+    return `<div class="c7-task ${full ? 'done' : ''}">
+      <div class="c7-check ${full ? 'on' : ''}" onclick="${tap}">${full ? '✓' : (tot === 1 ? '' : d + '/' + tot)}</div>
+      <div class="c7-mid">
+        <div class="c7-title">${c7Esc(t.title)}</div>
+        ${t.note ? `<div class="c7-note">${c7Esc(t.note)}</div>` : ''}
+        ${mini}${chip}
+      </div>
+      <button class="c7-edit" onclick="c7OpenTask('${t.id}')">✎</button>
+    </div>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="c7-hero">
+      <div class="c7-ring" style="--p:${me.pct}"><span>${me.pct}%</span></div>
+      <div style="flex:1;min-width:0">
+        <div class="page-title-glow" style="text-align:left;margin-bottom:4px">7 Day Challenge</div>
+        <div class="c7-day">${c7Day(mine)}</div>
+        <div class="c7-sub-line">${me.tasksDone}/${me.count} tasks · ${me.done}/${me.total} steps done</div>
+      </div>
+    </div>
+    ${vs}
+    <div class="c7-head">
+      <b>📋 My Checklist</b>
+      <button class="c7-btn" onclick="c7OpenTask()">➕ Add</button>
+      <button class="c7-btn" onclick="c7Restart()">↺ Restart</button>
+    </div>
+    ${tasksHtml || '<div class="forest-empty">No tasks yet — tap ➕ Add</div>'}
+    <div class="c7-hint">Tap the circle to tick · tasks with a counter (e.g. 3/10) add +1 per tap · ✎ to edit or delete</div>`;
+}
+
+async function c7EnsureSharedData(data) {
+  if(!currentUser || data?.challenge7Tasks !== undefined) return;
+  const legacy = c7Get(currentUserData) || c7Default();
+  const tasks = legacy.tasks.map(t => ({
+    id: t.id,
+    title: t.title,
+    note: t.note || '',
+    total: Math.max(1, Math.min(50, Number(t.total) || 1)),
+    progressBy: {[currentUser.uid]: Math.max(0, Math.min(Number(t.total) || 1, Number(t.done) || 0))}
+  }));
+  try {
+    await db.collection('sharedCourseData').doc('main').set({
+      challenge7StartDate: legacy.startDate || getLocalDateString(),
+      challenge7Tasks: tasks,
+      challenge7UpdatedBy: currentUser.uid,
+      challenge7UpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true});
+  } catch(e) { console.error('Challenge 7 shared-data init failed:', e); }
+}
+
+function c7Refresh() {
+  try {
+    renderC7HomeCard();
+    const open = document.getElementById('drawer-page-overlay')?.style.display === 'flex';
+    if(open && activeDrawerTab === 'c7') renderC7();
+  } catch(e) { console.error('c7Refresh failed:', e); }
+}
 </script>
 </body>
 </html>
